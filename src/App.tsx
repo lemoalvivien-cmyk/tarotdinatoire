@@ -78,7 +78,7 @@ const App = () => (
               <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
               <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/app/lecture/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
               
               {/* ========== ADMIN ROUTES (ASCII only) ========== */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -94,7 +94,7 @@ const App = () => (
               <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
               <Route path="/mentions-juridiques" element={<Navigate to="/legal/terms" replace />} />
               <Route path="/mentions-legales" element={<Navigate to="/legal/imprint" replace />} />
-              <Route path="/app/reading/:id" element={<ReadingRedirect />} />
+              <Route path="/app/lecture/:id" element={<ReadingRedirect />} />
               <Route path="/admin/journaux-audit" element={<Navigate to="/admin/audit-logs" replace />} />
               
               {/* ========== 404 ========== */}
