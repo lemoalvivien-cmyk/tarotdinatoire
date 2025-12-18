@@ -4,20 +4,30 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 
-// Pages
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import About from "./pages/About";
+// Public Pages
+import Landing from "./pages/public/Landing";
+import Auth from "./pages/public/Auth";
+import Disclaimer from "./pages/public/Disclaimer";
+import Status from "./pages/public/Status";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
-import Legal from "./pages/legal/Legal";
+import Imprint from "./pages/legal/Imprint";
 import NotFound from "./pages/NotFound";
 
-// Protected pages (will be created next)
-import Tirage from "./pages/Tirage";
-import Journal from "./pages/Journal";
-import Profil from "./pages/Profil";
+// Protected App Pages
+import Dashboard from "./pages/app/Dashboard";
+import Onboarding from "./pages/app/Onboarding";
+import NewReading from "./pages/app/NewReading";
+import History from "./pages/app/History";
+import Favorites from "./pages/app/Favorites";
+import ReadingDetail from "./pages/app/ReadingDetail";
+import Profile from "./pages/app/Profile";
+
+// Admin Pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -29,20 +39,30 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
+            {/* ========== PUBLIC ROUTES ========== */}
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/a-propos" element={<About />} />
-            <Route path="/politique-confidentialite" element={<Privacy />} />
-            <Route path="/cgu" element={<Terms />} />
-            <Route path="/mentions-legales" element={<Legal />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
+            <Route path="/status" element={<Status />} />
             
-            {/* Protected routes */}
-            <Route path="/tirage" element={<Tirage />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/profil" element={<Profil />} />
+            {/* Legal Pages */}
+            <Route path="/legal/privacy" element={<Privacy />} />
+            <Route path="/legal/terms" element={<Terms />} />
+            <Route path="/legal/imprint" element={<Imprint />} />
             
-            {/* Catch-all */}
+            {/* ========== PROTECTED APP ROUTES ========== */}
+            <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/app/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
+            <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+            <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+            <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            
+            {/* ========== ADMIN ROUTES ========== */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            
+            {/* ========== 404 ========== */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
