@@ -61,16 +61,52 @@ serve(async (req) => {
   }
 
   try {
-    // Check for ENV CHECK mode (admin diagnostic)
+    // Check for ENV CHECK mode (admin diagnostic - REQUIRES AUTH + ADMIN ROLE)
     const url = new URL(req.url);
     if (url.searchParams.get("action") === "env-check") {
+      // ENV CHECK requires authentication
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: "Non autorisé" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Create Supabase client with user's JWT
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const supabaseEnvCheck = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      // Verify user
+      const { data: { user: envCheckUser }, error: envCheckUserError } = await supabaseEnvCheck.auth.getUser();
+      if (envCheckUserError || !envCheckUser) {
+        return new Response(
+          JSON.stringify({ error: "Session invalide" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check admin role
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabaseAdminEnvCheck = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data: isAdminData } = await supabaseAdminEnvCheck.rpc("is_admin", { _user_id: envCheckUser.id });
+      
+      if (!isAdminData) {
+        return new Response(
+          JSON.stringify({ error: "Accès admin requis" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const hasTarotKey = !!Deno.env.get("TAROT_API_KEY");
       
       return new Response(
         JSON.stringify({ 
           hasTarotKey, 
-          hasOpenAIKey: false,
-          hasLovableKey: false,
           provider: hasTarotKey ? "deepseek" : "none"
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }

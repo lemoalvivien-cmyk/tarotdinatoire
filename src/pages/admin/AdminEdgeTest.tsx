@@ -118,8 +118,6 @@ const validateInterpretation = (data: unknown): { valid: boolean; missing: strin
 
 interface EnvCheckResult {
   hasTarotKey: boolean;
-  hasOpenAIKey: boolean;
-  hasLovableKey: boolean;
   provider: 'deepseek' | 'none' | string;
 }
 
@@ -261,9 +259,31 @@ export default function AdminEdgeTest() {
   const handleEnvCheck = async () => {
     setEnvCheckLoading(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        toast.error('Session expirée');
+        setEnvCheckLoading(false);
+        return;
+      }
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation?action=env-check`
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation?action=env-check`,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        }
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Accès refusé');
+        setEnvCheckLoading(false);
+        return;
+      }
+      
       const data = await response.json();
       setEnvCheck(data);
       toast.success('Vérification ENV terminée');

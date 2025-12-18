@@ -51,10 +51,10 @@ const App = () => (
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/disclaimer" element={<Disclaimer />} />
-              <Route path="/status" element={<Status />} />
+              <Route path="/statut" element={<Status />} />
               
-              {/* Redirects for legacy/accented routes */}
-              <Route path="/statut" element={<Navigate to="/status" replace />} />
+              {/* Redirects for legacy routes */}
+              <Route path="/status" element={<Navigate to="/statut" replace />} />
               
               {/* Legal Pages (ASCII slugs) */}
               <Route path="/legal/privacy" element={<Privacy />} />
@@ -71,9 +71,9 @@ const App = () => (
               <Route path="/app/bootstrap-admin" element={<ProtectedRoute><BootstrapAdmin /></ProtectedRoute>} />
               
               {/* Reading detail - canonical route */}
-              <Route path="/app/lecture/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
-              {/* Legacy redirect: /app/reading/:id → /app/lecture/:id */}
-              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingRedirect /></ProtectedRoute>} />
+              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+              {/* Legacy redirect: /app/lecture/:id → /app/reading/:id */}
+              <Route path="/app/lecture/:id" element={<ProtectedRoute><ReadingRedirect /></ProtectedRoute>} />
               
               {/* ========== ADMIN ROUTES ========== */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
