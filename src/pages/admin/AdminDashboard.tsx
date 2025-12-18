@@ -1,6 +1,16 @@
 import { Layout } from '@/components/layout/Layout';
 import { useAdminStats } from '@/hooks/useAdminStats';
-import { Shield, Users, Sparkles, CalendarDays, Settings, Clock } from 'lucide-react';
+import { 
+  Shield, 
+  Users, 
+  Sparkles, 
+  CalendarDays, 
+  Settings, 
+  Clock,
+  FileText,
+  ScrollText,
+  FlaskConical
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,10 +55,32 @@ export default function AdminDashboard() {
                 <p className="text-muted-foreground">Tableau de bord</p>
               </div>
             </div>
-            <Button asChild>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
               <Link to="/admin/flags">
-                <Settings className="h-4 w-4 mr-2" />
-                Feature Flags
+                <Settings className="h-5 w-5" />
+                <span>Feature Flags</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
+              <Link to="/admin/prompts">
+                <FileText className="h-5 w-5" />
+                <span>Prompts IA</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
+              <Link to="/admin/audit-logs">
+                <ScrollText className="h-5 w-5" />
+                <span>Audit Logs</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
+              <Link to="/admin/edge-test">
+                <FlaskConical className="h-5 w-5" />
+                <span>Tests Edge</span>
               </Link>
             </Button>
           </div>
