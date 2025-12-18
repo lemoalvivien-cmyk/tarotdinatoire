@@ -65,20 +65,13 @@ serve(async (req) => {
     const url = new URL(req.url);
     if (url.searchParams.get("action") === "env-check") {
       const hasTarotKey = !!Deno.env.get("TAROT_API_KEY");
-      const hasOpenAIKey = !!Deno.env.get("OPENAI_API_KEY");
-      const hasLovableKey = !!Deno.env.get("LOVABLE_API_KEY");
-      
-      let provider = "none";
-      if (hasLovableKey) provider = "lovable";
-      if (hasOpenAIKey) provider = "openai";
-      if (hasTarotKey) provider = "tarot";
       
       return new Response(
         JSON.stringify({ 
           hasTarotKey, 
-          hasOpenAIKey, 
-          hasLovableKey,
-          provider 
+          hasOpenAIKey: false,
+          hasLovableKey: false,
+          provider: hasTarotKey ? "deepseek" : "none"
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -289,44 +282,39 @@ ${cardContexts.map(c => `- ${c.name_fr} (${c.type === "major" ? "Arcane Majeur" 
 
 Génère une interprétation mystique, bienveillante et personnalisée pour les 4 domaines (général, amour, travail, finances). Réponds UNIQUEMENT en JSON valide.`;
 
-    console.log("Calling AI provider...");
+    console.log("Calling DeepSeek AI...");
 
-    // Check for API keys (priority: TAROT_API_KEY > OPENAI_API_KEY > LOVABLE_API_KEY)
+    // Only use TAROT_API_KEY for DeepSeek
     const TAROT_API_KEY = Deno.env.get("TAROT_API_KEY");
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    const apiKey = TAROT_API_KEY || OPENAI_API_KEY || LOVABLE_API_KEY;
-    
-    if (!apiKey) {
-      console.error("Missing TAROT_API_KEY - no AI API key configured");
+    if (!TAROT_API_KEY) {
+      console.error("Missing TAROT_API_KEY - no DeepSeek API key configured");
       return new Response(
         JSON.stringify({ error: "Missing TAROT_API_KEY" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Determine which provider to use
-    const useOpenAI = !!(TAROT_API_KEY || OPENAI_API_KEY);
-    const apiUrl = useOpenAI 
-      ? "https://api.openai.com/v1/chat/completions"
-      : "https://ai.gateway.lovable.dev/v1/chat/completions";
-    const model = useOpenAI ? "gpt-4o-mini" : "google/gemini-2.5-flash";
+    // DeepSeek API configuration
+    const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+    const DEEPSEEK_MODEL = "deepseek-chat";
     
-    console.log("Using provider:", useOpenAI ? "OpenAI" : "Lovable", "model:", model);
+    console.log("Using provider: DeepSeek, model:", DEEPSEEK_MODEL);
 
-    const aiResponse = await fetch(apiUrl, {
+    const aiResponse = await fetch(DEEPSEEK_API_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${TAROT_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model,
+        model: DEEPSEEK_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        temperature: 0.7,
+        max_tokens: 2000,
       }),
     });
 
