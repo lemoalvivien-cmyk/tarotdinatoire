@@ -123,7 +123,6 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
-          email: string | null
           id: string
           intention: string | null
           onboarding_completed: boolean | null
@@ -133,7 +132,6 @@ export type Database = {
         Insert: {
           created_at?: string
           display_name?: string | null
-          email?: string | null
           id: string
           intention?: string | null
           onboarding_completed?: boolean | null
@@ -143,7 +141,6 @@ export type Database = {
         Update: {
           created_at?: string
           display_name?: string | null
-          email?: string | null
           id?: string
           intention?: string | null
           onboarding_completed?: boolean | null
