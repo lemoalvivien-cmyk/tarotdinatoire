@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { User, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useQueryClient } from '@tanstack/react-query';
+import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,11 +22,63 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function Profile() {
-  const { user, signOut } = useAuth();
+  const { user, session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: flags, refetch: refetchFlags } = useFeatureFlags();
+  
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [bootstrapToken, setBootstrapToken] = useState('');
+  const [activating, setActivating] = useState(false);
+  const [activated, setActivated] = useState(false);
+
+  // Show bootstrap section only if admin_bootstrap_used is false
+  // The edge function will validate email server-side
+  const canShowBootstrap = flags?.admin_bootstrap_used === false;
+
+  const handleBootstrapAdmin = async () => {
+    if (!session?.access_token || !bootstrapToken.trim()) return;
+    
+    setActivating(true);
+    try {
+      const response = await supabase.functions.invoke('bootstrap-admin', {
+        headers: {
+          'x-admin-bootstrap-token': bootstrapToken.trim(),
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Bootstrap failed');
+      }
+
+      // Clear token from memory immediately
+      setBootstrapToken('');
+      setActivated(true);
+      
+      // Refresh feature flags
+      await refetchFlags();
+      
+      // Invalidate any admin-related queries
+      queryClient.invalidateQueries({ queryKey: ['user-roles'] });
+      
+      toast({
+        title: "Admin activé",
+        description: "Votre compte a été promu administrateur.",
+      });
+    } catch (error: any) {
+      console.error('Bootstrap error:', error);
+      setBootstrapToken('');
+      toast({
+        title: "Erreur d'activation",
+        description: error.message || "Impossible d'activer le compte admin.",
+        variant: "destructive",
+      });
+    } finally {
+      setActivating(false);
+    }
+  };
 
   const handleExportData = async () => {
     if (!user) return;
@@ -83,8 +138,8 @@ export default function Profile() {
       await supabase.from('profiles').delete().eq('id', user.id);
       await supabase.from('user_roles').delete().eq('user_id', user.id);
       
-      // Sign out
-      await signOut();
+      // Sign out - need to import signOut from useAuth
+      await supabase.auth.signOut();
       
       toast({
         title: "Compte supprimé",
@@ -124,6 +179,57 @@ export default function Profile() {
               <p className="font-medium">{user?.email}</p>
             </div>
           </div>
+
+          {/* Admin Bootstrap Section - Only visible before first admin is activated */}
+          {canShowBootstrap && !activated && (
+            <div className="p-6 rounded-xl bg-primary/5 border border-primary/20 space-y-4 animate-fade-in-up">
+              <div className="flex items-start gap-4">
+                <Shield className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="font-medium text-primary">Activer accès Admin</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Entrez le token d'administration pour activer votre compte admin.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      placeholder="Token admin"
+                      value={bootstrapToken}
+                      onChange={(e) => setBootstrapToken(e.target.value)}
+                      className="flex-1"
+                      autoComplete="off"
+                    />
+                    <Button 
+                      onClick={handleBootstrapAdmin}
+                      disabled={activating || !bootstrapToken.trim()}
+                    >
+                      {activating ? 'Activation...' : 'Activer'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Admin Activated Success */}
+          {activated && (
+            <div className="p-6 rounded-xl bg-green-500/10 border border-green-500/30 space-y-4 animate-scale-in">
+              <div className="flex items-start gap-4">
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-medium text-green-600 dark:text-green-400">Admin activé</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Votre compte administrateur est maintenant actif.
+                  </p>
+                  <Button onClick={() => navigate('/admin')}>
+                    Aller au tableau de bord admin
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* RGPD Actions */}
           <div className="space-y-4">
