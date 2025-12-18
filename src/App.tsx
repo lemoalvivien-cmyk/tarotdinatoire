@@ -53,8 +53,14 @@ const App = () => (
               <Route path="/disclaimer" element={<Disclaimer />} />
               <Route path="/status" element={<Status />} />
               
-              {/* Redirects for legacy routes */}
+              {/* Redirects for legacy routes - ASCII normalization */}
               <Route path="/statut" element={<Navigate to="/status" replace />} />
+              <Route path="/clause de non-responsabilité" element={<Navigate to="/disclaimer" replace />} />
+              <Route path="/juridique/confidentialité" element={<Navigate to="/legal/privacy" replace />} />
+              <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
+              <Route path="/mentions-legales" element={<Navigate to="/legal/imprint" replace />} />
+              <Route path="/mentions légales" element={<Navigate to="/legal/imprint" replace />} />
+              <Route path="/admin/journaux d'audit" element={<Navigate to="/admin/audit-logs" replace />} />
               
               {/* Legal Pages (ASCII slugs) */}
               <Route path="/legal/privacy" element={<Privacy />} />
