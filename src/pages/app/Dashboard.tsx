@@ -27,7 +27,7 @@ export default function Dashboard() {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('onboarding_completed')
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .single();
 
         setProfile(profileData);
@@ -40,12 +40,12 @@ export default function Dashboard() {
 
         // Fetch stats
         const { count: totalReadings } = await supabase
-          .from('readings')
+          .from('tarot_readings')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
 
         const { count: favorites } = await supabase
-          .from('readings')
+          .from('tarot_readings')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .eq('is_favorite', true);

@@ -32,8 +32,8 @@ export default function Profile() {
     try {
       // Fetch all user data
       const [profileRes, readingsRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('user_id', user.id).single(),
-        supabase.from('readings').select('*').eq('user_id', user.id),
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('tarot_readings').select('*').eq('user_id', user.id),
       ]);
 
       const exportData = {
@@ -79,8 +79,8 @@ export default function Profile() {
     setDeleting(true);
     try {
       // Delete readings first (cascade should handle this, but being explicit)
-      await supabase.from('readings').delete().eq('user_id', user.id);
-      await supabase.from('profiles').delete().eq('user_id', user.id);
+      await supabase.from('tarot_readings').delete().eq('user_id', user.id);
+      await supabase.from('profiles').delete().eq('id', user.id);
       await supabase.from('user_roles').delete().eq('user_id', user.id);
       
       // Sign out

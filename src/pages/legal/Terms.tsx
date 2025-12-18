@@ -1,8 +1,14 @@
 import { Layout } from '@/components/layout/Layout';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Terms() {
   return (
     <Layout>
+      <SEOHead
+        title="Conditions Générales d'Utilisation | Tarot Divinatoire"
+        description="CGU du service Tarot Divinatoire. VERSION BÊTA GRATUITE. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
+        noindex={true}
+      />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto prose prose-slate dark:prose-invert">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold mb-8">
