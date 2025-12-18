@@ -98,6 +98,22 @@ serve(async (req) => {
 
     if (currentCount >= DAILY_LIMIT) {
       console.log("Rate limit exceeded for user:", user.id, "count:", currentCount);
+      
+      // Log rate limit hit to admin_audit_logs
+      await supabaseAdmin
+        .from("admin_audit_logs")
+        .insert({
+          action: "rate_limit_hit",
+          target_id: user.id,
+          target_type: "user",
+          metadata: { 
+            day: today, 
+            count: currentCount, 
+            limit: DAILY_LIMIT,
+            endpoint: "tarot-interpretation"
+          }
+        });
+
       return new Response(
         JSON.stringify({ 
           error: "Limite quotidienne atteinte",

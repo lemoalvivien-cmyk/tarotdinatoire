@@ -18,6 +18,7 @@ const ALWAYS_ALLOWED_ROUTES = [
   '/legal/imprint',
   '/disclaimer',
   '/auth',
+  '/app/bootstrap-admin', // Allow bootstrap even in maintenance
 ];
 
 export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
