@@ -116,11 +116,20 @@ const validateInterpretation = (data: unknown): { valid: boolean; missing: strin
   return { valid: missing.length === 0, missing };
 };
 
+interface EnvCheckResult {
+  hasTarotKey: boolean;
+  hasOpenAIKey: boolean;
+  hasLovableKey: boolean;
+  provider: string;
+}
+
 export default function AdminEdgeTest() {
   const { user } = useAuth();
   const [results, setResults] = useState<Map<string, TestResult>>(new Map());
   const [running, setRunning] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
+  const [envCheck, setEnvCheck] = useState<EnvCheckResult | null>(null);
+  const [envCheckLoading, setEnvCheckLoading] = useState(false);
 
   const runTest = async (testCase: TestCase): Promise<TestResult> => {
     const startTime = performance.now();
@@ -249,6 +258,23 @@ export default function AdminEdgeTest() {
     toast.success(`Tests terminés: ${successCount}/${TEST_CASES.length} réussis`);
   };
 
+  const handleEnvCheck = async () => {
+    setEnvCheckLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation?action=env-check`
+      );
+      const data = await response.json();
+      setEnvCheck(data);
+      toast.success('Vérification ENV terminée');
+    } catch (error) {
+      toast.error('Erreur lors de la vérification ENV');
+      console.error('ENV check error:', error);
+    } finally {
+      setEnvCheckLoading(false);
+    }
+  };
+
   const getStatusBadge = (result: TestResult) => {
     if (result.status === 'success') {
       return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" /> OK</Badge>;
@@ -279,6 +305,13 @@ export default function AdminEdgeTest() {
               <Button variant="outline" asChild>
                 <Link to="/admin">← Dashboard</Link>
               </Button>
+              <Button variant="secondary" onClick={handleEnvCheck} disabled={envCheckLoading}>
+                {envCheckLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'ENV CHECK'
+                )}
+              </Button>
               <Button onClick={handleRunAll} disabled={runningAll}>
                 {runningAll ? (
                   <>
@@ -294,6 +327,28 @@ export default function AdminEdgeTest() {
               </Button>
             </div>
           </div>
+
+          {envCheck && (
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Statut des clés API</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <span className="flex items-center gap-2">
+                    TAROT_API_KEY: {envCheck.hasTarotKey ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    OPENAI_API_KEY: {envCheck.hasOpenAIKey ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    LOVABLE_API_KEY: {envCheck.hasLovableKey ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                  </span>
+                  <Badge variant="outline">Provider actif: {envCheck.provider}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="space-y-4">
             {TEST_CASES.map((testCase) => {
