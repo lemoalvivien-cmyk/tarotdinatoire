@@ -122,6 +122,7 @@ export default function NewReading() {
       }
 
       const data = await response.json();
+      // The edge function now returns the interpretation directly (not wrapped)
       setInterpretation(data);
       setStep('interpretation');
     } catch (error) {

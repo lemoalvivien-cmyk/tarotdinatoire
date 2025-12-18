@@ -21,22 +21,38 @@ interface RequestPayload {
 interface TarotInterpretation {
   title: string;
   summary: string;
-  card_focus: {
-    card_id: string;
-    name_fr: string;
-    orientation: string;
-    meaning: string;
-    keywords: string[];
-  }[];
-  guidance: {
-    message: string;
-    actions: string[];
-    questions_to_reflect: string[];
-    warning: string;
+  interpretation: {
+    general: string;
+    love: string;
+    work: string;
+    money: string;
   };
-  affirmation: string;
-  disclaimer: string;
+  advice: string[];
+  reflection_questions: string[];
+  safety: {
+    medical: string;
+    legal: string;
+    financial: string;
+  };
 }
+
+const JSON_SCHEMA = `{
+  "title": "Titre évocateur du tirage (ex: 'La Voie de la Transformation')",
+  "summary": "Résumé global de l'interprétation en 2-3 phrases mystiques et bienveillantes",
+  "interpretation": {
+    "general": "Interprétation générale et guidance spirituelle (3-4 phrases)",
+    "love": "Ce que cette carte révèle pour les relations amoureuses et affectives (2-3 phrases)",
+    "work": "Guidance pour la carrière et les projets professionnels (2-3 phrases)",
+    "money": "Éclairages sur les questions financières et matérielles (2-3 phrases)"
+  },
+  "advice": ["Conseil concret 1", "Conseil concret 2", "Conseil concret 3"],
+  "reflection_questions": ["Question introspective 1 ?", "Question introspective 2 ?"],
+  "safety": {
+    "medical": "Rappel: consulter un professionnel de santé pour toute question médicale",
+    "legal": "Rappel: consulter un avocat pour toute question juridique",
+    "financial": "Rappel: consulter un conseiller financier pour toute décision importante"
+  }
+}`;
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -157,15 +173,6 @@ serve(async (req) => {
       );
     }
 
-    // Get prompt templates
-    const { data: templates } = await supabaseAdmin
-      .from("ai_prompt_templates")
-      .select("key, content")
-      .in("key", ["tarot_system", "tarot_style", "safety_rules", "json_schema"]);
-
-    const templateMap: Record<string, string> = {};
-    templates?.forEach(t => { templateMap[t.key] = t.content; });
-
     // Build card context
     interface CardContext {
       card_id: string;
@@ -200,20 +207,49 @@ serve(async (req) => {
     
     const cardContexts = cardContextsRaw.filter((c): c is CardContext => c !== null);
 
+    // Detect sensitive topics in question
+    const sensitivePatterns = {
+      medical: /\b(maladie|cancer|médecin|santé|diagnostic|guérir|mourir|mort|symptôme|traitement|médicament|opération|chirurgie|dépression|anxiété|suicide)\b/i,
+      legal: /\b(procès|avocat|tribunal|jugement|condamn|prison|divorce|garde|juridique|légal|plainte|litige)\b/i,
+      financial: /\b(investir|bourse|actions|bitcoin|crypto|prêt|crédit|dette|faillite|héritage|placement|trader)\b/i
+    };
+
+    const questionLower = (payload.question || "").toLowerCase();
+    const hasMedicalTopic = sensitivePatterns.medical.test(questionLower);
+    const hasLegalTopic = sensitivePatterns.legal.test(questionLower);
+    const hasFinancialTopic = sensitivePatterns.financial.test(questionLower);
+
     // Build the prompt
-    const systemPrompt = `${templateMap.tarot_system || "Tu es un tarologue expert."}
+    const systemPrompt = `Tu es un tarologue expert du Tarot de Marseille avec 30 ans d'expérience. Tu pratiques une approche bienveillante et introspective du tarot.
 
-${templateMap.tarot_style || ""}
+STYLE ET TON:
+- Ton mystique et premium, jamais fataliste ni alarmiste
+- Langage évocateur avec métaphores lumineuses (aube, lumière, chemin, transformation)
+- Français soutenu mais accessible
+- Toujours bienveillant et encourageant
+- Privilégie le Tarot de Marseille, mentionne le Rider-Waite seulement si pertinent
 
-${templateMap.safety_rules || ""}
+RÈGLES DE SÉCURITÉ ABSOLUES:
+- Tu ne donnes JAMAIS d'avis médical, juridique ou financier
+- Si la question touche ces domaines sensibles, tu DOIS:
+  1. Rediriger vers un professionnel qualifié
+  2. Proposer une lecture symbolique et introspective à la place
+  3. Rappeler les limites du tarot dans la section "safety"
+- Tu ne prédis jamais la mort, la maladie grave ou les catastrophes
+- Tu rappelles toujours le libre arbitre de l'utilisateur
 
-Tu dois OBLIGATOIREMENT répondre en JSON valide selon ce schéma exact:
-${templateMap.json_schema || "{}"}
+${hasMedicalTopic ? "⚠️ ATTENTION: La question semble concerner la santé. Tu DOIS recommander de consulter un médecin et proposer une lecture symbolique uniquement." : ""}
+${hasLegalTopic ? "⚠️ ATTENTION: La question semble concerner un aspect juridique. Tu DOIS recommander de consulter un avocat et proposer une lecture symbolique uniquement." : ""}
+${hasFinancialTopic ? "⚠️ ATTENTION: La question semble concerner les finances. Tu DOIS recommander de consulter un conseiller financier et proposer une lecture symbolique uniquement." : ""}
 
-IMPORTANT: Ta réponse doit être UNIQUEMENT le JSON, sans aucun texte avant ou après.`;
+STRUCTURE DE RÉPONSE:
+Tu dois répondre UNIQUEMENT en JSON valide selon ce schéma exact:
+${JSON_SCHEMA}
+
+IMPORTANT: Ta réponse doit être UNIQUEMENT le JSON, sans aucun texte avant ou après, sans bloc markdown.`;
 
     const userContext = profile ? 
-      `Contexte utilisateur: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention: ${profile.intention}. ` : ""}${profile.preferred_domain ? `Domaine de prédilection: ${profile.preferred_domain}.` : ""}` : "";
+      `Contexte utilisateur: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention générale: ${profile.intention}. ` : ""}${profile.preferred_domain ? `Domaine de prédilection: ${profile.preferred_domain}.` : ""}` : "";
 
     const userPrompt = `${userContext}
 
@@ -221,14 +257,14 @@ Question posée: ${payload.question || "Pas de question spécifique, guidance g�
 
 Type de tirage: ${payload.spread_id}
 
-Carte(s) tirée(s):
-${cardContexts.map(c => `- ${c.name_fr} (${c.type === "major" ? "Arcane Majeur" : "Arcane Mineur"}${c.numero ? ` #${c.numero}` : ""})
+Carte tirée:
+${cardContexts.map(c => `- ${c.name_fr} (${c.type === "major" ? "Arcane Majeur" : "Arcane Mineur"}${c.numero !== null ? ` #${c.numero}` : ""})
   Orientation: ${c.orientation === "upright" ? "À l'endroit" : "Renversée"}
   Position: ${c.position_key}
-  Signification de base: ${c.meaning}
+  Signification de base: ${c.meaning || "Non disponible"}
   Mots-clés: ${c.keywords?.join(", ") || "N/A"}`).join("\n\n")}
 
-Génère une interprétation mystique, bienveillante et personnalisée. Réponds UNIQUEMENT en JSON valide.`;
+Génère une interprétation mystique, bienveillante et personnalisée pour les 4 domaines (général, amour, travail, finances). Réponds UNIQUEMENT en JSON valide.`;
 
     console.log("Calling Lovable AI...");
 
@@ -307,30 +343,42 @@ Génère une interprétation mystique, bienveillante et personnalisée. Réponds
       console.error("JSON parse error:", parseError, "Raw:", rawContent.substring(0, 500));
       
       // Fallback interpretation
+      const cardName = cardContexts[0]?.name_fr || "La carte tirée";
+      const cardMeaning = cardContexts[0]?.meaning || "Une période de transformation";
+      
       interpretation = {
-        title: "Guidance mystique",
-        summary: "Les cartes ont révélé des énergies profondes pour votre introspection.",
-        card_focus: cardContexts.map(c => ({
-          card_id: c.card_id,
-          name_fr: c.name_fr,
-          orientation: c.orientation,
-          meaning: c.meaning || "Signification en cours de révélation...",
-          keywords: c.keywords || []
-        })),
-        guidance: {
-          message: "Prenez un moment pour méditer sur la signification de cette carte dans votre vie actuelle.",
-          actions: ["Méditez sur le message de la carte", "Notez vos impressions dans votre journal"],
-          questions_to_reflect: ["Que résonne en vous avec cette carte ?"],
-          warning: ""
+        title: `Guidance de ${cardName}`,
+        summary: `${cardName} vous invite à une profonde réflexion sur votre chemin actuel. ${cardMeaning}.`,
+        interpretation: {
+          general: "Cette carte vous encourage à faire confiance à votre intuition et à accueillir les changements qui se présentent. Prenez le temps de méditer sur son message.",
+          love: "Dans le domaine affectif, cette énergie vous invite à l'authenticité et à l'ouverture du cœur. Les relations sincères sont favorisées.",
+          work: "Professionnellement, c'est le moment d'évaluer vos ambitions et de faire des choix alignés avec vos valeurs profondes.",
+          money: "Sur le plan financier, la prudence et la réflexion sont de mise. Évitez les décisions impulsives."
         },
-        affirmation: "Je suis ouvert(e) aux messages de l'univers.",
-        disclaimer: "Guidance introspective uniquement. Ne constitue pas un avis médical, juridique ou financier."
+        advice: [
+          "Prenez un moment de calme pour méditer sur le message de cette carte",
+          "Notez vos impressions et ressentis dans votre journal",
+          "Faites confiance à votre intuition pour les décisions à venir"
+        ],
+        reflection_questions: [
+          "Qu'est-ce que cette carte éveille en vous ?",
+          "Dans quel domaine de votre vie son message résonne-t-il le plus ?"
+        ],
+        safety: {
+          medical: "Pour toute question de santé, consultez un professionnel médical qualifié.",
+          legal: "Pour tout aspect juridique, adressez-vous à un avocat ou conseiller juridique.",
+          financial: "Pour vos décisions financières importantes, consultez un conseiller financier agréé."
+        }
       };
     }
 
-    // Ensure disclaimer is always present
-    if (!interpretation.disclaimer) {
-      interpretation.disclaimer = "Guidance introspective uniquement. Ne constitue pas un avis médical, juridique ou financier.";
+    // Ensure safety section is always present
+    if (!interpretation.safety) {
+      interpretation.safety = {
+        medical: "Pour toute question de santé, consultez un professionnel médical qualifié.",
+        legal: "Pour tout aspect juridique, adressez-vous à un avocat ou conseiller juridique.",
+        financial: "Pour vos décisions financières importantes, consultez un conseiller financier agréé."
+      };
     }
 
     // Update rate limit counter
@@ -349,13 +397,26 @@ Génère une interprétation mystique, bienveillante et personnalisée. Réponds
       console.error("Usage upsert error:", upsertError);
     }
 
+    // Log successful interpretation to admin_audit_logs
+    await supabaseAdmin
+      .from("admin_audit_logs")
+      .insert({
+        action: "tarot_interpretation_generated",
+        target_id: user.id,
+        target_type: "user",
+        metadata: { 
+          day: today, 
+          count: currentCount + 1,
+          spread_id: payload.spread_id,
+          card_ids: cardIds,
+          has_question: !!payload.question
+        }
+      });
+
     console.log("Interpretation generated successfully, new count:", currentCount + 1);
 
     return new Response(
-      JSON.stringify({
-        interpretation,
-        remaining: DAILY_LIMIT - (currentCount + 1)
-      }),
+      JSON.stringify(interpretation),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
