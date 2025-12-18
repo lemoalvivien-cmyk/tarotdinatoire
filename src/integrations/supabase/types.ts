@@ -14,75 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
+      ai_prompt_templates: {
+        Row: {
+          content: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          enable_billing: boolean | null
+          enable_shop: boolean | null
+          enable_waitlist: boolean | null
+          id: number
+          maintenance_mode: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          enable_billing?: boolean | null
+          enable_shop?: boolean | null
+          enable_waitlist?: boolean | null
+          id?: number
+          maintenance_mode?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          enable_billing?: boolean | null
+          enable_shop?: boolean | null
+          enable_waitlist?: boolean | null
+          id?: number
+          maintenance_mode?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
           intention: string | null
           onboarding_completed: boolean | null
           preferred_domain: string | null
           updated_at: string
-          user_id: string
         }
         Insert: {
           created_at?: string
           display_name?: string | null
-          id?: string
-          intention?: string | null
-          onboarding_completed?: boolean | null
-          preferred_domain?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          intention?: string | null
-          onboarding_completed?: boolean | null
-          preferred_domain?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      readings: {
-        Row: {
-          cards: Json
-          created_at: string
+          email?: string | null
           id: string
-          interpretation: string | null
-          is_favorite: boolean | null
-          question: string | null
-          reading_type: Database["public"]["Enums"]["reading_type"]
-          user_id: string
-        }
-        Insert: {
-          cards?: Json
-          created_at?: string
-          id?: string
-          interpretation?: string | null
-          is_favorite?: boolean | null
-          question?: string | null
-          reading_type?: Database["public"]["Enums"]["reading_type"]
-          user_id: string
+          intention?: string | null
+          onboarding_completed?: boolean | null
+          preferred_domain?: string | null
+          updated_at?: string
         }
         Update: {
-          cards?: Json
           created_at?: string
+          display_name?: string | null
+          email?: string | null
           id?: string
-          interpretation?: string | null
-          is_favorite?: boolean | null
-          question?: string | null
-          reading_type?: Database["public"]["Enums"]["reading_type"]
-          user_id?: string
+          intention?: string | null
+          onboarding_completed?: boolean | null
+          preferred_domain?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       tarot_cards: {
         Row: {
-          arcana: string
           created_at: string
           id: string
           image_url: string | null
@@ -92,14 +139,14 @@ export type Database = {
           meaning_reversed_fr: string | null
           meaning_upright: string | null
           meaning_upright_fr: string | null
-          name: string
-          name_fr: string
-          number: number | null
+          name_en: string | null
+          nom_fr: string
+          numero: number | null
+          type: Database["public"]["Enums"]["card_type"]
         }
         Insert: {
-          arcana?: string
           created_at?: string
-          id?: string
+          id: string
           image_url?: string | null
           keywords?: string[] | null
           keywords_fr?: string[] | null
@@ -107,12 +154,12 @@ export type Database = {
           meaning_reversed_fr?: string | null
           meaning_upright?: string | null
           meaning_upright_fr?: string | null
-          name: string
-          name_fr: string
-          number?: number | null
+          name_en?: string | null
+          nom_fr: string
+          numero?: number | null
+          type: Database["public"]["Enums"]["card_type"]
         }
         Update: {
-          arcana?: string
           created_at?: string
           id?: string
           image_url?: string | null
@@ -122,9 +169,87 @@ export type Database = {
           meaning_reversed_fr?: string | null
           meaning_upright?: string | null
           meaning_upright_fr?: string | null
+          name_en?: string | null
+          nom_fr?: string
+          numero?: number | null
+          type?: Database["public"]["Enums"]["card_type"]
+        }
+        Relationships: []
+      }
+      tarot_readings: {
+        Row: {
+          ai_interpretation: Json | null
+          cards: Json
+          created_at: string
+          id: string
+          is_favorite: boolean | null
+          question: string | null
+          spread_id: string | null
+          user_id: string
+          user_notes: string | null
+        }
+        Insert: {
+          ai_interpretation?: Json | null
+          cards?: Json
+          created_at?: string
+          id?: string
+          is_favorite?: boolean | null
+          question?: string | null
+          spread_id?: string | null
+          user_id: string
+          user_notes?: string | null
+        }
+        Update: {
+          ai_interpretation?: Json | null
+          cards?: Json
+          created_at?: string
+          id?: string
+          is_favorite?: boolean | null
+          question?: string | null
+          spread_id?: string | null
+          user_id?: string
+          user_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarot_readings_spread_id_fkey"
+            columns: ["spread_id"]
+            isOneToOne: false
+            referencedRelation: "tarot_spreads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarot_spreads: {
+        Row: {
+          card_count: number
+          created_at: string
+          description: string | null
+          description_fr: string | null
+          id: string
+          name: string
+          name_fr: string
+          positions: Json
+        }
+        Insert: {
+          card_count?: number
+          created_at?: string
+          description?: string | null
+          description_fr?: string | null
+          id: string
+          name: string
+          name_fr: string
+          positions?: Json
+        }
+        Update: {
+          card_count?: number
+          created_at?: string
+          description?: string | null
+          description_fr?: string | null
+          id?: string
           name?: string
           name_fr?: string
-          number?: number | null
+          positions?: Json
         }
         Relationships: []
       }
@@ -161,10 +286,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
-      reading_type: "single" | "three_cards" | "celtic_cross"
+      card_type: "major" | "minor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -293,7 +419,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      reading_type: ["single", "three_cards", "celtic_cross"],
+      card_type: ["major", "minor"],
     },
   },
 } as const
