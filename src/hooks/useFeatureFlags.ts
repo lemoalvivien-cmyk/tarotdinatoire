@@ -7,6 +7,7 @@ export interface FeatureFlags {
   enable_shop: boolean;
   enable_billing: boolean;
   enable_waitlist: boolean;
+  admin_bootstrap_used: boolean;
   updated_at: string;
 }
 
