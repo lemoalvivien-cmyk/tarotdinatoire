@@ -52,7 +52,7 @@ export const CANONICAL_ROUTES = {
   APP_NEW: '/app/new',
   APP_HISTORY: '/app/history',
   APP_FAVORITES: '/app/favorites',
-  APP_LECTURE: '/app/lecture/:id',
+  APP_READING: '/app/reading/:id',
   APP_PROFILE: '/app/profile',
   
   // Admin (admin only)
@@ -71,6 +71,6 @@ export const LEGACY_REDIRECTS: Record<string, string> = {
   '/mentions/juridiques': '/legal/terms',
   '/mentions-juridiques': '/legal/terms',
   '/mentions-legales': '/legal/imprint',
-  '/app/reading/:id': '/app/lecture/:id',
+  '/app/lecture/:id': '/app/reading/:id',
   '/admin/journaux-audit': '/admin/audit-logs',
 };

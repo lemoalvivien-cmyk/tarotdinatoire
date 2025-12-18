@@ -91,6 +91,7 @@ export type Database = {
       }
       feature_flags: {
         Row: {
+          admin_bootstrap_used: boolean
           enable_billing: boolean | null
           enable_shop: boolean | null
           enable_waitlist: boolean | null
@@ -99,6 +100,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_bootstrap_used?: boolean
           enable_billing?: boolean | null
           enable_shop?: boolean | null
           enable_waitlist?: boolean | null
@@ -107,6 +109,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_bootstrap_used?: boolean
           enable_billing?: boolean | null
           enable_shop?: boolean | null
           enable_waitlist?: boolean | null

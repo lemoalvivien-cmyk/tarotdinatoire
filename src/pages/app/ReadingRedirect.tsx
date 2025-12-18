@@ -1,7 +1,7 @@
 import { Navigate, useParams } from 'react-router-dom';
 
-// Redirect from legacy /app/reading/:id to /app/lecture/:id
+// Redirect from legacy /app/lecture/:id to canonical /app/reading/:id
 export default function ReadingRedirect() {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={`/app/lecture/${id}`} replace />;
+  return <Navigate to={`/app/reading/${id}`} replace />;
 }
