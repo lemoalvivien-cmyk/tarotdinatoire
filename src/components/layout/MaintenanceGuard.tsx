@@ -9,7 +9,7 @@ interface MaintenanceGuardProps {
   children: ReactNode;
 }
 
-// Routes that are always accessible
+// Routes that are always accessible (ASCII-only, no bootstrap-admin)
 const ALWAYS_ALLOWED_ROUTES = [
   '/status',
   '/statut',
@@ -18,7 +18,6 @@ const ALWAYS_ALLOWED_ROUTES = [
   '/legal/imprint',
   '/disclaimer',
   '/auth',
-  '/app/bootstrap-admin', // Allow bootstrap even in maintenance
 ];
 
 export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
