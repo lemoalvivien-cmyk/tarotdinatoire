@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,14 +23,16 @@ export default function Auth() {
   
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
-  // Redirect if already logged in
+  const from = (location.state as { from?: string })?.from || '/app';
+
   useEffect(() => {
     if (user) {
-      navigate('/tirage');
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -82,7 +84,6 @@ export default function Auth() {
             title: "Bienvenue !",
             description: "Connexion réussie.",
           });
-          navigate('/tirage');
         }
       } else {
         const { error } = await signUp(email, password);
@@ -90,7 +91,7 @@ export default function Auth() {
           if (error.message.includes('User already registered')) {
             toast({
               title: "Compte existant",
-              description: "Un compte existe déjà avec cet email. Connectez-vous.",
+              description: "Un compte existe déjà avec cet email.",
               variant: "destructive",
             });
             setIsLogin(true);
@@ -104,7 +105,7 @@ export default function Auth() {
         } else {
           toast({
             title: "Inscription réussie !",
-            description: "Vérifiez votre email pour confirmer votre compte.",
+            description: "Bienvenue dans votre espace mystique.",
           });
         }
       }
@@ -117,7 +118,6 @@ export default function Auth() {
     <Layout showFooter={false}>
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-md space-y-8 animate-fade-in-up">
-          {/* Header */}
           <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
               <Sparkles className="h-8 w-8" />
@@ -126,9 +126,7 @@ export default function Auth() {
               {isLogin ? 'Bon retour' : 'Bienvenue'}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin 
-                ? 'Connectez-vous pour accéder à vos tirages' 
-                : 'Créez votre compte pour commencer votre voyage'}
+              {isLogin ? 'Connectez-vous pour accéder à vos tirages' : 'Créez votre compte pour commencer'}
             </p>
             <div className="beta-badge mx-auto">
               <Sparkles className="h-3 w-3" />
@@ -136,12 +134,10 @@ export default function Auth() {
             </div>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6 p-8 rounded-2xl glass-mystic shadow-soft">
             <div className="space-y-4">
-              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -154,14 +150,11 @@ export default function Auth() {
                     disabled={loading}
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -181,17 +174,12 @@ export default function Auth() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-xs text-destructive">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
               </div>
 
-              {/* Confirm Password (Sign Up only) */}
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                    Confirmer le mot de passe
-                  </Label>
+                  <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -204,20 +192,12 @@ export default function Auth() {
                       disabled={loading}
                     />
                   </div>
-                  {errors.confirmPassword && (
-                    <p className="text-xs text-destructive">{errors.confirmPassword}</p>
-                  )}
+                  {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
               )}
             </div>
 
-            {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full btn-mystic group" 
-              size="lg"
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full btn-mystic group" size="lg" disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
                   <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -231,17 +211,13 @@ export default function Auth() {
               )}
             </Button>
 
-            {/* Toggle */}
             <div className="text-center text-sm">
               <span className="text-muted-foreground">
                 {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
               </span>{' '}
               <button
                 type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setErrors({});
-                }}
+                onClick={() => { setIsLogin(!isLogin); setErrors({}); }}
                 className="text-primary hover:underline font-medium"
               >
                 {isLogin ? "S'inscrire" : "Se connecter"}
@@ -249,14 +225,11 @@ export default function Auth() {
             </div>
           </form>
 
-          {/* Trust message */}
           <p className="text-center text-xs text-muted-foreground">
             En continuant, vous acceptez nos{' '}
-            <a href="/cgu" className="text-primary hover:underline">CGU</a>
+            <a href="/legal/terms" className="text-primary hover:underline">CGU</a>
             {' '}et notre{' '}
-            <a href="/politique-confidentialite" className="text-primary hover:underline">
-              politique de confidentialité
-            </a>.
+            <a href="/legal/privacy" className="text-primary hover:underline">politique de confidentialité</a>.
           </p>
         </div>
       </div>

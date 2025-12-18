@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, Stars, Moon, Sun, ArrowRight } from 'lucide-react';
 
-const Index = () => {
+const Landing = () => {
   const { user } = useAuth();
 
   return (
@@ -50,9 +50,9 @@ const Index = () => {
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               {user ? (
-                <Link to="/tirage">
+                <Link to="/app">
                   <Button size="lg" className="btn-mystic text-lg px-8 py-6 group">
-                    Commencer un tirage
+                    Accéder à mon espace
                     <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
@@ -64,7 +64,7 @@ const Index = () => {
                       <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </Button>
                   </Link>
-                  <Link to="/a-propos">
+                  <Link to="/disclaimer">
                     <Button variant="outline" size="lg" className="text-lg px-8 py-6">
                       En savoir plus
                     </Button>
@@ -90,39 +90,33 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Feature 1 */}
             <div className="text-center space-y-4 p-6 rounded-xl bg-card border border-border/50 shadow-soft">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 text-primary">
                 <Stars className="h-7 w-7" />
               </div>
               <h3 className="font-serif text-xl font-semibold">Tirages intuitifs</h3>
               <p className="text-sm text-muted-foreground">
-                Choisissez parmi différents types de tirages adaptés à vos questions 
-                et à votre chemin personnel.
+                Choisissez parmi différents types de tirages adaptés à vos questions.
               </p>
             </div>
 
-            {/* Feature 2 */}
             <div className="text-center space-y-4 p-6 rounded-xl bg-card border border-border/50 shadow-soft">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary/30 text-foreground">
                 <Sparkles className="h-7 w-7" />
               </div>
               <h3 className="font-serif text-xl font-semibold">Interprétation IA</h3>
               <p className="text-sm text-muted-foreground">
-                Une intelligence artificielle formée par 30 tarologues experts 
-                pour des interprétations profondes et personnalisées.
+                Une IA formée par 30 tarologues experts pour des interprétations profondes.
               </p>
             </div>
 
-            {/* Feature 3 */}
             <div className="text-center space-y-4 p-6 rounded-xl bg-card border border-border/50 shadow-soft">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent text-accent-foreground">
                 <Moon className="h-7 w-7" />
               </div>
               <h3 className="font-serif text-xl font-semibold">Journal personnel</h3>
               <p className="text-sm text-muted-foreground">
-                Conservez l'historique de vos tirages et suivez votre évolution 
-                spirituelle au fil du temps.
+                Conservez l'historique de vos tirages et suivez votre évolution.
               </p>
             </div>
           </div>
@@ -142,8 +136,7 @@ const Index = () => {
               <div className="h-px w-12 bg-border" />
             </div>
             <p className="text-sm text-muted-foreground">
-              Notre engagement : vous offrir une guidance respectueuse, 
-              éthique et véritablement éclairante.
+              Notre engagement : vous offrir une guidance respectueuse, éthique et véritablement éclairante.
             </p>
           </div>
         </div>
@@ -152,4 +145,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Landing;

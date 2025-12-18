@@ -26,28 +26,34 @@ export function Footer() {
             <h3 className="font-serif text-base font-semibold">Navigation</h3>
             <nav className="flex flex-col gap-2">
               <Link 
-                to="/a-propos" 
+                to="/disclaimer" 
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                À propos
+                À propos du service
               </Link>
               <Link 
-                to="/mentions-legales" 
+                to="/legal/imprint" 
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Mentions légales
               </Link>
               <Link 
-                to="/politique-confidentialite" 
+                to="/legal/privacy" 
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Politique de confidentialité
               </Link>
               <Link 
-                to="/cgu" 
+                to="/legal/terms" 
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 CGU
+              </Link>
+              <Link 
+                to="/status" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                État du service
               </Link>
             </nav>
           </div>
@@ -58,7 +64,7 @@ export function Footer() {
             <p className="text-xs text-muted-foreground leading-relaxed">
               Ce service est destiné à la guidance et à l'introspection personnelle uniquement. 
               Les interprétations fournies ne constituent pas des conseils médicaux, juridiques 
-              ou financiers. Consultez toujours un professionnel qualifié pour ces domaines.
+              ou financiers.
             </p>
           </div>
         </div>
