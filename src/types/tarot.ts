@@ -23,18 +23,23 @@ export interface CardFocus {
   keywords: string[];
 }
 
+// New interpretation structure per user requirements
 export interface TarotInterpretation {
   title: string;
   summary: string;
-  card_focus: CardFocus[];
-  guidance: {
-    message: string;
-    actions: string[];
-    questions_to_reflect: string[];
-    warning: string;
+  interpretation: {
+    general: string;
+    love: string;
+    work: string;
+    money: string;
   };
-  affirmation: string;
-  disclaimer: string;
+  advice: string[];
+  reflection_questions: string[];
+  safety: {
+    medical: string;
+    legal: string;
+    financial: string;
+  };
 }
 
 export interface TarotReading {
