@@ -26,6 +26,7 @@ import History from "./pages/app/History";
 import Favorites from "./pages/app/Favorites";
 import ReadingDetail from "./pages/app/ReadingDetail";
 import Profile from "./pages/app/Profile";
+import BootstrapAdmin from "./pages/app/BootstrapAdmin";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
               <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
               <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/app/bootstrap-admin" element={<ProtectedRoute><BootstrapAdmin /></ProtectedRoute>} />
               
               {/* ========== ADMIN ROUTES ========== */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
