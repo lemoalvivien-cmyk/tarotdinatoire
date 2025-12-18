@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 
 // Public Pages
 import Landing from "./pages/public/Landing";
@@ -28,6 +29,7 @@ import Profile from "./pages/app/Profile";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminFeatureFlags from "./pages/admin/AdminFeatureFlags";
 
 const queryClient = new QueryClient();
 
@@ -38,33 +40,36 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* ========== PUBLIC ROUTES ========== */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/disclaimer" element={<Disclaimer />} />
-            <Route path="/status" element={<Status />} />
-            
-            {/* Legal Pages */}
-            <Route path="/legal/privacy" element={<Privacy />} />
-            <Route path="/legal/terms" element={<Terms />} />
-            <Route path="/legal/imprint" element={<Imprint />} />
-            
-            {/* ========== PROTECTED APP ROUTES ========== */}
-            <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/app/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
-            <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-            <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
-            <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            
-            {/* ========== ADMIN ROUTES ========== */}
-            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            
-            {/* ========== 404 ========== */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <MaintenanceGuard>
+            <Routes>
+              {/* ========== PUBLIC ROUTES ========== */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/status" element={<Status />} />
+              
+              {/* Legal Pages */}
+              <Route path="/legal/privacy" element={<Privacy />} />
+              <Route path="/legal/terms" element={<Terms />} />
+              <Route path="/legal/imprint" element={<Imprint />} />
+              
+              {/* ========== PROTECTED APP ROUTES ========== */}
+              <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/app/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+              <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
+              <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+              <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+              <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              
+              {/* ========== ADMIN ROUTES ========== */}
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/admin/flags" element={<AdminRoute><AdminFeatureFlags /></AdminRoute>} />
+              
+              {/* ========== 404 ========== */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MaintenanceGuard>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
