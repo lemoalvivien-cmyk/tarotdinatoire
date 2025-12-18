@@ -1,9 +1,16 @@
 import { Layout } from '@/components/layout/Layout';
 import { AlertTriangle, Shield, Heart, MessageCircle } from 'lucide-react';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Disclaimer() {
   return (
     <Layout>
+      <SEOHead
+        title="À propos du service | Tarot Divinatoire - VERSION BÊTA GRATUITE"
+        description="Comprendre ce que le tarot peut et ne peut pas faire. Service de guidance et introspection créé par 30 tarologues professionnels. Pas d'avis médical, juridique ou financier."
+        ogTitle="À propos - Tarot Divinatoire"
+        ogDescription="Guidance et introspection uniquement. Le tarot ne remplace pas un avis médical, juridique ou financier."
+      />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto space-y-12">
           {/* Header */}

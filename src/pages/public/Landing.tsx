@@ -3,12 +3,19 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, Stars, Moon, Sun, ArrowRight } from 'lucide-react';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 const Landing = () => {
   const { user } = useAuth();
 
   return (
     <Layout>
+      <SEOHead
+        title="Tarot Divinatoire - VERSION BÊTA GRATUITE | Guidance & Introspection"
+        description="Découvrez votre avenir avec le Tarot Divinatoire. VERSION BÊTA GRATUITE. Interprétations créées par 30 tarologues professionnels. Guidance, introspection et développement personnel."
+        ogTitle="Tarot Divinatoire - VERSION BÊTA GRATUITE"
+        ogDescription="Guidance mystique et introspection personnelle. Fait avec le savoir-faire de 30 tarologues professionnels. Essayez gratuitement."
+      />
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
         {/* Decorative elements */}

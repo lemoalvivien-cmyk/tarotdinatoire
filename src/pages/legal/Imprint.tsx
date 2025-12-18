@@ -1,8 +1,14 @@
 import { Layout } from '@/components/layout/Layout';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Imprint() {
   return (
     <Layout>
+      <SEOHead
+        title="Mentions Légales | Tarot Divinatoire"
+        description="Mentions légales du service Tarot Divinatoire. Éditeur, hébergement et propriété intellectuelle."
+        noindex={true}
+      />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto prose prose-slate dark:prose-invert">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold mb-8">

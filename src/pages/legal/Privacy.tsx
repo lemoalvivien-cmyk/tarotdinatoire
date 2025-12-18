@@ -1,9 +1,15 @@
 import { Layout } from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Privacy() {
   return (
     <Layout>
+      <SEOHead
+        title="Politique de Confidentialité | Tarot Divinatoire"
+        description="Politique de confidentialité et protection des données personnelles. RGPD compliant. Vos droits : accès, rectification, effacement, portabilité."
+        noindex={true}
+      />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto prose prose-slate dark:prose-invert">
           <h1 className="font-serif text-3xl md:text-4xl font-semibold mb-8">
