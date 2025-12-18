@@ -12,6 +12,7 @@ interface MaintenanceGuardProps {
 // Routes that are always accessible
 const ALWAYS_ALLOWED_ROUTES = [
   '/status',
+  '/statut',
   '/legal/privacy',
   '/legal/terms',
   '/legal/imprint',
