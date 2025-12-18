@@ -61,6 +61,29 @@ serve(async (req) => {
   }
 
   try {
+    // Check for ENV CHECK mode (admin diagnostic)
+    const url = new URL(req.url);
+    if (url.searchParams.get("action") === "env-check") {
+      const hasTarotKey = !!Deno.env.get("TAROT_API_KEY");
+      const hasOpenAIKey = !!Deno.env.get("OPENAI_API_KEY");
+      const hasLovableKey = !!Deno.env.get("LOVABLE_API_KEY");
+      
+      let provider = "none";
+      if (hasLovableKey) provider = "lovable";
+      if (hasOpenAIKey) provider = "openai";
+      if (hasTarotKey) provider = "tarot";
+      
+      return new Response(
+        JSON.stringify({ 
+          hasTarotKey, 
+          hasOpenAIKey, 
+          hasLovableKey,
+          provider 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -266,26 +289,40 @@ ${cardContexts.map(c => `- ${c.name_fr} (${c.type === "major" ? "Arcane Majeur" 
 
 Génère une interprétation mystique, bienveillante et personnalisée pour les 4 domaines (général, amour, travail, finances). Réponds UNIQUEMENT en JSON valide.`;
 
-    console.log("Calling Lovable AI...");
+    console.log("Calling AI provider...");
 
-    // Call Lovable AI Gateway
+    // Check for API keys (priority: TAROT_API_KEY > OPENAI_API_KEY > LOVABLE_API_KEY)
+    const TAROT_API_KEY = Deno.env.get("TAROT_API_KEY");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
+    
+    const apiKey = TAROT_API_KEY || OPENAI_API_KEY || LOVABLE_API_KEY;
+    
+    if (!apiKey) {
+      console.error("Missing TAROT_API_KEY - no AI API key configured");
       return new Response(
-        JSON.stringify({ error: "Configuration IA manquante" }),
+        JSON.stringify({ error: "Missing TAROT_API_KEY" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Determine which provider to use
+    const useOpenAI = !!(TAROT_API_KEY || OPENAI_API_KEY);
+    const apiUrl = useOpenAI 
+      ? "https://api.openai.com/v1/chat/completions"
+      : "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const model = useOpenAI ? "gpt-4o-mini" : "google/gemini-2.5-flash";
+    
+    console.log("Using provider:", useOpenAI ? "OpenAI" : "Lovable", "model:", model);
+
+    const aiResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
