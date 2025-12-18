@@ -120,7 +120,7 @@ interface EnvCheckResult {
   hasTarotKey: boolean;
   hasOpenAIKey: boolean;
   hasLovableKey: boolean;
-  provider: string;
+  provider: 'deepseek' | 'none' | string;
 }
 
 export default function AdminEdgeTest() {
@@ -331,21 +331,22 @@ export default function AdminEdgeTest() {
           {envCheck && (
             <Card className="border-primary/20">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Statut des clés API</CardTitle>
+                <CardTitle className="text-lg">Statut des clés API (DeepSeek)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-4 text-sm">
                   <span className="flex items-center gap-2">
                     TAROT_API_KEY: {envCheck.hasTarotKey ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
                   </span>
-                  <span className="flex items-center gap-2">
-                    OPENAI_API_KEY: {envCheck.hasOpenAIKey ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    LOVABLE_API_KEY: {envCheck.hasLovableKey ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                  </span>
-                  <Badge variant="outline">Provider actif: {envCheck.provider}</Badge>
+                  <Badge variant={envCheck.provider === 'deepseek' ? 'default' : 'destructive'}>
+                    Provider: {envCheck.provider.toUpperCase()}
+                  </Badge>
                 </div>
+                {!envCheck.hasTarotKey && (
+                  <p className="text-sm text-destructive mt-2">
+                    ⚠️ Configurez TAROT_API_KEY avec votre clé API DeepSeek
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
