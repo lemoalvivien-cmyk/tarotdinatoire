@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
+import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 
 // Public Pages
 import Landing from "./pages/public/Landing";
@@ -27,7 +28,6 @@ import Favorites from "./pages/app/Favorites";
 import ReadingDetail from "./pages/app/ReadingDetail";
 import ReadingRedirect from "./pages/app/ReadingRedirect";
 import Profile from "./pages/app/Profile";
-import BootstrapAdmin from "./pages/app/BootstrapAdmin";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -38,6 +38,21 @@ import AdminEdgeTest from "./pages/admin/AdminEdgeTest";
 
 const queryClient = new QueryClient();
 
+// Validate all routes at startup (dev only)
+if (import.meta.env.DEV) {
+  const allPaths = [
+    ...Object.values(CANONICAL_ROUTES),
+    ...Object.keys(LEGACY_REDIRECTS),
+  ];
+  validateRoutes(allPaths);
+  
+  // Log route dump for verification
+  console.log('[ROUTE DUMP] Canonical routes:');
+  console.table(Object.entries(CANONICAL_ROUTES).map(([key, path]) => ({ key, path })));
+  console.log('[ROUTE DUMP] Legacy redirects:');
+  console.table(Object.entries(LEGACY_REDIRECTS).map(([from, to]) => ({ from, to })));
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -47,46 +62,40 @@ const App = () => (
         <BrowserRouter>
           <MaintenanceGuard>
             <Routes>
-              {/* ========== PUBLIC ROUTES ========== */}
+              {/* ========== PUBLIC ROUTES (ASCII only) ========== */}
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/disclaimer" element={<Disclaimer />} />
               <Route path="/status" element={<Status />} />
-              
-              {/* Redirects for legacy routes - ASCII normalization */}
-              <Route path="/statut" element={<Navigate to="/status" replace />} />
-              <Route path="/clause de non-responsabilité" element={<Navigate to="/disclaimer" replace />} />
-              <Route path="/juridique/confidentialité" element={<Navigate to="/legal/privacy" replace />} />
-              <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
-              <Route path="/mentions-legales" element={<Navigate to="/legal/imprint" replace />} />
-              <Route path="/mentions légales" element={<Navigate to="/legal/imprint" replace />} />
-              <Route path="/admin/journaux d'audit" element={<Navigate to="/admin/audit-logs" replace />} />
-              
-              {/* Legal Pages (ASCII slugs) */}
               <Route path="/legal/privacy" element={<Privacy />} />
               <Route path="/legal/terms" element={<Terms />} />
               <Route path="/legal/imprint" element={<Imprint />} />
               
-              {/* ========== PROTECTED APP ROUTES ========== */}
+              {/* ========== PROTECTED APP ROUTES (ASCII only) ========== */}
               <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/app/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
               <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
               <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
               <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/app/bootstrap-admin" element={<ProtectedRoute><BootstrapAdmin /></ProtectedRoute>} />
-              
-              {/* Reading detail - canonical route */}
               <Route path="/app/lecture/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
-              {/* Legacy redirect: /app/reading/:id → /app/lecture/:id */}
-              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingRedirect /></ProtectedRoute>} />
               
-              {/* ========== ADMIN ROUTES ========== */}
+              {/* ========== ADMIN ROUTES (ASCII only) ========== */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/admin/flags" element={<AdminRoute><AdminFeatureFlags /></AdminRoute>} />
               <Route path="/admin/prompts" element={<AdminRoute><AdminPrompts /></AdminRoute>} />
               <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
               <Route path="/admin/edge-test" element={<AdminRoute><AdminEdgeTest /></AdminRoute>} />
+              
+              {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
+              <Route path="/statut" element={<Navigate to="/status" replace />} />
+              <Route path="/clause-non-responsabilite" element={<Navigate to="/disclaimer" replace />} />
+              <Route path="/juridique/confidentialite" element={<Navigate to="/legal/privacy" replace />} />
+              <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
+              <Route path="/mentions-juridiques" element={<Navigate to="/legal/terms" replace />} />
+              <Route path="/mentions-legales" element={<Navigate to="/legal/imprint" replace />} />
+              <Route path="/app/reading/:id" element={<ReadingRedirect />} />
+              <Route path="/admin/journaux-audit" element={<Navigate to="/admin/audit-logs" replace />} />
               
               {/* ========== 404 ========== */}
               <Route path="*" element={<NotFound />} />
