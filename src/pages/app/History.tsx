@@ -203,7 +203,7 @@ export default function History() {
                     <div className="flex items-start justify-between gap-4">
                       <div 
                         className="flex-1 cursor-pointer"
-                        onClick={() => navigate(`/app/reading/${reading.id}`)}
+                        onClick={() => navigate(`/app/lecture/${reading.id}`)}
                       >
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-xs text-muted-foreground">

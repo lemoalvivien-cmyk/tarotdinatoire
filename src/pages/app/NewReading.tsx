@@ -155,7 +155,7 @@ export default function NewReading() {
       if (error) throw error;
 
       toast.success('Tirage sauvegardé');
-      navigate(`/app/reading/${data.id}`);
+      navigate(`/app/lecture/${data.id}`);
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Erreur lors de la sauvegarde');

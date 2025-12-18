@@ -25,12 +25,16 @@ import NewReading from "./pages/app/NewReading";
 import History from "./pages/app/History";
 import Favorites from "./pages/app/Favorites";
 import ReadingDetail from "./pages/app/ReadingDetail";
+import ReadingRedirect from "./pages/app/ReadingRedirect";
 import Profile from "./pages/app/Profile";
 import BootstrapAdmin from "./pages/app/BootstrapAdmin";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminFeatureFlags from "./pages/admin/AdminFeatureFlags";
+import AdminPrompts from "./pages/admin/AdminPrompts";
+import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminEdgeTest from "./pages/admin/AdminEdgeTest";
 
 const queryClient = new QueryClient();
 
@@ -48,9 +52,11 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/disclaimer" element={<Disclaimer />} />
               <Route path="/status" element={<Status />} />
+              
+              {/* Redirects for legacy/accented routes */}
               <Route path="/statut" element={<Navigate to="/status" replace />} />
               
-              {/* Legal Pages */}
+              {/* Legal Pages (ASCII slugs) */}
               <Route path="/legal/privacy" element={<Privacy />} />
               <Route path="/legal/terms" element={<Terms />} />
               <Route path="/legal/imprint" element={<Imprint />} />
@@ -61,13 +67,20 @@ const App = () => (
               <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
               <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
               <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/app/bootstrap-admin" element={<ProtectedRoute><BootstrapAdmin /></ProtectedRoute>} />
+              
+              {/* Reading detail - canonical route */}
+              <Route path="/app/lecture/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+              {/* Legacy redirect: /app/reading/:id → /app/lecture/:id */}
+              <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingRedirect /></ProtectedRoute>} />
               
               {/* ========== ADMIN ROUTES ========== */}
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/admin/flags" element={<AdminRoute><AdminFeatureFlags /></AdminRoute>} />
+              <Route path="/admin/prompts" element={<AdminRoute><AdminPrompts /></AdminRoute>} />
+              <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
+              <Route path="/admin/edge-test" element={<AdminRoute><AdminEdgeTest /></AdminRoute>} />
               
               {/* ========== 404 ========== */}
               <Route path="*" element={<NotFound />} />
