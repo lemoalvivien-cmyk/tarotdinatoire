@@ -38,15 +38,15 @@ import AdminEdgeTest from "./pages/admin/AdminEdgeTest";
 
 const queryClient = new QueryClient();
 
-// Validate all routes at startup (dev only)
+// Validate all routes at startup (dev AND build - throws if invalid)
+const allPaths = [
+  ...Object.values(CANONICAL_ROUTES),
+  ...Object.keys(LEGACY_REDIRECTS),
+];
+validateRoutes(allPaths);
+
+// Log route dump for verification (dev only)
 if (import.meta.env.DEV) {
-  const allPaths = [
-    ...Object.values(CANONICAL_ROUTES),
-    ...Object.keys(LEGACY_REDIRECTS),
-  ];
-  validateRoutes(allPaths);
-  
-  // Log route dump for verification
   console.log('[ROUTE DUMP] Canonical routes:');
   console.table(Object.entries(CANONICAL_ROUTES).map(([key, path]) => ({ key, path })));
   console.log('[ROUTE DUMP] Legacy redirects:');

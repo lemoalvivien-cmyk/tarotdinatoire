@@ -6,7 +6,7 @@
 const ASCII_ROUTE_PATTERN = /^\/[a-z0-9/_:-]*$/;
 
 export function validateRoutes(paths: string[]): void {
-  if (import.meta.env.PROD) return; // Skip in production
+  // ALWAYS validate - both dev AND prod build (critical security gate)
   
   const invalidRoutes: string[] = [];
   
