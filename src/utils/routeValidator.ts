@@ -63,7 +63,7 @@ export const CANONICAL_ROUTES = {
   ADMIN_EDGE_TEST: '/admin/edge-test',
 } as const;
 
-// Legacy redirect mappings (from -> to)
+// Legacy redirect mappings (from -> to) - ALL ASCII ONLY
 export const LEGACY_REDIRECTS: Record<string, string> = {
   '/statut': '/status',
   '/clause-non-responsabilite': '/disclaimer',
