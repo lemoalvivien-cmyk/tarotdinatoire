@@ -118,30 +118,30 @@
 
   .dark {
     --background: 260 30% 8%;
-    --foreground: 45 30% 92%;
+    --foreground: 0 0% 97%;
 
     --card: 260 25% 12%;
-    --card-foreground: 45 30% 92%;
+    --card-foreground: 0 0% 96%;
 
     --popover: 260 25% 12%;
-    --popover-foreground: 45 30% 92%;
+    --popover-foreground: 0 0% 96%;
 
     --primary: 265 50% 65%;
     --primary-foreground: 260 30% 8%;
 
     --secondary: 42 50% 45%;
-    --secondary-foreground: 45 30% 92%;
+    --secondary-foreground: 0 0% 96%;
 
     --muted: 260 20% 18%;
-    --muted-foreground: 260 15% 60%;
+    --muted-foreground: 220 15% 78%;
 
     --accent: 270 35% 25%;
-    --accent-foreground: 45 30% 92%;
+    --accent-foreground: 0 0% 96%;
 
     --destructive: 0 60% 45%;
-    --destructive-foreground: 45 30% 92%;
+    --destructive-foreground: 0 0% 96%;
 
-    --border: 260 20% 20%;
+    --border: 260 20% 22%;
     --input: 260 20% 20%;
     --ring: 265 50% 65%;
 
@@ -166,8 +166,8 @@
     --mp-bg-800: 260 32% 7%;
     --mp-bg-700: 260 28% 11%;
     --mp-bg-600: 260 25% 15%;
-    --mp-surface-glass: 260 30% 100% / 0.04;
-    --mp-surface-border: 260 25% 100% / 0.08;
+    --mp-surface-glass: 260 30% 100% / 0.08;
+    --mp-surface-border: 260 25% 100% / 0.15;
     --mp-brand-violet: 265 55% 60%;
     --mp-brand-violet2: 275 50% 70%;
     --mp-brand-gold: 42 70% 50%;
@@ -182,11 +182,11 @@
     --gradient-gold-shimmer: linear-gradient(90deg, transparent, hsl(42 70% 50% / 0.4), transparent);
 
     --sidebar-background: 260 25% 10%;
-    --sidebar-foreground: 45 30% 90%;
+    --sidebar-foreground: 0 0% 94%;
     --sidebar-primary: 265 50% 65%;
     --sidebar-primary-foreground: 260 30% 8%;
     --sidebar-accent: 260 25% 18%;
-    --sidebar-accent-foreground: 45 30% 90%;
+    --sidebar-accent-foreground: 0 0% 94%;
     --sidebar-border: 260 20% 18%;
     --sidebar-ring: 265 50% 65%;
   }
@@ -349,12 +349,14 @@
     background-size: 300px 200px, 300px 200px, 80px 80px, 80px 80px;
   }
 
-  /* Glass surface Mystic Premium */
+  /* Glass surface Mystic Premium - Enhanced for readability */
   .mp-glass {
     @apply backdrop-blur-xl;
-    background: hsl(var(--mp-surface-glass));
-    border: 1px solid hsl(var(--mp-surface-border));
-    box-shadow: var(--mp-shadow-card);
+    background: hsl(260 30% 8% / 0.75);
+    border: 1px solid hsl(260 25% 100% / 0.18);
+    box-shadow: 
+      var(--mp-shadow-card),
+      inset 0 1px 0 0 hsl(260 30% 100% / 0.05);
   }
 
   /* Card avec glow violet */
@@ -367,6 +369,15 @@
   .mp-card-glow-g {
     @apply relative;
     box-shadow: var(--mp-shadow-glow-g);
+  }
+
+  /* Text contrast utility for glass/gradient backgrounds */
+  .text-contrast {
+    text-shadow: 0 1px 8px hsl(260 50% 5% / 0.5);
+  }
+
+  .text-contrast-strong {
+    text-shadow: 0 2px 12px hsl(260 50% 5% / 0.7);
   }
 }
 
