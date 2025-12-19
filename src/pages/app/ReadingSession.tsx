@@ -15,6 +15,7 @@ import {
   type TemplateInterpretationData 
 } from '@/utils/tarotTemplateEngine';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
+import { EmailOptInForm } from '@/components/email/EmailOptInForm';
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
 
@@ -420,6 +421,14 @@ export default function ReadingSession() {
               <div className="mp-glass rounded-2xl p-6">
                 <InterpretationDisplay interpretation={interpretation} />
               </div>
+            )}
+
+            {/* Email Opt-In Form - Post-Result */}
+            {interpretation && session && (
+              <EmailOptInForm 
+                sessionId={session.id}
+                spreadId={session.spread_id}
+              />
             )}
 
             {/* Actions */}

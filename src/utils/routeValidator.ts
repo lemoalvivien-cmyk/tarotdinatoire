@@ -43,6 +43,7 @@ export const CANONICAL_ROUTES = {
   DISCLAIMER: '/disclaimer',
   STATUS: '/status',
   SPREADS: '/tirages',
+  UNSUBSCRIBE: '/unsubscribe',
   LEGAL_PRIVACY: '/legal/privacy',
   LEGAL_TERMS: '/legal/terms',
   LEGAL_IMPRINT: '/legal/imprint',
