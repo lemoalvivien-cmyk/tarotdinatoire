@@ -89,9 +89,75 @@ export type Database = {
         }
         Relationships: []
       }
+      email_leads: {
+        Row: {
+          consent: boolean
+          consent_text: string
+          consent_timestamp: string
+          created_at: string
+          email: string
+          email_verified: boolean
+          first_name: string | null
+          id: string
+          session_id: string | null
+          spread_id: string | null
+          unsubscribe_token: string
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string | null
+          verification_sent_at: string | null
+          verification_token: string | null
+        }
+        Insert: {
+          consent?: boolean
+          consent_text: string
+          consent_timestamp?: string
+          created_at?: string
+          email: string
+          email_verified?: boolean
+          first_name?: string | null
+          id?: string
+          session_id?: string | null
+          spread_id?: string | null
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verification_sent_at?: string | null
+          verification_token?: string | null
+        }
+        Update: {
+          consent?: boolean
+          consent_text?: string
+          consent_timestamp?: string
+          created_at?: string
+          email?: string
+          email_verified?: boolean
+          first_name?: string | null
+          id?: string
+          session_id?: string | null
+          spread_id?: string | null
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verification_sent_at?: string | null
+          verification_token?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_leads_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "reading_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           admin_bootstrap_used: boolean
+          double_opt_in: boolean | null
           enable_billing: boolean | null
           enable_shop: boolean | null
           enable_waitlist: boolean | null
@@ -101,6 +167,7 @@ export type Database = {
         }
         Insert: {
           admin_bootstrap_used?: boolean
+          double_opt_in?: boolean | null
           enable_billing?: boolean | null
           enable_shop?: boolean | null
           enable_waitlist?: boolean | null
@@ -110,6 +177,7 @@ export type Database = {
         }
         Update: {
           admin_bootstrap_used?: boolean
+          double_opt_in?: boolean | null
           enable_billing?: boolean | null
           enable_shop?: boolean | null
           enable_waitlist?: boolean | null
