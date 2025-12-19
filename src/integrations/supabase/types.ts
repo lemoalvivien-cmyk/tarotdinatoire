@@ -89,6 +89,33 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          anon_id: string
+          created_at: string
+          event_name: string
+          id: string
+          props: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          anon_id: string
+          created_at?: string
+          event_name: string
+          id?: string
+          props?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          anon_id?: string
+          created_at?: string
+          event_name?: string
+          id?: string
+          props?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       consent_logs: {
         Row: {
           anon_id: string

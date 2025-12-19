@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTarotCards } from '@/hooks/useTarotCards';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -36,10 +37,12 @@ export default function ReadingSession() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: allCards } = useTarotCards();
+  const { track } = useAnalytics();
 
   const [interpretation, setInterpretation] = useState<TarotInterpretation | TemplateInterpretationData | null>(null);
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [hasTrackedView, setHasTrackedView] = useState(false);
 
   // Fetch session
   const { data: session, isLoading: sessionLoading, error: sessionError } = useQuery({
@@ -117,6 +120,14 @@ export default function ReadingSession() {
       setInterpretation(existingResult.interpretation as unknown as TarotInterpretation | TemplateInterpretationData);
     }
   }, [existingResult]);
+
+  // Track result view once
+  useEffect(() => {
+    if (interpretation && !hasTrackedView && sessionId) {
+      track('result_view', { session_id: sessionId, spread_id: session?.spread_id || '' });
+      setHasTrackedView(true);
+    }
+  }, [interpretation, hasTrackedView, sessionId, session?.spread_id, track]);
 
   // Request AI interpretation if no result exists
   useEffect(() => {
