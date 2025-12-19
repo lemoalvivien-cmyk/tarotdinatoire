@@ -32,32 +32,51 @@ export default function Onboarding() {
   const { toast } = useToast();
 
   const handleComplete = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Session expirée. Veuillez vous reconnecter.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
     
     setLoading(true);
     try {
+      // Use upsert to handle race condition where profile might not exist yet
       const { error } = await supabase
         .from('profiles')
-        .update({ 
+        .upsert({ 
+          id: user.id,
           onboarding_completed: true,
           display_name: displayName || null,
           intention: intention || null,
           preferred_domain: preferredDomain || null,
-        })
-        .eq('id', user.id);
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id',
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "Bienvenue !",
         description: "Votre voyage mystique peut commencer.",
       });
-      navigate('/app');
-    } catch (error) {
+      
+      // Small delay to ensure state updates propagate
+      setTimeout(() => {
+        navigate('/app/dashboard', { replace: true });
+      }, 100);
+    } catch (error: any) {
       console.error('Error completing onboarding:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue. Réessayez.",
+        description: error?.message || "Une erreur est survenue. Réessayez.",
         variant: "destructive",
       });
     } finally {

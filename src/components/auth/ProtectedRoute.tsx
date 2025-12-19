@@ -36,11 +36,20 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
           .from('profiles')
           .select('onboarding_completed')
           .eq('id', user.id)
-          .single();
+          .maybeSingle(); // Use maybeSingle to handle case where profile doesn't exist yet
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching profile:', error);
+          throw error;
+        }
         
-        setOnboardingCompleted(data?.onboarding_completed ?? false);
+        // If no profile exists yet (race condition after signup), treat as not onboarded
+        if (!data) {
+          console.log('Profile not found yet, waiting for trigger...');
+          setOnboardingCompleted(false);
+        } else {
+          setOnboardingCompleted(data.onboarding_completed ?? false);
+        }
       } catch (error) {
         console.error('Error checking onboarding:', error);
         setOnboardingCompleted(false);
@@ -49,7 +58,9 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
       }
     };
 
-    checkOnboarding();
+    // Small delay to allow trigger to create profile
+    const timeoutId = setTimeout(checkOnboarding, 100);
+    return () => clearTimeout(timeoutId);
   }, [user, requireOnboarding]);
 
   // Redirect to onboarding if not completed

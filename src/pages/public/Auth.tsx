@@ -26,13 +26,15 @@ export default function Auth() {
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = (location.state as { from?: string })?.from || '/app';
+  const from = (location.state as { from?: string })?.from || '/app/onboarding';
 
+  // Redirect authenticated users - after signup/login, session triggers this
   useEffect(() => {
     if (user) {
-      navigate(from, { replace: true });
+      // Always go to onboarding first - ProtectedRoute will handle if already completed
+      navigate('/app/onboarding', { replace: true });
     }
-  }, [user, navigate, from]);
+  }, [user, navigate]);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
