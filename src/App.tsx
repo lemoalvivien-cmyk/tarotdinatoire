@@ -24,6 +24,8 @@ import Unsubscribe from "./pages/public/Unsubscribe";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import Imprint from "./pages/legal/Imprint";
+import CookiesPolicy from "./pages/legal/CookiesPolicy";
+import ExerciseRights from "./pages/legal/ExerciseRights";
 import NotFound from "./pages/NotFound";
 
 // Protected App Pages
@@ -88,6 +90,8 @@ const App = () => (
                 <Route path="/legal/privacy" element={<Privacy />} />
                 <Route path="/legal/terms" element={<Terms />} />
                 <Route path="/legal/imprint" element={<Imprint />} />
+                <Route path="/legal/cookies" element={<CookiesPolicy />} />
+                <Route path="/legal/rights" element={<ExerciseRights />} />
                 
                 {/* ========== PROTECTED APP ROUTES (ASCII only) ========== */}
                 <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
