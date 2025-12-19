@@ -54,6 +54,47 @@ const JSON_SCHEMA = `{
   }
 }`;
 
+// In-memory rate limit store (resets on function cold start)
+// For production, consider using Redis or database-backed rate limiting
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+// Rate limit configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max requests per window per IP
+
+function getRateLimitKey(req: Request): string {
+  // Get client IP from various headers (Supabase Edge uses x-forwarded-for)
+  const forwarded = req.headers.get("x-forwarded-for");
+  const realIp = req.headers.get("x-real-ip");
+  const ip = forwarded?.split(",")[0]?.trim() || realIp || "unknown";
+  return `ip:${ip}`;
+}
+
+function checkRateLimit(key: string): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const record = rateLimitStore.get(key);
+  
+  // Clean up expired entries periodically
+  if (Math.random() < 0.1) {
+    for (const [k, v] of rateLimitStore.entries()) {
+      if (v.resetAt < now) rateLimitStore.delete(k);
+    }
+  }
+  
+  if (!record || record.resetAt < now) {
+    // New window
+    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetIn: record.resetAt - now };
+  }
+  
+  record.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - record.count, resetIn: record.resetAt - now };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -61,6 +102,29 @@ serve(async (req) => {
   }
 
   try {
+    // IP-based rate limiting (before any auth checks)
+    const rateLimitKey = getRateLimitKey(req);
+    const rateLimit = checkRateLimit(rateLimitKey);
+    
+    if (!rateLimit.allowed) {
+      console.warn(`[RateLimit] Blocked IP rate limit: ${rateLimitKey}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Trop de requêtes",
+          message: "Veuillez patienter avant de réessayer.",
+          retryAfter: Math.ceil(rateLimit.resetIn / 1000)
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(Math.ceil(rateLimit.resetIn / 1000))
+          } 
+        }
+      );
+    }
+
     // Check for ENV CHECK mode (admin diagnostic - REQUIRES AUTH + ADMIN ROLE)
     const url = new URL(req.url);
     if (url.searchParams.get("action") === "env-check") {
