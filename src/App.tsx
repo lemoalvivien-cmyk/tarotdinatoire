@@ -16,6 +16,9 @@ import Auth from "./pages/public/Auth";
 import Disclaimer from "./pages/public/Disclaimer";
 import Status from "./pages/public/Status";
 import Spreads from "./pages/public/Spreads";
+import SpreadDetail from "./pages/public/SpreadDetail";
+import CardsList from "./pages/public/CardsList";
+import CardDetail from "./pages/public/CardDetail";
 import Unsubscribe from "./pages/public/Unsubscribe";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
@@ -74,6 +77,9 @@ const App = () => (
                 <Route path="/disclaimer" element={<Disclaimer />} />
                 <Route path="/status" element={<Status />} />
                 <Route path="/tirages" element={<Spreads />} />
+                <Route path="/tirages/:slug" element={<SpreadDetail />} />
+                <Route path="/cartes" element={<CardsList />} />
+                <Route path="/cartes/:id" element={<CardDetail />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/legal/privacy" element={<Privacy />} />
                 <Route path="/legal/terms" element={<Terms />} />
