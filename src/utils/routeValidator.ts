@@ -50,6 +50,8 @@ export const CANONICAL_ROUTES = {
   LEGAL_PRIVACY: '/legal/privacy',
   LEGAL_TERMS: '/legal/terms',
   LEGAL_IMPRINT: '/legal/imprint',
+  LEGAL_COOKIES: '/legal/cookies',
+  LEGAL_RIGHTS: '/legal/rights',
   
   // Private (auth required)
   APP: '/app',

@@ -44,10 +44,22 @@ export function Footer() {
                 Politique de confidentialité
               </Link>
               <Link 
+                to="/legal/cookies" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Politique cookies
+              </Link>
+              <Link 
                 to="/legal/terms" 
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 CGU
+              </Link>
+              <Link 
+                to="/legal/rights" 
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Exercer mes droits
               </Link>
               <Link 
                 to="/status" 
