@@ -44,6 +44,9 @@ import AdminPrompts from "./pages/admin/AdminPrompts";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminEdgeTest from "./pages/admin/AdminEdgeTest";
 import AdminCardAssets from "./pages/admin/AdminCardAssets";
+import AdminSpreads from "./pages/admin/AdminSpreads";
+import AdminLeads from "./pages/admin/AdminLeads";
+import AdminStats from "./pages/admin/AdminStats";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +108,9 @@ const App = () => (
                 <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
                 <Route path="/admin/edge-test" element={<AdminRoute><AdminEdgeTest /></AdminRoute>} />
                 <Route path="/admin/card-assets" element={<AdminRoute><AdminCardAssets /></AdminRoute>} />
+                <Route path="/admin/spreads" element={<AdminRoute><AdminSpreads /></AdminRoute>} />
+                <Route path="/admin/leads" element={<AdminRoute><AdminLeads /></AdminRoute>} />
+                <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
                 
                 {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
                 <Route path="/statut" element={<Navigate to="/status" replace />} />
