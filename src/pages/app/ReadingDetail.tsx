@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TarotCardPlaceholder } from '@/components/tarot/TarotCardPlaceholder';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
 import { useTarotCards } from '@/hooks/useTarotCards';
@@ -16,7 +17,8 @@ import {
   Trash2, 
   ArrowLeft,
   Calendar,
-  Save
+  Save,
+  AlertTriangle
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -30,6 +32,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import type { TarotReading, TarotInterpretation, DrawnCard } from '@/types/tarot';
+import type { FallbackInterpretationData } from '@/utils/tarotFallback';
 
 export default function ReadingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -291,9 +294,22 @@ export default function ReadingDetail() {
             </div>
           )}
 
+          {/* Fallback Warning Banner */}
+          {reading.ai_interpretation && '_meta' in (reading.ai_interpretation as any) && (
+            <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-amber-700 dark:text-amber-300">
+                <strong>Interprétation simplifiée</strong> – Ce tirage a été réalisé alors que l'IA était indisponible
+                {(reading.ai_interpretation as unknown as FallbackInterpretationData)._meta?.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
+                {(reading.ai_interpretation as unknown as FallbackInterpretationData)._meta?.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
+                . L'interprétation a été générée à partir des données de la carte.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Interpretation */}
           {reading.ai_interpretation && (
-            <InterpretationDisplay interpretation={reading.ai_interpretation} />
+            <InterpretationDisplay interpretation={reading.ai_interpretation as TarotInterpretation} />
           )}
 
           {/* User Notes */}

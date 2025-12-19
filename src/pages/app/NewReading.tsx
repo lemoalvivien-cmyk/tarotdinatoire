@@ -3,19 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TarotCardPlaceholder } from '@/components/tarot/TarotCardPlaceholder';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
 import { useTarotCards, useRandomCard } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, RefreshCw, Wand2 } from 'lucide-react';
+import { Sparkles, Loader2, RefreshCw, Wand2, AlertTriangle, Save } from 'lucide-react';
 import { z } from 'zod';
 import type { TarotCard, DrawnCard, TarotInterpretation } from '@/types/tarot';
+import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
 type Step = 'question' | 'draw' | 'interpretation';
+type AIStatus = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
 
 export default function NewReading() {
   const navigate = useNavigate();
@@ -29,8 +32,8 @@ export default function NewReading() {
   const [drawnCard, setDrawnCard] = useState<{ card: TarotCard; drawnCard: DrawnCard } | null>(null);
   const [isShuffling, setIsShuffling] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
-  const [interpretation, setInterpretation] = useState<TarotInterpretation | null>(null);
-  const [isLoadingInterpretation, setIsLoadingInterpretation] = useState(false);
+  const [interpretation, setInterpretation] = useState<TarotInterpretation | FallbackInterpretationData | null>(null);
+  const [aiStatus, setAIStatus] = useState<AIStatus>('idle');
   const [isSaving, setIsSaving] = useState(false);
 
   const validateQuestion = () => {
@@ -56,6 +59,8 @@ export default function NewReading() {
 
     setIsShuffling(true);
     setIsRevealed(false);
+    setAIStatus('idle');
+    setInterpretation(null);
 
     // Simulate shuffle animation
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -74,7 +79,7 @@ export default function NewReading() {
   const handleGetInterpretation = async () => {
     if (!drawnCard || !user) return;
 
-    setIsLoadingInterpretation(true);
+    setAIStatus('loading');
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -108,11 +113,39 @@ export default function NewReading() {
         return;
       }
 
-      if (response.status === 429) {
-        toast.error('Limite quotidienne atteinte (bêta gratuite). Réessaie demain.', {
+      // Handle 402 - Credits exhausted
+      if (response.status === 402) {
+        console.log('AI credits exhausted, using fallback interpretation');
+        const fallbackInterp = generateFallbackInterpretation(
+          drawnCard.card,
+          drawnCard.drawnCard.orientation,
+          question
+        );
+        const fallbackData = createFallbackForStorage(fallbackInterp, 'INSUFFICIENT_BALANCE');
+        setInterpretation(fallbackData);
+        setAIStatus('unavailable');
+        setStep('interpretation');
+        toast.warning('Crédits IA épuisés. Une interprétation simplifiée a été générée.', {
           duration: 6000,
         });
-        setIsLoadingInterpretation(false);
+        return;
+      }
+
+      // Handle 429 - Rate limited
+      if (response.status === 429) {
+        console.log('Rate limited, using fallback interpretation');
+        const fallbackInterp = generateFallbackInterpretation(
+          drawnCard.card,
+          drawnCard.drawnCard.orientation,
+          question
+        );
+        const fallbackData = createFallbackForStorage(fallbackInterp, 'RATE_LIMITED');
+        setInterpretation(fallbackData);
+        setAIStatus('unavailable');
+        setStep('interpretation');
+        toast.warning('Limite quotidienne atteinte. Une interprétation simplifiée a été générée.', {
+          duration: 6000,
+        });
         return;
       }
 
@@ -122,14 +155,22 @@ export default function NewReading() {
       }
 
       const data = await response.json();
-      // The edge function now returns the interpretation directly (not wrapped)
       setInterpretation(data);
+      setAIStatus('success');
       setStep('interpretation');
     } catch (error) {
       console.error('Interpretation error:', error);
-      toast.error(error instanceof Error ? error.message : 'Une erreur est survenue');
-    } finally {
-      setIsLoadingInterpretation(false);
+      // Fallback on any error
+      const fallbackInterp = generateFallbackInterpretation(
+        drawnCard.card,
+        drawnCard.drawnCard.orientation,
+        question
+      );
+      const fallbackData = createFallbackForStorage(fallbackInterp, 'AI_ERROR');
+      setInterpretation(fallbackData);
+      setAIStatus('error');
+      setStep('interpretation');
+      toast.error('Erreur IA. Une interprétation simplifiée a été générée.');
     }
   };
 
@@ -170,7 +211,10 @@ export default function NewReading() {
     setDrawnCard(null);
     setIsRevealed(false);
     setInterpretation(null);
+    setAIStatus('idle');
   };
+
+  const isFallbackInterpretation = interpretation && '_meta' in interpretation;
 
   if (cardsLoading) {
     return (
@@ -306,10 +350,10 @@ export default function NewReading() {
                       <Button
                         onClick={handleGetInterpretation}
                         size="lg"
-                        disabled={isLoadingInterpretation}
+                        disabled={aiStatus === 'loading'}
                         className="w-full"
                       >
-                        {isLoadingInterpretation ? (
+                        {aiStatus === 'loading' ? (
                           <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Interprétation en cours...
@@ -324,7 +368,7 @@ export default function NewReading() {
                       <Button
                         variant="outline"
                         onClick={handleReset}
-                        disabled={isLoadingInterpretation}
+                        disabled={aiStatus === 'loading'}
                       >
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Nouveau tirage
@@ -339,6 +383,20 @@ export default function NewReading() {
           {/* Step 3: Interpretation */}
           {step === 'interpretation' && interpretation && drawnCard && (
             <div className="space-y-8">
+              {/* Fallback Warning Banner */}
+              {isFallbackInterpretation && (
+                <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <AlertDescription className="text-amber-700 dark:text-amber-300">
+                    <strong>Interprétation simplifiée</strong> – L'IA est temporairement indisponible 
+                    {(interpretation as FallbackInterpretationData)._meta.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
+                    {(interpretation as FallbackInterpretationData)._meta.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
+                    . Cette interprétation est générée à partir des données de la carte. 
+                    Vos cartes sont bien tirées et vous pouvez sauvegarder ce tirage.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Card Display */}
               <div className="flex justify-center">
                 <TarotCardPlaceholder
@@ -366,7 +424,7 @@ export default function NewReading() {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-5 w-5" />
+                      <Save className="mr-2 h-5 w-5" />
                       Sauvegarder ce tirage
                     </>
                   )}
