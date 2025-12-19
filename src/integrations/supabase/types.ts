@@ -89,6 +89,39 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_logs: {
+        Row: {
+          anon_id: string
+          choices: Json
+          created_at: string
+          id: string
+          ip_hash: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anon_id: string
+          choices?: Json
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anon_id?: string
+          choices?: Json
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_leads: {
         Row: {
           consent: boolean
