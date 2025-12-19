@@ -1,15 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { RefreshCw, AlertTriangle, Home, Star, ArrowLeft } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Home, Star, ArrowLeft, Info } from 'lucide-react';
 import type { TarotInterpretation, DrawnCard } from '@/types/tarot';
-import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
+import { 
+  generateTemplateInterpretation, 
+  createTemplateForStorage, 
+  type TemplateInterpretationData 
+} from '@/utils/tarotTemplateEngine';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
@@ -31,9 +35,8 @@ export default function ReadingSession() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: allCards } = useTarotCards();
-  const queryClient = useQueryClient();
 
-  const [interpretation, setInterpretation] = useState<TarotInterpretation | FallbackInterpretationData | null>(null);
+  const [interpretation, setInterpretation] = useState<TarotInterpretation | TemplateInterpretationData | null>(null);
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -110,7 +113,7 @@ export default function ReadingSession() {
   // Set interpretation from existing result
   useEffect(() => {
     if (existingResult?.interpretation) {
-      setInterpretation(existingResult.interpretation as unknown as TarotInterpretation | FallbackInterpretationData);
+      setInterpretation(existingResult.interpretation as unknown as TarotInterpretation | TemplateInterpretationData);
     }
   }, [existingResult]);
 
@@ -160,30 +163,43 @@ export default function ReadingSession() {
           return;
         }
 
-        let interpretationData: TarotInterpretation | FallbackInterpretationData;
+        let interpretationData: TarotInterpretation | TemplateInterpretationData;
 
-        // Handle 402 - Credits exhausted
-        if (response.status === 402 || response.status === 429) {
-          const firstCard = selectedCards[0];
-          const cardDetails = allCards?.find(c => c.id === firstCard?.card_id);
-          if (cardDetails && firstCard) {
-            const fallbackInterp = generateFallbackInterpretation(
-              cardDetails,
-              firstCard.orientation,
+        // Handle 402/429/500 - Generate template interpretation (hybrid fallback)
+        if (response.status === 402 || response.status === 429 || response.status >= 500) {
+          // Build rich template interpretation from all cards
+          const cardsWithDetails = selectedCards
+            .map((sc, index) => {
+              const cardDetails = allCards?.find(c => c.id === sc.card_id);
+              if (!cardDetails) return null;
+              return {
+                card: cardDetails,
+                drawnCard: sc as DrawnCard,
+                positionLabel: positions[index]?.label_fr || positions[index]?.label || `Position ${index + 1}`,
+              };
+            })
+            .filter((c): c is NonNullable<typeof c> => c !== null);
+
+          if (cardsWithDetails.length > 0) {
+            const templateInterp = generateTemplateInterpretation(
+              cardsWithDetails,
+              spread?.name_fr || 'Tirage',
               session.question || undefined
             );
-            interpretationData = createFallbackForStorage(
-              fallbackInterp,
-              response.status === 402 ? 'INSUFFICIENT_BALANCE' : 'RATE_LIMITED'
-            );
-            toast.warning(
-              response.status === 402
-                ? 'Crédits IA épuisés. Une interprétation simplifiée a été générée.'
-                : 'Limite quotidienne atteinte. Une interprétation simplifiée a été générée.',
-              { duration: 6000 }
-            );
+            
+            const reason = response.status === 402 ? 'INSUFFICIENT_BALANCE' 
+              : response.status === 429 ? 'RATE_LIMITED' 
+              : 'AI_UNAVAILABLE';
+            
+            interpretationData = createTemplateForStorage(templateInterp, reason, cardsWithDetails.length);
+            
+            // Discreet toast - don't alarm the user
+            toast.info('Interprétation basée sur les arcanes traditionnels.', { 
+              duration: 4000,
+              icon: <Info className="h-4 w-4" />,
+            });
           } else {
-            throw new Error('Cannot generate fallback');
+            throw new Error('Cannot generate template interpretation');
           }
         } else if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -208,28 +224,40 @@ export default function ReadingSession() {
       } catch (error) {
         console.error('Interpretation error:', error);
         
-        // Generate fallback
-        const firstCard = selectedCards[0];
-        const cardDetails = allCards?.find(c => c.id === firstCard?.card_id);
-        if (cardDetails && firstCard) {
-          const fallbackInterp = generateFallbackInterpretation(
-            cardDetails,
-            firstCard.orientation,
+        // Generate template fallback for any error
+        const cardsWithDetails = selectedCards
+          .map((sc, index) => {
+            const cardDetails = allCards?.find(c => c.id === sc.card_id);
+            if (!cardDetails) return null;
+            return {
+              card: cardDetails,
+              drawnCard: sc as DrawnCard,
+              positionLabel: positions[index]?.label_fr || positions[index]?.label || `Position ${index + 1}`,
+            };
+          })
+          .filter((c): c is NonNullable<typeof c> => c !== null);
+
+        if (cardsWithDetails.length > 0) {
+          const templateInterp = generateTemplateInterpretation(
+            cardsWithDetails,
+            spread?.name_fr || 'Tirage',
             session.question || undefined
           );
-          const fallbackData = createFallbackForStorage(fallbackInterp, 'AI_ERROR');
+          const templateData = createTemplateForStorage(templateInterp, 'AI_ERROR', cardsWithDetails.length);
           
-          // Try to save fallback
+          // Try to save template
           await supabase
             .from('reading_results')
             .insert({
               session_id: sessionId,
-              interpretation: JSON.parse(JSON.stringify(fallbackData)),
+              interpretation: JSON.parse(JSON.stringify(templateData)),
             });
 
-          setInterpretation(fallbackData);
+          setInterpretation(templateData);
+          toast.info('Interprétation basée sur les arcanes traditionnels.', { duration: 4000 });
+        } else {
+          toast.error('Impossible de générer l\'interprétation.');
         }
-        toast.error('Erreur IA. Une interprétation simplifiée a été générée.');
       } finally {
         setIsInterpreting(false);
       }
@@ -349,15 +377,14 @@ export default function ReadingSession() {
               </div>
             )}
 
-            {/* Fallback Warning Banner */}
+            {/* Template/Fallback Info Banner - Discreet */}
             {isFallbackInterpretation && (
-              <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <AlertDescription className="text-amber-700 dark:text-amber-300">
-                  <strong>Interprétation simplifiée</strong> – L'IA était temporairement indisponible 
-                  {(interpretation as FallbackInterpretationData)._meta.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
-                  {(interpretation as FallbackInterpretationData)._meta.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
-                  . Cette interprétation est générée à partir des données de la carte.
+              <Alert variant="default" className="border-muted bg-muted/30">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                <AlertDescription className="text-muted-foreground text-sm">
+                  Interprétation basée sur les arcanes traditionnels.
+                  {(interpretation as TemplateInterpretationData)._meta?.reason === 'INSUFFICIENT_BALANCE' && ' L\'interprétation avancée n\'est pas disponible actuellement.'}
+                  {(interpretation as TemplateInterpretationData)._meta?.reason === 'RATE_LIMITED' && ' L\'interprétation avancée sera disponible prochainement.'}
                 </AlertDescription>
               </Alert>
             )}
