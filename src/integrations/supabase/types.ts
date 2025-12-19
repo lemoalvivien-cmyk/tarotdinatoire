@@ -247,30 +247,42 @@ export type Database = {
           created_at: string
           description: string | null
           description_fr: string | null
+          icon: string | null
           id: string
+          is_enabled: boolean
+          layout_key: string | null
           name: string
           name_fr: string
           positions: Json
+          sort_order: number
         }
         Insert: {
           card_count?: number
           created_at?: string
           description?: string | null
           description_fr?: string | null
+          icon?: string | null
           id: string
+          is_enabled?: boolean
+          layout_key?: string | null
           name: string
           name_fr: string
           positions?: Json
+          sort_order?: number
         }
         Update: {
           card_count?: number
           created_at?: string
           description?: string | null
           description_fr?: string | null
+          icon?: string | null
           id?: string
+          is_enabled?: boolean
+          layout_key?: string | null
           name?: string
           name_fr?: string
           positions?: Json
+          sort_order?: number
         }
         Relationships: []
       }
