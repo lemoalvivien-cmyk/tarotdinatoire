@@ -50,7 +50,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleGoHome = () => {
     console.log('[ErrorBoundary] User clicked Home');
+    // Use assignment for full app reset in error recovery scenario
     window.location.href = '/';
+  };
+
+  private handleReconnect = () => {
+    console.log('[ErrorBoundary] User clicked Reconnect');
+    window.location.href = '/auth';
   };
 
   public render() {
@@ -115,9 +121,12 @@ export class ErrorBoundary extends Component<Props, State> {
             {isAuthError && (
               <p className="text-sm text-muted-foreground">
                 Si le problème persiste,{' '}
-                <a href="/auth" className="text-primary hover:underline">
+                <button 
+                  onClick={this.handleReconnect}
+                  className="text-primary hover:underline"
+                >
                   reconnectez-vous
-                </a>
+                </button>
               </p>
             )}
           </div>
