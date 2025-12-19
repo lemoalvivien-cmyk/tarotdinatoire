@@ -5,13 +5,11 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TarotCardPlaceholder } from '@/components/tarot/TarotCardPlaceholder';
-import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
+import { ReadingResult } from '@/components/tarot/ReadingResult';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { 
-  Sparkles, 
   Loader2, 
   Star, 
   Trash2, 
@@ -164,10 +162,6 @@ export default function ReadingDetail() {
     },
   });
 
-  // Get card details from cached cards
-  const getCardDetails = (cardId: string) => {
-    return allCards?.find(c => c.id === cardId);
-  };
 
   if (isLoading) {
     return (
@@ -196,8 +190,6 @@ export default function ReadingDetail() {
   }
 
   const drawnCards = reading.cards || [];
-  const firstCard = drawnCards[0];
-  const cardDetails = firstCard ? getCardDetails(firstCard.card_id) : null;
 
   return (
     <Layout>
@@ -274,26 +266,6 @@ export default function ReadingDetail() {
             </div>
           )}
 
-          {/* Card Display */}
-          {cardDetails && firstCard && (
-            <div className="flex flex-col items-center space-y-4">
-              <TarotCardPlaceholder
-                card={cardDetails}
-                orientation={firstCard.orientation}
-                size="lg"
-                isRevealed={true}
-              />
-              <div className="text-center">
-                <h2 className="font-serif text-2xl font-semibold">
-                  {cardDetails.nom_fr}
-                </h2>
-                <p className="text-muted-foreground">
-                  {firstCard.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Fallback Warning Banner */}
           {reading.ai_interpretation && '_meta' in (reading.ai_interpretation as any) && (
             <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
@@ -307,10 +279,12 @@ export default function ReadingDetail() {
             </Alert>
           )}
 
-          {/* Interpretation */}
-          {reading.ai_interpretation && (
-            <InterpretationDisplay interpretation={reading.ai_interpretation as TarotInterpretation} />
-          )}
+          {/* Reading Result with Cards + Interpretation */}
+          <ReadingResult
+            cards={drawnCards}
+            interpretation={reading.ai_interpretation as TarotInterpretation | null}
+            allCards={allCards}
+          />
 
           {/* User Notes */}
           <div className="p-6 rounded-2xl glass-mystic shadow-soft space-y-4">
