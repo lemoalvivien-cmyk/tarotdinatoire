@@ -15,6 +15,7 @@ import Landing from "./pages/public/Landing";
 import Auth from "./pages/public/Auth";
 import Disclaimer from "./pages/public/Disclaimer";
 import Status from "./pages/public/Status";
+import Spreads from "./pages/public/Spreads";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import Imprint from "./pages/legal/Imprint";
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/disclaimer" element={<Disclaimer />} />
                 <Route path="/status" element={<Status />} />
+                <Route path="/tirages" element={<Spreads />} />
                 <Route path="/legal/privacy" element={<Privacy />} />
                 <Route path="/legal/terms" element={<Terms />} />
                 <Route path="/legal/imprint" element={<Imprint />} />
@@ -79,6 +81,7 @@ const App = () => (
                 <Route path="/app/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
                 <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
+                <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
                 <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

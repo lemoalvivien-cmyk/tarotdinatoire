@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -28,11 +29,37 @@ type AIStatus = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
 // Number of cards to preload initially
 const PRELOAD_COUNT = 12;
 
+// Default spread if none specified
+const DEFAULT_SPREAD_ID = 'one_card';
+
 export default function NewReading() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
   const { user } = useAuth();
   const { data: cards, isLoading: cardsLoading, error: cardsError } = useTarotCards();
   const { drawCard } = useRandomCard(cards);
+  
+  // Determine the spread ID from URL or default
+  const spreadId = slug || DEFAULT_SPREAD_ID;
+  
+  // Load spread configuration
+  const { data: spread, isLoading: spreadLoading } = useQuery({
+    queryKey: ['spread', spreadId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tarot_spreads')
+        .select('id, name_fr, description_fr, card_count, positions')
+        .eq('id', spreadId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('[NewReading] Error loading spread:', error);
+        throw error;
+      }
+      return data;
+    },
+    staleTime: 60000,
+  });
   
   const [step, setStep] = useState<Step>('question');
   const [question, setQuestion] = useState('');
@@ -147,7 +174,7 @@ export default function NewReading() {
             'Authorization': `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            spread_id: 'one_card',
+            spread_id: spreadId,
             question: question || null,
             cards: [drawnCard.drawnCard],
           }),
@@ -231,7 +258,7 @@ export default function NewReading() {
         .from('tarot_readings')
         .insert([{
           user_id: user.id,
-          spread_id: 'one_card',
+          spread_id: spreadId,
           question: question || null,
           cards: JSON.parse(JSON.stringify([drawnCard.drawnCard])),
           ai_interpretation: JSON.parse(JSON.stringify(interpretation)),
@@ -263,13 +290,13 @@ export default function NewReading() {
 
   const isFallbackInterpretation = interpretation && '_meta' in interpretation;
 
-  // Loading state - Full screen OracleLoader (cards loading OR images preloading)
-  if (cardsLoading || (!imagesPreloaded && !cardsError)) {
+  // Loading state - Full screen OracleLoader (cards loading OR images preloading OR spread loading)
+  if (cardsLoading || spreadLoading || (!imagesPreloaded && !cardsError)) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
         <OracleLoader 
           size="lg" 
-          message={cardsLoading ? "Préparation des arcanes..." : "Chargement des cartes..."} 
+          message={cardsLoading ? "Préparation des arcanes..." : spreadLoading ? "Chargement du tirage..." : "Chargement des cartes..."} 
         />
       </MysticBackground>
     );
@@ -327,7 +354,7 @@ export default function NewReading() {
             {/* Step Header */}
             <StepHeader
               title={
-                step === 'question' ? 'Nouveau Tirage' :
+                step === 'question' ? (spread?.name_fr || 'Nouveau Tirage') :
                 step === 'draw' ? 'Tirez votre carte' :
                 'Votre Interprétation'
               }
