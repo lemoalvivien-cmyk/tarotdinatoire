@@ -5,6 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Textarea } from '@/components/ui/textarea';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { useRitualMachine } from '@/hooks/useRitualMachine';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -46,6 +47,7 @@ export default function NewReading() {
   const { slug } = useParams<{ slug?: string }>();
   const { user } = useAuth();
   const { data: cards, isLoading: cardsLoading, error: cardsError } = useTarotCards();
+  const { track } = useAnalytics();
   
   const spreadId = slug || DEFAULT_SPREAD_ID;
   
@@ -135,19 +137,23 @@ export default function NewReading() {
 
   const handleStartRitual = () => {
     if (!validateQuestion()) return;
+    track('reading_start', { spread_id: spreadId });
     setPageStep('ritual');
   };
 
   const handleShuffle = async () => {
+    track('shuffle', { spread_id: spreadId });
     await ritual.startShuffle();
   };
 
   const handleCut = async () => {
+    track('cut', { spread_id: spreadId });
     await ritual.startCut();
   };
 
   const handleCardSelect = (card: TarotCardType) => {
     if (!ritual.currentPositionKey) return;
+    track('select_card', { spread_id: spreadId, card_id: card.id, card_index: ritual.state.selectedCards.length });
     ritual.selectCard(card, ritual.currentPositionKey);
   };
 
@@ -158,6 +164,7 @@ export default function NewReading() {
   const handleValidate = async () => {
     if (!ritual.canValidate || !user) return;
     
+    track('validate', { spread_id: spreadId, cards_count: ritual.state.selectedCards.length });
     ritual.startInterpretation();
     setAIStatus('loading');
 

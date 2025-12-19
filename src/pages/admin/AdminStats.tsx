@@ -8,7 +8,13 @@ import {
   Sparkles,
   Mail,
   TrendingUp,
-  Loader2
+  Loader2,
+  Play,
+  Shuffle,
+  Scissors,
+  MousePointer,
+  CheckCircle,
+  Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -26,19 +32,32 @@ interface FunnelStats {
   averageReadingsPerUser: number;
 }
 
+interface EventCount {
+  event_name: string;
+  count: number;
+}
+
+const FUNNEL_EVENTS = [
+  { key: 'reading_start', label: 'Démarrage tirage', icon: Play },
+  { key: 'shuffle', label: 'Mélange', icon: Shuffle },
+  { key: 'cut', label: 'Coupe', icon: Scissors },
+  { key: 'select_card', label: 'Sélection carte', icon: MousePointer },
+  { key: 'validate', label: 'Validation', icon: CheckCircle },
+  { key: 'result_view', label: 'Vue résultat', icon: Eye },
+  { key: 'email_submit', label: 'Email soumis', icon: Mail },
+];
+
 export default function AdminStats() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-funnel-stats'],
     queryFn: async (): Promise<FunnelStats> => {
       const today = new Date().toISOString().split('T')[0];
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Get total users
       const { count: totalUsers } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      // Get users with at least one reading
       const { data: readingUsers } = await supabase
         .from('reading_sessions')
         .select('user_id')
@@ -46,7 +65,6 @@ export default function AdminStats() {
 
       const uniqueUsersWithReadings = new Set(readingUsers?.map(r => r.user_id) || []);
       
-      // Count users with multiple readings
       const userReadingCounts = readingUsers?.reduce((acc, r) => {
         acc[r.user_id] = (acc[r.user_id] || 0) + 1;
         return acc;
@@ -54,7 +72,6 @@ export default function AdminStats() {
       
       const usersWithMultiple = Object.values(userReadingCounts).filter(c => c > 1).length;
 
-      // Get email leads stats
       const { count: emailLeads } = await supabase
         .from('email_leads')
         .select('*', { count: 'exact', head: true })
@@ -66,13 +83,11 @@ export default function AdminStats() {
         .eq('email_verified', true)
         .is('unsubscribed_at', null);
 
-      // Get readings today
       const { count: readingsToday } = await supabase
         .from('reading_sessions')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', today);
 
-      // Get readings this week
       const { count: readingsThisWeek } = await supabase
         .from('reading_sessions')
         .select('*', { count: 'exact', head: true })
@@ -96,6 +111,31 @@ export default function AdminStats() {
     staleTime: 60000,
   });
 
+  // Fetch event funnel data
+  const { data: eventCounts, isLoading: eventsLoading } = useQuery({
+    queryKey: ['admin-event-funnel'],
+    queryFn: async (): Promise<EventCount[]> => {
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      
+      // Get counts for each event type
+      const counts: EventCount[] = [];
+      
+      for (const event of FUNNEL_EVENTS) {
+        const { count } = await (supabase.from('analytics_events') as any)
+          .select('*', { count: 'exact', head: true })
+          .eq('event_name', event.key)
+          .gte('created_at', weekAgo);
+        
+        counts.push({ event_name: event.key, count: count || 0 });
+      }
+      
+      return counts;
+    },
+    staleTime: 60000,
+  });
+
+  const isLoading = statsLoading || eventsLoading;
+
   const conversionRate = stats && stats.totalUsers > 0 
     ? Math.round((stats.usersWithReadings / stats.totalUsers) * 100) 
     : 0;
@@ -103,6 +143,10 @@ export default function AdminStats() {
   const retentionRate = stats && stats.usersWithReadings > 0
     ? Math.round((stats.usersWithMultipleReadings / stats.usersWithReadings) * 100)
     : 0;
+
+  // Calculate funnel percentages
+  const maxEventCount = eventCounts ? Math.max(...eventCounts.map(e => e.count), 1) : 1;
+  const getEventCount = (key: string) => eventCounts?.find(e => e.event_name === key)?.count || 0;
 
   return (
     <Layout>
@@ -121,7 +165,7 @@ export default function AdminStats() {
               </div>
               <div>
                 <h1 className="font-serif text-2xl font-semibold">Statistiques Funnel</h1>
-                <p className="text-sm text-muted-foreground">Analyse du parcours utilisateur</p>
+                <p className="text-sm text-muted-foreground">Analyse du parcours utilisateur (7 jours)</p>
               </div>
             </div>
           </div>
@@ -130,7 +174,7 @@ export default function AdminStats() {
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : stats ? (
+          ) : (
             <>
               {/* Key Metrics */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -140,7 +184,7 @@ export default function AdminStats() {
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Utilisateurs</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.totalUsers}</p>
+                    <p className="text-3xl font-bold">{stats?.totalUsers || 0}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -149,7 +193,7 @@ export default function AdminStats() {
                       <Sparkles className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Aujourd'hui</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.readingsToday}</p>
+                    <p className="text-3xl font-bold">{stats?.readingsToday || 0}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -158,7 +202,7 @@ export default function AdminStats() {
                       <TrendingUp className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Cette semaine</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.readingsThisWeek}</p>
+                    <p className="text-3xl font-bold">{stats?.readingsThisWeek || 0}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -167,58 +211,90 @@ export default function AdminStats() {
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">Email Leads</span>
                     </div>
-                    <p className="text-3xl font-bold">{stats.emailLeads}</p>
+                    <p className="text-3xl font-bold">{stats?.emailLeads || 0}</p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Funnel Visualization */}
+              {/* Event Funnel */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Entonnoir de conversion</CardTitle>
+                  <CardTitle>Funnel Événements (7 jours)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {FUNNEL_EVENTS.map((event, index) => {
+                    const count = getEventCount(event.key);
+                    const percentage = maxEventCount > 0 ? (count / maxEventCount) * 100 : 0;
+                    const Icon = event.icon;
+                    
+                    // Calculate drop-off from previous step
+                    const prevCount = index > 0 ? getEventCount(FUNNEL_EVENTS[index - 1].key) : count;
+                    const dropOff = prevCount > 0 ? Math.round(((prevCount - count) / prevCount) * 100) : 0;
+                    
+                    return (
+                      <div key={event.key} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-muted-foreground" />
+                            <span>{event.label}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {index > 0 && dropOff > 0 && (
+                              <span className="text-xs text-orange-500">-{dropOff}%</span>
+                            )}
+                            <span className="font-medium tabular-nums">{count.toLocaleString()}</span>
+                          </div>
+                        </div>
+                        <Progress value={percentage} className="h-2" />
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+
+              {/* User Funnel */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Entonnoir Utilisateurs</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Step 1: Total Users */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Utilisateurs inscrits</span>
-                      <span className="font-medium">{stats.totalUsers}</span>
+                      <span className="font-medium">{stats?.totalUsers || 0}</span>
                     </div>
                     <Progress value={100} className="h-3" />
                   </div>
 
-                  {/* Step 2: Users with readings */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Ont fait un tirage</span>
                       <span className="font-medium">
-                        {stats.usersWithReadings} ({conversionRate}%)
+                        {stats?.usersWithReadings || 0} ({conversionRate}%)
                       </span>
                     </div>
                     <Progress value={conversionRate} className="h-3" />
                   </div>
 
-                  {/* Step 3: Retention */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Ont fait plusieurs tirages</span>
                       <span className="font-medium">
-                        {stats.usersWithMultipleReadings} ({retentionRate}%)
+                        {stats?.usersWithMultipleReadings || 0} ({retentionRate}%)
                       </span>
                     </div>
                     <Progress value={retentionRate} className="h-3" />
                   </div>
 
-                  {/* Email conversion */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Leads email collectés</span>
                       <span className="font-medium">
-                        {stats.emailLeads} ({stats.emailLeadsVerified} vérifiés)
+                        {stats?.emailLeads || 0} ({stats?.emailLeadsVerified || 0} vérifiés)
                       </span>
                     </div>
                     <Progress 
-                      value={stats.totalUsers > 0 ? (stats.emailLeads / stats.totalUsers) * 100 : 0} 
+                      value={(stats?.totalUsers || 0) > 0 ? ((stats?.emailLeads || 0) / (stats?.totalUsers || 1)) * 100 : 0} 
                       className="h-3" 
                     />
                   </div>
@@ -243,7 +319,7 @@ export default function AdminStats() {
                     <CardTitle className="text-base">Moyenne tirages/user</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-4xl font-bold text-primary">{stats.averageReadingsPerUser}</p>
+                    <p className="text-4xl font-bold text-primary">{stats?.averageReadingsPerUser || 0}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       tirages par utilisateur actif
                     </p>
@@ -251,7 +327,7 @@ export default function AdminStats() {
                 </Card>
               </div>
             </>
-          ) : null}
+          )}
         </div>
       </div>
     </Layout>

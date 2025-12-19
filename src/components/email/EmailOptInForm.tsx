@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,6 +28,7 @@ interface EmailOptInFormProps {
 
 export function EmailOptInForm({ sessionId, spreadId, onSuccess }: EmailOptInFormProps) {
   const { user } = useAuth();
+  const { track } = useAnalytics();
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [consent, setConsent] = useState(false);
@@ -106,6 +108,7 @@ export function EmailOptInForm({ sessionId, spreadId, onSuccess }: EmailOptInFor
         throw error;
       }
 
+      track('email_submit', { session_id: sessionId, spread_id: spreadId || '' });
       toast.success("Merci ! Vous recevrez bientôt des conseils personnalisés.");
       setIsSubmitted(true);
       onSuccess?.();
