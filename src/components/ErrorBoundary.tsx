@@ -1,9 +1,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
+  fallbackMessage?: string;
 }
 
 interface State {
@@ -24,24 +25,31 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[ErrorBoundary] Caught error:', {
+    // Always log in dev, minimal in prod
+    const logData = {
       name: error.name,
       message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-    });
+      stack: import.meta.env.DEV ? error.stack : undefined,
+      componentStack: import.meta.env.DEV ? errorInfo.componentStack : '[hidden in prod]',
+    };
+    
+    console.error('[ErrorBoundary] Caught error:', logData);
+    
     this.setState({ errorInfo });
   }
 
   private handleReload = () => {
+    console.log('[ErrorBoundary] User clicked Reload');
     window.location.reload();
   };
 
   private handleReset = () => {
+    console.log('[ErrorBoundary] User clicked Retry');
     this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   private handleGoHome = () => {
+    console.log('[ErrorBoundary] User clicked Home');
     window.location.href = '/';
   };
 
@@ -49,7 +57,18 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       const errorMessage = this.state.error?.message || 'Erreur inconnue';
       const isAuthError = errorMessage.toLowerCase().includes('auth') || 
-                          errorMessage.toLowerCase().includes('session');
+                          errorMessage.toLowerCase().includes('session') ||
+                          errorMessage.toLowerCase().includes('jwt');
+      const isNetworkError = errorMessage.toLowerCase().includes('network') ||
+                             errorMessage.toLowerCase().includes('fetch');
+
+      // Determine user-friendly message
+      let userMessage = "Quelque chose s'est mal passé. Veuillez réessayer.";
+      if (isAuthError) {
+        userMessage = "Un problème de session s'est produit. Essayez de recharger la page ou de vous reconnecter.";
+      } else if (isNetworkError) {
+        userMessage = "Problème de connexion. Vérifiez votre connexion internet et réessayez.";
+      }
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -63,14 +82,16 @@ export class ErrorBoundary extends Component<Props, State> {
                 Une erreur est survenue
               </h1>
               <p className="text-muted-foreground">
-                {isAuthError 
-                  ? "Un problème de session s'est produit. Essayez de recharger la page ou de vous reconnecter."
-                  : "Quelque chose s'est mal passé. Veuillez réessayer."}
+                {userMessage}
               </p>
             </div>
 
-            {/* Always show a sanitized error hint */}
+            {/* Show sanitized error hint in dev or minimal in prod */}
             <div className="p-4 rounded-lg bg-muted/50 text-left">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Bug className="h-4 w-4" />
+                <span className="text-xs font-medium">Détails techniques</span>
+              </div>
               <p className="text-xs font-mono text-muted-foreground break-all">
                 {errorMessage.substring(0, 200)}
                 {errorMessage.length > 200 && '...'}

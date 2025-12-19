@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -18,40 +19,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const initialCheckDone = useRef(false);
 
-  // Centralized session update function
-  const updateSession = useCallback((newSession: Session | null) => {
+  // Centralized session update function with logging
+  const updateSession = useCallback((newSession: Session | null, source: string) => {
+    if (import.meta.env.DEV) {
+      console.log('[Auth] updateSession from', source, {
+        userId: newSession?.user?.id ?? 'null',
+        hasSession: !!newSession,
+      });
+    }
     setSession(newSession);
     setUser(newSession?.user ?? null);
   }, []);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST (synchronous callback only!)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('[Auth] State change:', event, session?.user?.id);
-        updateSession(session);
+        if (import.meta.env.DEV) {
+          console.log('[Auth] onAuthStateChange:', event, session?.user?.id);
+        }
+        updateSession(session, `onAuthStateChange:${event}`);
         setLoading(false);
-        setInitialized(true);
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[Auth] Initial session:', session?.user?.id);
-      updateSession(session);
-      setLoading(false);
-      setInitialized(true);
-    });
+    // THEN check for existing session (only once)
+    if (!initialCheckDone.current) {
+      initialCheckDone.current = true;
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('[Auth] getSession error:', error);
+        }
+        if (import.meta.env.DEV) {
+          console.log('[Auth] Initial getSession:', session?.user?.id ?? 'no session');
+        }
+        updateSession(session, 'getSession');
+        setLoading(false);
+      });
+    }
 
     return () => subscription.unsubscribe();
   }, [updateSession]);
 
   const refreshSession = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      updateSession(session);
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('[Auth] refreshSession error:', error);
+        return;
+      }
+      updateSession(session, 'refreshSession');
     } catch (error) {
       console.error('[Auth] Error refreshing session:', error);
     }
@@ -59,6 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
+    
+    if (import.meta.env.DEV) {
+      console.log('[Auth] signUp attempt for:', email);
+    }
     
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -70,13 +93,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // If signup successful and we have a session, update state immediately
     if (!error && data.session) {
-      updateSession(data.session);
+      if (import.meta.env.DEV) {
+        console.log('[Auth] signUp success, session received immediately');
+      }
+      updateSession(data.session, 'signUp');
+    } else if (!error && !data.session) {
+      // Email confirmation required
+      if (import.meta.env.DEV) {
+        console.log('[Auth] signUp success, awaiting email confirmation');
+      }
+      toast.info('Vérifiez votre email pour confirmer votre inscription.');
     }
     
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
+    if (import.meta.env.DEV) {
+      console.log('[Auth] signIn attempt for:', email);
+    }
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -84,19 +120,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // If signin successful, update state immediately
     if (!error && data.session) {
-      updateSession(data.session);
+      if (import.meta.env.DEV) {
+        console.log('[Auth] signIn success');
+      }
+      updateSession(data.session, 'signIn');
     }
     
     return { error };
   };
 
   const signOut = async () => {
+    if (import.meta.env.DEV) {
+      console.log('[Auth] signOut');
+    }
     await supabase.auth.signOut();
-    updateSession(null);
+    updateSession(null, 'signOut');
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading: loading || !initialized, signUp, signIn, signOut, refreshSession }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      signUp, 
+      signIn, 
+      signOut, 
+      refreshSession 
+    }}>
       {children}
     </AuthContext.Provider>
   );

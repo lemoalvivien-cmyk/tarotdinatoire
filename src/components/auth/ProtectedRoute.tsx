@@ -69,9 +69,9 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
     return <LoadingScreen />;
   }
 
-  // If no user, we're redirecting - don't render anything
+  // If no user, show loading (we're redirecting) - never show blank
   if (!user) {
-    return null;
+    return <LoadingScreen />;
   }
 
   // Allow access to onboarding page regardless of onboarding status
