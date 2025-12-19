@@ -3,7 +3,7 @@
  * Runs in development to catch non-ASCII routes early
  */
 
-const ASCII_ROUTE_PATTERN = /^\/[a-z0-9/_:-]*$/;
+const ASCII_ROUTE_PATTERN = /^\/[a-zA-Z0-9/_:-]*$/;
 
 export function validateRoutes(paths: string[]): void {
   // ALWAYS validate - both dev AND prod build (critical security gate)
