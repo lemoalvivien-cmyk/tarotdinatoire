@@ -36,6 +36,7 @@ import AdminFeatureFlags from "./pages/admin/AdminFeatureFlags";
 import AdminPrompts from "./pages/admin/AdminPrompts";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminEdgeTest from "./pages/admin/AdminEdgeTest";
+import AdminCardAssets from "./pages/admin/AdminCardAssets";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => (
                 <Route path="/admin/prompts" element={<AdminRoute><AdminPrompts /></AdminRoute>} />
                 <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
                 <Route path="/admin/edge-test" element={<AdminRoute><AdminEdgeTest /></AdminRoute>} />
+                <Route path="/admin/card-assets" element={<AdminRoute><AdminCardAssets /></AdminRoute>} />
                 
                 {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
                 <Route path="/statut" element={<Navigate to="/status" replace />} />

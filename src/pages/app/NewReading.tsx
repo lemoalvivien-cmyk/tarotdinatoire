@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TarotCardPlaceholder } from '@/components/tarot/TarotCardPlaceholder';
+import { TarotCard } from '@/components/tarot/TarotCard';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
 import { useTarotCards, useRandomCard } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,8 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, RefreshCw, Wand2, AlertTriangle, Save } from 'lucide-react';
 import { z } from 'zod';
-import type { TarotCard, DrawnCard, TarotInterpretation } from '@/types/tarot';
+import type { TarotCard as TarotCardType, DrawnCard, TarotInterpretation } from '@/types/tarot';
 import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
+import { preloadCardBack, preloadCardFace } from '@/utils/tarotImageHelpers';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
@@ -29,12 +30,17 @@ export default function NewReading() {
   const [step, setStep] = useState<Step>('question');
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
-  const [drawnCard, setDrawnCard] = useState<{ card: TarotCard; drawnCard: DrawnCard } | null>(null);
+  const [drawnCard, setDrawnCard] = useState<{ card: TarotCardType; drawnCard: DrawnCard } | null>(null);
   const [isShuffling, setIsShuffling] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [interpretation, setInterpretation] = useState<TarotInterpretation | FallbackInterpretationData | null>(null);
   const [aiStatus, setAIStatus] = useState<AIStatus>('idle');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Preload card back on mount
+  useEffect(() => {
+    preloadCardBack();
+  }, []);
 
   const validateQuestion = () => {
     const result = questionSchema.safeParse(question);
@@ -292,7 +298,7 @@ export default function NewReading() {
                 <div className="relative">
                   {!drawnCard ? (
                     <div className={`transition-transform duration-500 ${isShuffling ? 'animate-pulse' : ''}`}>
-                      <TarotCardPlaceholder
+                      <TarotCard
                         size="lg"
                         isRevealed={false}
                         isShuffling={isShuffling}
@@ -300,7 +306,7 @@ export default function NewReading() {
                     </div>
                   ) : (
                     <div className="transition-all duration-700">
-                      <TarotCardPlaceholder
+                      <TarotCard
                         card={drawnCard.card}
                         orientation={drawnCard.drawnCard.orientation}
                         size="lg"
@@ -399,7 +405,7 @@ export default function NewReading() {
 
               {/* Card Display */}
               <div className="flex justify-center">
-                <TarotCardPlaceholder
+                <TarotCard
                   card={drawnCard.card}
                   orientation={drawnCard.drawnCard.orientation}
                   size="md"
