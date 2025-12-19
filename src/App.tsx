@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { CookieBanner } from "@/components/cookies/CookieBanner";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 
 // Public Pages
@@ -118,6 +119,7 @@ const App = () => (
                 {/* ========== 404 ========== */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <CookieBanner />
             </MaintenanceGuard>
           </BrowserRouter>
         </TooltipProvider>
