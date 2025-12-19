@@ -118,9 +118,9 @@ const Landing = () => {
                         Commencer votre voyage
                       </MysticButton>
                     </Link>
-                    <Link to="/disclaimer">
+                    <Link to="/tirages">
                       <MysticButton variant="outline" size="lg">
-                        En savoir plus
+                        Voir les tirages
                       </MysticButton>
                     </Link>
                   </>

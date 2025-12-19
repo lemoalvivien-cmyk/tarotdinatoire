@@ -42,6 +42,7 @@ export const CANONICAL_ROUTES = {
   AUTH: '/auth',
   DISCLAIMER: '/disclaimer',
   STATUS: '/status',
+  SPREADS: '/tirages',
   LEGAL_PRIVACY: '/legal/privacy',
   LEGAL_TERMS: '/legal/terms',
   LEGAL_IMPRINT: '/legal/imprint',
@@ -53,6 +54,7 @@ export const CANONICAL_ROUTES = {
   APP_HISTORY: '/app/history',
   APP_FAVORITES: '/app/favorites',
   APP_READING: '/app/reading/:id',
+  APP_TIRAGE: '/app/tirage/:slug',
   APP_PROFILE: '/app/profile',
   
   // Admin (admin only)
