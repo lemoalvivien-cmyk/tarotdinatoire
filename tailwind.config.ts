@@ -76,8 +76,28 @@ export default {
           cream: "hsl(var(--ethereal-cream))",
         },
         starlight: "hsl(var(--starlight))",
+        // Mystic Premium - Background scale
+        "mp-bg": {
+          900: "hsl(var(--mp-bg-900))",
+          800: "hsl(var(--mp-bg-800))",
+          700: "hsl(var(--mp-bg-700))",
+          600: "hsl(var(--mp-bg-600))",
+        },
+        // Mystic Premium - Surfaces
+        "mp-surface": {
+          glass: "hsl(var(--mp-surface-glass))",
+          border: "hsl(var(--mp-surface-border))",
+        },
+        // Mystic Premium - Brand colors
+        "mp-brand": {
+          violet: "hsl(var(--mp-brand-violet))",
+          violet2: "hsl(var(--mp-brand-violet2))",
+          gold: "hsl(var(--mp-brand-gold))",
+          gold2: "hsl(var(--mp-brand-gold2))",
+        },
       },
       borderRadius: {
+        xl: "var(--radius-xl)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -86,6 +106,10 @@ export default {
         soft: "var(--shadow-soft)",
         glow: "var(--shadow-glow)",
         gold: "var(--shadow-gold)",
+        // Mystic Premium shadows
+        "mp-card": "var(--mp-shadow-card)",
+        "mp-glow-v": "var(--mp-shadow-glow-v)",
+        "mp-glow-g": "var(--mp-shadow-glow-g)",
       },
       backgroundImage: {
         "gradient-celestial": "var(--gradient-celestial)",
