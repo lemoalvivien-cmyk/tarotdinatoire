@@ -29,6 +29,7 @@ import History from "./pages/app/History";
 import Favorites from "./pages/app/Favorites";
 import ReadingDetail from "./pages/app/ReadingDetail";
 import ReadingRedirect from "./pages/app/ReadingRedirect";
+import ReadingSession from "./pages/app/ReadingSession";
 import Profile from "./pages/app/Profile";
 
 // Admin Pages
@@ -82,6 +83,7 @@ const App = () => (
                 <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
                 <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
+                <Route path="/app/resultat/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
                 <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
                 <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
