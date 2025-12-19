@@ -68,6 +68,10 @@ export const CANONICAL_ROUTES = {
   ADMIN_PROMPTS: '/admin/prompts',
   ADMIN_AUDIT_LOGS: '/admin/audit-logs',
   ADMIN_EDGE_TEST: '/admin/edge-test',
+  ADMIN_CARD_ASSETS: '/admin/card-assets',
+  ADMIN_SPREADS: '/admin/spreads',
+  ADMIN_LEADS: '/admin/leads',
+  ADMIN_STATS: '/admin/stats',
 } as const;
 
 // Legacy redirect mappings (from -> to) - ALL ASCII ONLY

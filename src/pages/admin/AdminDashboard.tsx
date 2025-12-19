@@ -59,35 +59,57 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
-              <Link to="/admin/flags">
-                <Settings className="h-5 w-5" />
-                <span>Feature Flags</span>
+              <Link to="/admin/spreads">
+                <Sparkles className="h-5 w-5" />
+                <span>Tirages</span>
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
-              <Link to="/admin/prompts">
-                <FileText className="h-5 w-5" />
-                <span>Prompts IA</span>
+              <Link to="/admin/leads">
+                <Users className="h-5 w-5" />
+                <span>Leads</span>
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
-              <Link to="/admin/audit-logs">
-                <ScrollText className="h-5 w-5" />
-                <span>Audit Logs</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
-              <Link to="/admin/edge-test">
-                <FlaskConical className="h-5 w-5" />
-                <span>Tests Edge</span>
+              <Link to="/admin/stats">
+                <CalendarDays className="h-5 w-5" />
+                <span>Stats Funnel</span>
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
               <Link to="/admin/card-assets">
                 <ImageIcon className="h-5 w-5" />
                 <span>Images Cartes</span>
+              </Link>
+            </Button>
+          </div>
+
+          {/* Secondary Actions */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
+              <Link to="/admin/flags">
+                <Settings className="h-4 w-4" />
+                <span className="text-xs">Feature Flags</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
+              <Link to="/admin/prompts">
+                <FileText className="h-4 w-4" />
+                <span className="text-xs">Prompts IA</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
+              <Link to="/admin/audit-logs">
+                <ScrollText className="h-4 w-4" />
+                <span className="text-xs">Audit Logs</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
+              <Link to="/admin/edge-test">
+                <FlaskConical className="h-4 w-4" />
+                <span className="text-xs">Tests Edge</span>
               </Link>
             </Button>
           </div>
