@@ -68,7 +68,14 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
+          // Handle leaked password error
+          if (error.message.includes('leaked') || error.message.includes('compromised') || error.message.includes('pwned')) {
+            toast({
+              title: "Mot de passe compromis",
+              description: "Ce mot de passe a été exposé dans une fuite de données. Veuillez en choisir un autre plus sécurisé.",
+              variant: "destructive",
+            });
+          } else if (error.message.includes('Invalid login credentials')) {
             toast({
               title: "Erreur de connexion",
               description: "Email ou mot de passe incorrect.",
@@ -90,7 +97,14 @@ export default function Auth() {
       } else {
         const { error } = await signUp(email, password);
         if (error) {
-          if (error.message.includes('User already registered')) {
+          // Handle leaked password error on signup
+          if (error.message.includes('leaked') || error.message.includes('compromised') || error.message.includes('pwned')) {
+            toast({
+              title: "Mot de passe compromis",
+              description: "Ce mot de passe a été exposé dans une fuite de données. Veuillez en choisir un autre plus sécurisé.",
+              variant: "destructive",
+            });
+          } else if (error.message.includes('User already registered')) {
             toast({
               title: "Compte existant",
               description: "Un compte existe déjà avec cet email.",

@@ -1,13 +1,13 @@
 import { Layout } from '@/components/layout/Layout';
 import { CheckCircle, AlertCircle, Clock, RefreshCw } from 'lucide-react';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Status() {
-  const { data: flags, isLoading, refetch, isRefetching } = useFeatureFlags();
+  const { data: config, isLoading, refetch, isRefetching } = usePublicConfig();
   
-  const isMaintenanceMode = flags?.maintenance_mode ?? false;
+  const isMaintenanceMode = config?.maintenance_mode ?? false;
   const isOperational = !isMaintenanceMode;
 
   const statusMessage = isMaintenanceMode 
