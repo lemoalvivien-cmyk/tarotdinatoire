@@ -1,7 +1,7 @@
-import { useEffect, useState, ReactNode, useCallback } from 'react';
+import { useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from '@/hooks/useProfile';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 interface ProtectedRouteProps {
@@ -9,90 +9,63 @@ interface ProtectedRouteProps {
   requireOnboarding?: boolean;
 }
 
-const MAX_PROFILE_RETRIES = 5;
-const RETRY_DELAY = 300;
-
 export function ProtectedRoute({ children, requireOnboarding = true }: ProtectedRouteProps) {
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading, refetch } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
-  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
+
+  // Log navigation for debugging
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('[ProtectedRoute]', {
+        path: location.pathname,
+        authLoading,
+        profileLoading,
+        userId: user?.id,
+        onboardingCompleted: profile?.onboarding_completed,
+        requireOnboarding,
+      });
+    }
+  }, [location.pathname, authLoading, profileLoading, user?.id, profile?.onboarding_completed, requireOnboarding]);
 
   // Check authentication - redirect only when we're sure there's no user
   useEffect(() => {
     if (!authLoading && !user) {
+      if (import.meta.env.DEV) {
+        console.log('[ProtectedRoute] No user, redirecting to /auth');
+      }
       navigate('/auth', { state: { from: location.pathname }, replace: true });
     }
   }, [user, authLoading, navigate, location.pathname]);
 
-  // Check onboarding status with retry logic for race condition
-  const checkOnboardingStatus = useCallback(async (retryCount = 0): Promise<void> => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('onboarding_completed')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[ProtectedRoute] Error fetching profile:', error);
-        throw error;
-      }
-      
-      // If no profile exists yet (trigger hasn't fired), retry a few times
-      if (!data) {
-        if (retryCount < MAX_PROFILE_RETRIES) {
-          console.log(`[ProtectedRoute] Profile not found, retry ${retryCount + 1}/${MAX_PROFILE_RETRIES}`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-          return checkOnboardingStatus(retryCount + 1);
-        }
-        // After max retries, assume not onboarded
-        console.log('[ProtectedRoute] Profile not found after retries, assuming not onboarded');
-        setOnboardingCompleted(false);
-      } else {
-        setOnboardingCompleted(data.onboarding_completed ?? false);
-      }
-    } catch (error) {
-      console.error('[ProtectedRoute] Error checking onboarding:', error);
-      // On error, allow access but assume not onboarded
-      setOnboardingCompleted(false);
-    } finally {
-      setCheckingOnboarding(false);
-    }
-  }, [user]);
-
+  // Refetch profile when user changes (e.g., after signup)
   useEffect(() => {
-    if (!user) {
-      setCheckingOnboarding(false);
-      return;
+    if (user && !authLoading) {
+      refetch();
     }
-
-    if (!requireOnboarding) {
-      setCheckingOnboarding(false);
-      return;
-    }
-
-    setCheckingOnboarding(true);
-    checkOnboardingStatus();
-  }, [user, requireOnboarding, checkOnboardingStatus]);
+  }, [user?.id, authLoading, refetch]);
 
   // Redirect to onboarding if not completed (but not if already on onboarding)
   useEffect(() => {
     if (
-      !checkingOnboarding &&
+      !authLoading &&
+      !profileLoading &&
+      user &&
+      profile !== undefined && // profile query has resolved
       requireOnboarding &&
-      onboardingCompleted === false &&
+      profile?.onboarding_completed !== true &&
       location.pathname !== '/app/onboarding'
     ) {
+      if (import.meta.env.DEV) {
+        console.log('[ProtectedRoute] Onboarding not completed, redirecting to /app/onboarding');
+      }
       navigate('/app/onboarding', { replace: true });
     }
-  }, [checkingOnboarding, requireOnboarding, onboardingCompleted, navigate, location.pathname]);
+  }, [authLoading, profileLoading, user, profile, requireOnboarding, navigate, location.pathname]);
 
-  // Show loading while checking auth or onboarding
-  if (authLoading || checkingOnboarding) {
+  // Show loading while checking auth or profile
+  if (authLoading || (user && profileLoading)) {
     return <LoadingScreen />;
   }
 
@@ -107,7 +80,7 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
   }
 
   // Block access to other /app/* routes if onboarding not completed
-  if (requireOnboarding && !onboardingCompleted) {
+  if (requireOnboarding && profile?.onboarding_completed !== true) {
     return <LoadingScreen />;
   }
 

@@ -3,41 +3,45 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles, Plus, BookOpen, Star, ArrowRight } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/ui/skeleton';
 
-interface Profile {
-  onboarding_completed: boolean;
-}
-
 export default function Dashboard() {
   const { user } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState({ totalReadings: 0, favorites: 0 });
 
+  // Log for debugging
   useEffect(() => {
-    const fetchData = async () => {
+    if (import.meta.env.DEV) {
+      console.log('[Dashboard] State:', {
+        userId: user?.id,
+        profileLoading,
+        onboardingCompleted: profile?.onboarding_completed,
+      });
+    }
+  }, [user?.id, profileLoading, profile?.onboarding_completed]);
+
+  // Redirect to onboarding if not completed (backup check - ProtectedRoute should handle this)
+  useEffect(() => {
+    if (!profileLoading && profile && !profile.onboarding_completed) {
+      if (import.meta.env.DEV) {
+        console.log('[Dashboard] Onboarding not completed, redirecting');
+      }
+      navigate('/app/onboarding', { replace: true });
+    }
+  }, [profile, profileLoading, navigate]);
+
+  // Fetch stats
+  useEffect(() => {
+    const fetchStats = async () => {
       if (!user) return;
 
       try {
-        // Fetch profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', user.id)
-          .single();
-
-        setProfile(profileData);
-
-        // Check if onboarding needed
-        if (profileData && !profileData.onboarding_completed) {
-          navigate('/app/onboarding');
-          return;
-        }
-
         // Fetch stats
         const { count: totalReadings } = await supabase
           .from('tarot_readings')
@@ -55,16 +59,18 @@ export default function Dashboard() {
           favorites: favorites || 0,
         });
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('[Dashboard] Error fetching stats:', error);
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     };
 
-    fetchData();
-  }, [user, navigate]);
+    if (!profileLoading && profile?.onboarding_completed) {
+      fetchStats();
+    }
+  }, [user, profileLoading, profile?.onboarding_completed]);
 
-  if (loading) {
+  if (profileLoading || statsLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16">
