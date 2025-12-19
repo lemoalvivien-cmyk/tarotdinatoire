@@ -110,11 +110,32 @@ export default {
         "mp-card": "var(--mp-shadow-card)",
         "mp-glow-v": "var(--mp-shadow-glow-v)",
         "mp-glow-g": "var(--mp-shadow-glow-g)",
+        // Premium elevated shadows
+        "mp-elevated": "0 12px 40px -12px hsl(var(--mp-bg-900) / 0.5)",
+        "mp-float": "0 20px 50px -15px hsl(var(--mp-bg-900) / 0.4)",
       },
       backgroundImage: {
         "gradient-celestial": "var(--gradient-celestial)",
         "gradient-mystic": "var(--gradient-mystic)",
         "gradient-gold": "var(--gradient-gold)",
+        "gradient-premium": "var(--gradient-premium)",
+        "gradient-ritual": "var(--gradient-ritual)",
+      },
+      // Motion tokens for consistent animations
+      transitionDuration: {
+        "motion-instant": "100ms",
+        "motion-fast": "200ms",
+        "motion-normal": "300ms",
+        "motion-slow": "500ms",
+        "motion-slower": "800ms",
+        "motion-dramatic": "1200ms",
+      },
+      transitionTimingFunction: {
+        "motion-mystic-in": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "motion-mystic-out": "cubic-bezier(0.55, 0, 1, 0.45)",
+        "motion-mystic-bounce": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "motion-celestial": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        "motion-card-flip": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
       },
       keyframes: {
         "accordion-down": {
@@ -154,18 +175,39 @@ export default {
           from: { opacity: "0", transform: "scale(0.9)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        // Premium ritual animations
+        "ritual-pulse": {
+          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.02)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--mp-brand-violet) / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--mp-brand-violet) / 0.5)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "reveal": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        float: "float 6s ease-in-out infinite",
+        float: "float 6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite",
         twinkle: "twinkle 3s ease-in-out infinite",
         "pulse-gold": "pulse-gold 2s ease-in-out infinite",
         "spin-slow": "spin 20s linear infinite",
-        "card-flip": "card-flip 0.6s ease-in-out forwards",
-        shuffle: "shuffle 0.3s ease-in-out",
-        "fade-in-up": "fade-in-up 0.6s ease-out forwards",
-        "scale-in": "scale-in 0.4s ease-out forwards",
+        "card-flip": "card-flip 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards",
+        shuffle: "shuffle 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+        "fade-in-up": "fade-in-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "scale-in": "scale-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "ritual-pulse": "ritual-pulse 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite",
+        "glow-pulse": "glow-pulse 2.5s ease-in-out infinite",
+        "shimmer": "shimmer 2s linear infinite",
+        "reveal": "reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
     },
   },

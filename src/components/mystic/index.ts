@@ -4,8 +4,10 @@
 export { MysticBackground } from './MysticBackground';
 export { BetaBadge } from './BetaBadge';
 export { MysticButton } from './MysticButton';
+export { RitualPanel } from './RitualPanel';
 export { SiteHeader } from './SiteHeader';
 export { SiteFooter } from './SiteFooter';
 
 // Types
 export type { MysticButtonProps } from './MysticButton';
+export type { RitualPanelProps } from './RitualPanel';
