@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,9 @@ const DOMAINS = [
   { value: 'general', label: 'Guidance générale' },
 ];
 
+const MAX_PROFILE_RETRIES = 5;
+const RETRY_DELAY = 300;
+
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -27,9 +30,64 @@ export default function Onboarding() {
   const [displayName, setDisplayName] = useState('');
   const [intention, setIntention] = useState('');
   const [preferredDomain, setPreferredDomain] = useState('');
-  const { user } = useAuth();
+  const [isReady, setIsReady] = useState(false);
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Ensure user is ready before allowing interactions
+  useEffect(() => {
+    if (!authLoading && user) {
+      setIsReady(true);
+    }
+  }, [authLoading, user]);
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth', { replace: true });
+    }
+  }, [authLoading, user, navigate]);
+
+  // Ensure profile exists (handle race condition with trigger)
+  const ensureProfileExists = useCallback(async (): Promise<boolean> => {
+    if (!user) return false;
+
+    for (let attempt = 0; attempt < MAX_PROFILE_RETRIES; attempt++) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[Onboarding] Error checking profile:', error);
+        throw error;
+      }
+
+      if (data) {
+        return true; // Profile exists
+      }
+
+      // Profile doesn't exist yet, wait and retry
+      console.log(`[Onboarding] Profile not found, waiting... (attempt ${attempt + 1}/${MAX_PROFILE_RETRIES})`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+    }
+
+    // After all retries, try to create the profile manually as fallback
+    console.log('[Onboarding] Creating profile as fallback');
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({ id: user.id })
+      .single();
+
+    if (insertError && !insertError.message.includes('duplicate')) {
+      console.error('[Onboarding] Error creating fallback profile:', insertError);
+      throw insertError;
+    }
+
+    return true;
+  }, [user]);
 
   const handleComplete = async () => {
     if (!user) {
@@ -38,13 +96,17 @@ export default function Onboarding() {
         description: "Session expirée. Veuillez vous reconnecter.",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate('/auth', { replace: true });
       return;
     }
     
     setLoading(true);
+    
     try {
-      // Use upsert to handle race condition where profile might not exist yet
+      // First, ensure the profile exists
+      await ensureProfileExists();
+
+      // Then upsert the profile with onboarding data
       const { error } = await supabase
         .from('profiles')
         .upsert({ 
@@ -59,7 +121,7 @@ export default function Onboarding() {
         });
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('[Onboarding] Supabase error:', error);
         throw error;
       }
 
@@ -68,15 +130,26 @@ export default function Onboarding() {
         description: "Votre voyage mystique peut commencer.",
       });
       
-      // Small delay to ensure state updates propagate
-      setTimeout(() => {
-        navigate('/app/dashboard', { replace: true });
-      }, 100);
+      // Navigate after a small delay to ensure state propagation
+      navigate('/app/dashboard', { replace: true });
     } catch (error: any) {
-      console.error('Error completing onboarding:', error);
+      console.error('[Onboarding] Error completing onboarding:', error);
+      
+      // Show user-friendly error message
+      let errorMessage = "Une erreur est survenue. Réessayez.";
+      if (error?.code === '23505') {
+        errorMessage = "Profil déjà configuré. Redirection...";
+        navigate('/app/dashboard', { replace: true });
+        return;
+      } else if (error?.code === '42501' || error?.message?.includes('RLS')) {
+        errorMessage = "Erreur de permissions. Veuillez vous reconnecter.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erreur",
-        description: error?.message || "Une erreur est survenue. Réessayez.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -105,6 +178,17 @@ export default function Onboarding() {
     if (step === 0) return disclaimerAccepted;
     return true;
   };
+
+  // Show loading state while checking auth
+  if (authLoading || !isReady) {
+    return (
+      <Layout showFooter={false}>
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+          <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout showFooter={false}>
@@ -207,6 +291,7 @@ export default function Onboarding() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="bg-card"
+                    disabled={loading}
                   />
                 </div>
 
@@ -218,6 +303,7 @@ export default function Onboarding() {
                     value={intention}
                     onChange={(e) => setIntention(e.target.value)}
                     className="bg-card"
+                    disabled={loading}
                   />
                   <p className="text-xs text-muted-foreground">
                     Ex: clarté, guidance, compréhension de soi...
@@ -226,7 +312,7 @@ export default function Onboarding() {
 
                 <div className="space-y-2">
                   <Label htmlFor="domain">Domaine de prédilection</Label>
-                  <Select value={preferredDomain} onValueChange={setPreferredDomain}>
+                  <Select value={preferredDomain} onValueChange={setPreferredDomain} disabled={loading}>
                     <SelectTrigger className="bg-card">
                       <SelectValue placeholder="Choisissez un domaine (optionnel)" />
                     </SelectTrigger>
@@ -248,7 +334,7 @@ export default function Onboarding() {
             <Button
               variant="ghost"
               onClick={() => setStep(step - 1)}
-              disabled={step === 0}
+              disabled={step === 0 || loading}
               className={step === 0 ? 'invisible' : ''}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -280,7 +366,7 @@ export default function Onboarding() {
               <button
                 onClick={handleComplete}
                 disabled={loading}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
               >
                 Passer cette étape
               </button>
