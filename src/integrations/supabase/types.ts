@@ -149,6 +149,65 @@ export type Database = {
         }
         Relationships: []
       }
+      reading_results: {
+        Row: {
+          created_at: string
+          id: string
+          interpretation: Json | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interpretation?: Json | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interpretation?: Json | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "reading_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reading_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          question: string | null
+          seed: number | null
+          selected_cards: Json
+          spread_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question?: string | null
+          seed?: number | null
+          selected_cards?: Json
+          spread_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question?: string | null
+          seed?: number | null
+          selected_cards?: Json
+          spread_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarot_cards: {
         Row: {
           created_at: string

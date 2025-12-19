@@ -3,19 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { useRitualMachine } from '@/hooks/useRitualMachine';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { RefreshCw, Wand2, AlertTriangle, Save, Home } from 'lucide-react';
+import { RefreshCw, Wand2, AlertTriangle, Home } from 'lucide-react';
 import { z } from 'zod';
-import type { TarotCard as TarotCardType, TarotInterpretation } from '@/types/tarot';
-import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
+import type { TarotCard as TarotCardType } from '@/types/tarot';
 import { preloadCardBack, getCardFaceUrl } from '@/utils/tarotImageHelpers';
 import { preloadImages } from '@/lib/preloadImages';
-import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
 import { SelectableCardGrid, CardCounter } from '@/components/tarot/SelectableCardGrid';
 import { 
   RitualStepIndicator, 
@@ -27,12 +24,12 @@ import {
 
 // Mystic Premium Components
 import { MysticBackground, MysticButton } from '@/components/mystic';
-import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
+import { StepHeader, OracleLoader } from '@/components/tarot-ui';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
-type PageStep = 'question' | 'ritual' | 'interpretation';
-type AIStatus = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
+type PageStep = 'question' | 'ritual';
+type AIStatus = 'idle' | 'loading' | 'error';
 
 // Number of cards to preload initially
 const PRELOAD_COUNT = 12;
@@ -93,9 +90,7 @@ export default function NewReading() {
   const [pageStep, setPageStep] = useState<PageStep>('question');
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
-  const [interpretation, setInterpretation] = useState<TarotInterpretation | FallbackInterpretationData | null>(null);
   const [aiStatus, setAIStatus] = useState<AIStatus>('idle');
-  const [isSaving, setIsSaving] = useState(false);
   const [imagesPreloaded, setImagesPreloaded] = useState(false);
 
   // Get URLs for preloading
@@ -167,148 +162,49 @@ export default function NewReading() {
     setAIStatus('loading');
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
+      // Build selected cards array for session
+      const sessionCards = ritual.state.selectedCards.map(sc => ({
+        card_id: sc.card.id,
+        orientation: sc.drawnCard.orientation,
+        position_key: sc.drawnCard.position_key,
+      }));
 
-      if (!accessToken) {
-        toast.error('Session expirée. Veuillez vous reconnecter.');
-        navigate('/auth');
-        return;
-      }
-
-      const drawnCards = ritual.state.selectedCards.map(sc => sc.drawnCard);
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            spread_id: spreadId,
-            question: question || null,
-            cards: drawnCards,
-          }),
-        }
-      );
-
-      if (response.status === 401) {
-        toast.error('Session expirée. Veuillez vous reconnecter.');
-        navigate('/auth');
-        return;
-      }
-
-      // Handle 402 - Credits exhausted
-      if (response.status === 402) {
-        const firstCard = ritual.state.selectedCards[0];
-        if (firstCard) {
-          const fallbackInterp = generateFallbackInterpretation(
-            firstCard.card,
-            firstCard.drawnCard.orientation,
-            question
-          );
-          const fallbackData = createFallbackForStorage(fallbackInterp, 'INSUFFICIENT_BALANCE');
-          setInterpretation(fallbackData);
-        }
-        setAIStatus('unavailable');
-        setPageStep('interpretation');
-        ritual.complete();
-        toast.warning('Crédits IA épuisés. Une interprétation simplifiée a été générée.', { duration: 6000 });
-        return;
-      }
-
-      // Handle 429 - Rate limited
-      if (response.status === 429) {
-        const firstCard = ritual.state.selectedCards[0];
-        if (firstCard) {
-          const fallbackInterp = generateFallbackInterpretation(
-            firstCard.card,
-            firstCard.drawnCard.orientation,
-            question
-          );
-          const fallbackData = createFallbackForStorage(fallbackInterp, 'RATE_LIMITED');
-          setInterpretation(fallbackData);
-        }
-        setAIStatus('unavailable');
-        setPageStep('interpretation');
-        ritual.complete();
-        toast.warning('Limite quotidienne atteinte. Une interprétation simplifiée a été générée.', { duration: 6000 });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Erreur lors de l\'interprétation');
-      }
-
-      const data = await response.json();
-      setInterpretation(data);
-      setAIStatus('success');
-      setPageStep('interpretation');
-      ritual.complete();
-    } catch (error) {
-      console.error('Interpretation error:', error);
-      const firstCard = ritual.state.selectedCards[0];
-      if (firstCard) {
-        const fallbackInterp = generateFallbackInterpretation(
-          firstCard.card,
-          firstCard.drawnCard.orientation,
-          question
-        );
-        const fallbackData = createFallbackForStorage(fallbackInterp, 'AI_ERROR');
-        setInterpretation(fallbackData);
-      }
-      setAIStatus('error');
-      setPageStep('interpretation');
-      ritual.complete();
-      toast.error('Erreur IA. Une interprétation simplifiée a été générée.');
-    }
-  };
-
-  const handleSaveReading = async () => {
-    if (!interpretation || !user || ritual.state.selectedCards.length === 0) return;
-
-    setIsSaving(true);
-
-    try {
-      const drawnCards = ritual.state.selectedCards.map(sc => sc.drawnCard);
-      
-      const { data, error } = await supabase
-        .from('tarot_readings')
-        .insert([{
+      // Create session in database FIRST
+      const { data: newSession, error: sessionError } = await supabase
+        .from('reading_sessions')
+        .insert({
           user_id: user.id,
           spread_id: spreadId,
           question: question || null,
-          cards: JSON.parse(JSON.stringify(drawnCards)),
-          ai_interpretation: JSON.parse(JSON.stringify(interpretation)),
-          is_favorite: false,
-        }])
+          selected_cards: sessionCards,
+          seed: Math.floor(Math.random() * 1000000),
+        })
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (sessionError) {
+        console.error('Error creating session:', sessionError);
+        toast.error('Erreur lors de la création de la session');
+        setAIStatus('error');
+        return;
+      }
 
-      toast.success('Tirage sauvegardé');
-      navigate(`/app/reading/${data.id}`);
+      // Navigate to result page - interpretation will be requested there
+      navigate(`/app/resultat/${newSession.id}`);
     } catch (error) {
-      console.error('Save error:', error);
-      toast.error('Erreur lors de la sauvegarde');
-    } finally {
-      setIsSaving(false);
+      console.error('Session creation error:', error);
+      toast.error('Erreur lors de la création de la session');
+      setAIStatus('error');
     }
   };
 
   const handleReset = () => {
     setPageStep('question');
     setQuestion('');
-    setInterpretation(null);
     setAIStatus('idle');
     ritual.reset();
   };
 
-  const isFallbackInterpretation = interpretation && '_meta' in interpretation;
   const selectedCardIds = ritual.state.selectedCards.map(sc => sc.card.id);
 
   // Loading state
@@ -509,70 +405,6 @@ export default function NewReading() {
                     )}
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Step 3: Interpretation */}
-            {pageStep === 'interpretation' && interpretation && (
-              <div className="space-y-8 animate-fade-in-up">
-                {/* Fallback Warning Banner */}
-                {isFallbackInterpretation && (
-                  <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
-                    <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    <AlertDescription className="text-amber-700 dark:text-amber-300">
-                      <strong>Interprétation simplifiée</strong> – L'IA est temporairement indisponible 
-                      {(interpretation as FallbackInterpretationData)._meta.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
-                      {(interpretation as FallbackInterpretationData)._meta.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
-                      . Cette interprétation est générée à partir des données de la carte.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Selected Cards Display */}
-                <div className="flex flex-wrap justify-center gap-4">
-                  {ritual.state.selectedCards.map((sc, index) => (
-                    <div key={sc.card.id} className="w-28 md:w-36">
-                      <div className="text-center text-xs text-muted-foreground mb-2">
-                        {positions[index]?.label_fr || positions[index]?.label || `Position ${index + 1}`}
-                      </div>
-                      <TarotCard
-                        id={sc.card.id}
-                        name={sc.card.nom_fr}
-                        imageUrl={sc.card.image_url || undefined}
-                        isRevealed={true}
-                        isSelected={true}
-                      />
-                      <div className="text-center text-xs text-muted-foreground mt-2">
-                        {sc.drawnCard.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Interpretation */}
-                <div className="mp-glass rounded-2xl p-6">
-                  <InterpretationDisplay interpretation={interpretation} />
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <MysticButton
-                    onClick={handleSaveReading}
-                    size="lg"
-                    isLoading={isSaving}
-                    leftIcon={<Save className="h-5 w-5" />}
-                  >
-                    Sauvegarder ce tirage
-                  </MysticButton>
-                  <MysticButton
-                    variant="outline"
-                    onClick={handleReset}
-                    disabled={isSaving}
-                    leftIcon={<RefreshCw className="h-4 w-4" />}
-                  >
-                    Nouveau tirage
-                  </MysticButton>
-                </div>
               </div>
             )}
           </div>

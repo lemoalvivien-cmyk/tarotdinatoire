@@ -55,6 +55,7 @@ export const CANONICAL_ROUTES = {
   APP_FAVORITES: '/app/favorites',
   APP_READING: '/app/reading/:id',
   APP_TIRAGE: '/app/tirage/:slug',
+  APP_RESULTAT: '/app/resultat/:sessionId',
   APP_PROFILE: '/app/profile',
   
   // Admin (admin only)

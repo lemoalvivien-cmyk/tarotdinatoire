@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
@@ -20,6 +20,35 @@ import type { TarotReading, TarotInterpretation, DrawnCard } from '@/types/tarot
 
 const PAGE_SIZE = 20;
 
+interface SessionCard {
+  card_id: string;
+  orientation: 'upright' | 'reversed';
+  position_key: string;
+}
+
+interface ReadingSession {
+  id: string;
+  spread_id: string;
+  question: string | null;
+  selected_cards: SessionCard[];
+  created_at: string;
+  reading_results: Array<{
+    id: string;
+    interpretation: TarotInterpretation | null;
+  }>;
+}
+
+interface HistoryItem {
+  id: string;
+  type: 'session' | 'legacy';
+  created_at: string;
+  question: string | null;
+  first_card_id: string | null;
+  first_card_orientation: 'upright' | 'reversed' | null;
+  summary: string | null;
+  is_favorite: boolean;
+}
+
 export default function History() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -28,8 +57,26 @@ export default function History() {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch readings with pagination
-  const { data, isLoading, error } = useQuery({
+  // Fetch reading sessions (new persistent model)
+  const { data: sessionsData, isLoading: sessionsLoading, error: sessionsError } = useQuery({
+    queryKey: ['reading-sessions', page],
+    queryFn: async () => {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error, count } = await supabase
+        .from('reading_sessions')
+        .select('*, reading_results(*)', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      return { sessions: (data || []) as unknown as ReadingSession[], total: count || 0 };
+    },
+  });
+
+  // Fetch legacy readings (old model - for backwards compatibility)
+  const { data: legacyData, isLoading: legacyLoading, error: legacyError } = useQuery({
     queryKey: ['readings', page],
     queryFn: async () => {
       const from = page * PAGE_SIZE;
@@ -59,7 +106,58 @@ export default function History() {
     },
   });
 
-  // Toggle favorite mutation
+  const isLoading = sessionsLoading || legacyLoading;
+  const hasError = sessionsError || legacyError;
+
+  // Combine sessions and legacy readings into unified list
+  const historyItems: HistoryItem[] = useMemo(() => {
+    const items: HistoryItem[] = [];
+
+    // Add sessions
+    if (sessionsData?.sessions) {
+      for (const session of sessionsData.sessions) {
+        const cards = session.selected_cards as unknown as SessionCard[];
+        const firstCard = Array.isArray(cards) ? cards[0] : null;
+        const result = session.reading_results?.[0];
+        const interpretation = result?.interpretation as TarotInterpretation | null;
+
+        items.push({
+          id: session.id,
+          type: 'session',
+          created_at: session.created_at,
+          question: session.question,
+          first_card_id: firstCard?.card_id || null,
+          first_card_orientation: firstCard?.orientation || null,
+          summary: interpretation?.summary || null,
+          is_favorite: false, // Sessions don't have favorites yet
+        });
+      }
+    }
+
+    // Add legacy readings
+    if (legacyData?.readings) {
+      for (const reading of legacyData.readings) {
+        const firstCard = reading.cards?.[0];
+        items.push({
+          id: reading.id,
+          type: 'legacy',
+          created_at: reading.created_at,
+          question: reading.question,
+          first_card_id: firstCard?.card_id || null,
+          first_card_orientation: firstCard?.orientation || null,
+          summary: reading.ai_interpretation?.summary || null,
+          is_favorite: reading.is_favorite,
+        });
+      }
+    }
+
+    // Sort by date
+    items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return items;
+  }, [sessionsData, legacyData]);
+
+  // Toggle favorite mutation (legacy only)
   const toggleFavorite = useMutation({
     mutationFn: async ({ readingId, currentValue }: { readingId: string; currentValue: boolean }) => {
       const { error } = await supabase
@@ -86,7 +184,7 @@ export default function History() {
       
       return { previous };
     },
-    onError: (err, _, context) => {
+    onError: (_, __, context) => {
       queryClient.setQueryData(['readings', page], context?.previous);
       toast.error('Erreur lors de la mise à jour');
     },
@@ -97,13 +195,12 @@ export default function History() {
     return allCards?.find(c => c.id === cardId);
   };
 
-  // Filter readings by search query
-  const filteredReadings = data?.readings.filter(reading => {
+  // Filter by search query
+  const filteredItems = historyItems.filter(item => {
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
-    const firstCard = reading.cards[0];
-    const cardDetails = firstCard ? getCardDetails(firstCard.card_id) : null;
+    const cardDetails = item.first_card_id ? getCardDetails(item.first_card_id) : null;
     
     // Search in card name
     if (cardDetails?.nom_fr.toLowerCase().includes(query)) return true;
@@ -111,17 +208,25 @@ export default function History() {
     // Search in keywords
     if (cardDetails?.keywords_fr?.some(k => k.toLowerCase().includes(query))) return true;
     
-    // Search in interpretation title/summary
-    if (reading.ai_interpretation?.title?.toLowerCase().includes(query)) return true;
-    if (reading.ai_interpretation?.summary?.toLowerCase().includes(query)) return true;
+    // Search in summary
+    if (item.summary?.toLowerCase().includes(query)) return true;
     
     // Search in question
-    if (reading.question?.toLowerCase().includes(query)) return true;
+    if (item.question?.toLowerCase().includes(query)) return true;
     
     return false;
-  }) || [];
+  });
 
-  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
+  const totalItems = (sessionsData?.total || 0) + (legacyData?.total || 0);
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  const handleItemClick = (item: HistoryItem) => {
+    if (item.type === 'session') {
+      navigate(`/app/resultat/${item.id}`);
+    } else {
+      navigate(`/app/reading/${item.id}`);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -133,7 +238,7 @@ export default function History() {
     );
   }
 
-  if (error) {
+  if (hasError) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16">
@@ -174,7 +279,7 @@ export default function History() {
           </div>
 
           {/* Readings List */}
-          {filteredReadings.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <div className="p-12 rounded-2xl glass-mystic shadow-soft text-center animate-scale-in">
               <p className="text-muted-foreground">
                 {searchQuery ? 'Aucun tirage ne correspond à votre recherche.' : 'Vous n\'avez pas encore de tirages.'}
@@ -191,23 +296,22 @@ export default function History() {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredReadings.map((reading) => {
-                const firstCard = reading.cards[0];
-                const cardDetails = firstCard ? getCardDetails(firstCard.card_id) : null;
+              {filteredItems.map((item) => {
+                const cardDetails = item.first_card_id ? getCardDetails(item.first_card_id) : null;
                 
                 return (
                   <div
-                    key={reading.id}
+                    key={`${item.type}-${item.id}`}
                     className="p-5 rounded-xl bg-card border border-border/50 shadow-soft hover:shadow-md transition-shadow animate-fade-in-up"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div 
                         className="flex-1 cursor-pointer"
-                        onClick={() => navigate(`/app/lecture/${reading.id}`)}
+                        onClick={() => handleItemClick(item)}
                       >
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-xs text-muted-foreground">
-                            {new Date(reading.created_at).toLocaleDateString('fr-FR', {
+                            {new Date(item.created_at).toLocaleDateString('fr-FR', {
                               day: 'numeric',
                               month: 'short',
                               year: 'numeric',
@@ -220,35 +324,37 @@ export default function History() {
                                 {cardDetails.nom_fr}
                               </span>
                               <span className="text-xs text-muted-foreground">
-                                ({firstCard?.orientation === 'upright' ? 'Endroit' : 'Renversée'})
+                                ({item.first_card_orientation === 'upright' ? 'Endroit' : 'Renversée'})
                               </span>
                             </>
                           )}
                         </div>
                         
-                        {reading.ai_interpretation?.summary && (
+                        {item.summary && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            {reading.ai_interpretation.summary}
+                            {item.summary}
                           </p>
                         )}
                       </div>
                       
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite.mutate({ 
-                            readingId: reading.id, 
-                            currentValue: reading.is_favorite 
-                          });
-                        }}
-                        disabled={toggleFavorite.isPending}
-                      >
-                        <Star 
-                          className={`h-5 w-5 ${reading.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} 
-                        />
-                      </Button>
+                      {item.type === 'legacy' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite.mutate({ 
+                              readingId: item.id, 
+                              currentValue: item.is_favorite 
+                            });
+                          }}
+                          disabled={toggleFavorite.isPending}
+                        >
+                          <Star 
+                            className={`h-5 w-5 ${item.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} 
+                          />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
