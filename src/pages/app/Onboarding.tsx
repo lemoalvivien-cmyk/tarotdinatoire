@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { PROFILE_QUERY_KEY } from '@/hooks/useProfile';
 import { Sparkles, Shield, User, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 
 const DOMAINS = [
@@ -33,6 +35,7 @@ export default function Onboarding() {
   const [isReady, setIsReady] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Ensure user is ready before allowing interactions
@@ -125,12 +128,19 @@ export default function Onboarding() {
         throw error;
       }
 
+      // Invalidate profile cache before navigation to ensure ProtectedRoute sees updated data
+      await queryClient.invalidateQueries({ queryKey: [PROFILE_QUERY_KEY, user.id] });
+      
+      if (import.meta.env.DEV) {
+        console.log('[Onboarding] Profile updated successfully, navigating to dashboard');
+      }
+
       toast({
         title: "Bienvenue !",
         description: "Votre voyage mystique peut commencer.",
       });
       
-      // Navigate after a small delay to ensure state propagation
+      // Navigate to dashboard
       navigate('/app/dashboard', { replace: true });
     } catch (error: any) {
       console.error('[Onboarding] Error completing onboarding:', error);
