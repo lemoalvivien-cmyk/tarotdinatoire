@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TarotCard } from '@/components/tarot/TarotCard';
-import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
+import { Button } from '@/components/ui/button';
 import { useTarotCards, useRandomCard } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, RefreshCw, Wand2, AlertTriangle, Save } from 'lucide-react';
+import { Sparkles, RefreshCw, Wand2, AlertTriangle, Save, Home } from 'lucide-react';
 import { z } from 'zod';
 import type { TarotCard as TarotCardType, DrawnCard, TarotInterpretation } from '@/types/tarot';
 import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
-import { preloadCardBack, preloadCardFace } from '@/utils/tarotImageHelpers';
+import { preloadCardBack } from '@/utils/tarotImageHelpers';
+import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
+
+// Mystic Premium Components
+import { MysticBackground, MysticButton, BetaBadge } from '@/components/mystic';
+import { StepHeader, TarotCard, TarotGrid, OracleLoader } from '@/components/tarot-ui';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
@@ -24,7 +27,7 @@ type AIStatus = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
 export default function NewReading() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: cards, isLoading: cardsLoading } = useTarotCards();
+  const { data: cards, isLoading: cardsLoading, error: cardsError } = useTarotCards();
   const { drawCard } = useRandomCard(cards);
   
   const [step, setStep] = useState<Step>('question');
@@ -202,7 +205,7 @@ export default function NewReading() {
       if (error) throw error;
 
       toast.success('Tirage sauvegardé');
-      navigate(`/app/lecture/${data.id}`);
+      navigate(`/app/reading/${data.id}`);
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Erreur lors de la sauvegarde');
@@ -222,232 +225,256 @@ export default function NewReading() {
 
   const isFallbackInterpretation = interpretation && '_meta' in interpretation;
 
+  // Loading state - Full screen OracleLoader
   if (cardsLoading) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <MysticBackground className="min-h-screen flex items-center justify-center">
+        <OracleLoader size="lg" message="Préparation des arcanes..." />
+      </MysticBackground>
+    );
+  }
+
+  // Error state
+  if (cardsError) {
+    return (
+      <MysticBackground className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-6 p-8 mp-glass rounded-2xl max-w-md mx-4">
+          <div 
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full"
+            style={{ backgroundColor: 'hsl(var(--destructive) / 0.1)' }}
+          >
+            <AlertTriangle className="h-8 w-8 text-destructive" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="font-serif text-xl font-semibold text-foreground">
+              Erreur de chargement
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Impossible de charger les cartes. Vérifiez votre connexion.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <MysticButton onClick={() => window.location.reload()}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Réessayer
+            </MysticButton>
+            <MysticButton variant="outline" onClick={() => navigate('/app')}>
+              <Home className="mr-2 h-4 w-4" />
+              Retour
+            </MysticButton>
+          </div>
         </div>
-      </Layout>
+      </MysticBackground>
+    );
+  }
+
+  // AI Loading state - Full screen
+  if (aiStatus === 'loading') {
+    return (
+      <MysticBackground className="min-h-screen flex items-center justify-center">
+        <OracleLoader size="lg" message="L'oracle médite sur votre tirage..." />
+      </MysticBackground>
     );
   }
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 md:py-16">
-        <div className="max-w-2xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4 animate-fade-in-up">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
-              <Sparkles className="h-8 w-8" />
-            </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold">
-              Nouveau Tirage
-            </h1>
-            <p className="text-muted-foreground">
-              Concentrez-vous sur votre question et laissez les cartes vous guider.
-            </p>
-          </div>
+      <MysticBackground className="min-h-screen py-8 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto space-y-8">
+            
+            {/* Step Header */}
+            <StepHeader
+              title={
+                step === 'question' ? 'Nouveau Tirage' :
+                step === 'draw' ? 'Tirez votre carte' :
+                'Votre Interprétation'
+              }
+              subtitle={
+                step === 'question' ? 'Concentrez-vous sur votre question et laissez les cartes vous guider.' :
+                step === 'draw' ? 'Cliquez sur la carte pour la révéler.' :
+                undefined
+              }
+              currentStep={step === 'question' ? 1 : step === 'draw' ? 2 : 3}
+              totalSteps={3}
+            />
 
-          {/* Step 1: Question */}
-          {step === 'question' && (
-            <div className="space-y-6 animate-fade-in-up">
-              <div className="p-6 rounded-2xl glass-mystic shadow-soft space-y-4">
-                <label className="block text-sm font-medium text-foreground">
-                  Votre question ou intention (optionnel)
-                </label>
-                <Textarea
-                  placeholder="Formulez votre question ou laissez vide pour une guidance générale..."
-                  value={question}
-                  onChange={(e) => {
-                    setQuestion(e.target.value);
-                    if (questionError) validateQuestion();
-                  }}
-                  className="min-h-[100px] resize-none"
-                  maxLength={240}
-                />
-                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                  <span>{questionError && <span className="text-destructive">{questionError}</span>}</span>
-                  <span>{question.length}/240</span>
+            {/* Step 1: Question */}
+            {step === 'question' && (
+              <div className="space-y-6 animate-fade-in-up">
+                <div className="p-6 rounded-2xl mp-glass space-y-4">
+                  <label className="block text-sm font-medium text-foreground">
+                    Votre question ou intention (optionnel)
+                  </label>
+                  <Textarea
+                    placeholder="Formulez votre question ou laissez vide pour une guidance générale..."
+                    value={question}
+                    onChange={(e) => {
+                      setQuestion(e.target.value);
+                      if (questionError) validateQuestion();
+                    }}
+                    className="min-h-[100px] resize-none bg-background/50 border-mp-surface-border"
+                    maxLength={240}
+                  />
+                  <div className="flex justify-between items-center text-xs text-muted-foreground">
+                    <span>{questionError && <span className="text-destructive">{questionError}</span>}</span>
+                    <span>{question.length}/240</span>
+                  </div>
                 </div>
+
+                <MysticButton
+                  onClick={handleStartDrawing}
+                  size="lg"
+                  className="w-full"
+                  leftIcon={<Wand2 className="h-5 w-5" />}
+                >
+                  Procéder au tirage
+                </MysticButton>
               </div>
+            )}
 
-              <Button
-                onClick={handleStartDrawing}
-                size="lg"
-                className="w-full"
-              >
-                <Wand2 className="mr-2 h-5 w-5" />
-                Procéder au tirage
-              </Button>
-            </div>
-          )}
-
-          {/* Step 2: Draw Card */}
-          {step === 'draw' && (
-            <div className="space-y-8 animate-fade-in-up">
-              {question && (
-                <div className="p-4 rounded-xl bg-muted/50 text-center">
-                  <p className="text-sm text-muted-foreground">Votre question :</p>
-                  <p className="font-medium mt-1">{question}</p>
-                </div>
-              )}
-
-              <div className="flex flex-col items-center space-y-6">
-                {/* Card Display */}
-                <div className="relative">
-                  {!drawnCard ? (
-                    <div className={`transition-transform duration-500 ${isShuffling ? 'animate-pulse' : ''}`}>
-                      <TarotCard
-                        size="lg"
-                        isRevealed={false}
-                        isShuffling={isShuffling}
-                      />
-                    </div>
-                  ) : (
-                    <div className="transition-all duration-700">
-                      <TarotCard
-                        card={drawnCard.card}
-                        orientation={drawnCard.drawnCard.orientation}
-                        size="lg"
-                        isRevealed={isRevealed}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Name & Orientation */}
-                {drawnCard && isRevealed && (
-                  <div className="text-center space-y-2 animate-fade-in-up">
-                    <h2 className="font-serif text-2xl font-semibold">
-                      {drawnCard.card.nom_fr}
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {drawnCard.drawnCard.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
-                    </p>
+            {/* Step 2: Draw Card */}
+            {step === 'draw' && (
+              <div className="space-y-8 animate-fade-in-up">
+                {question && (
+                  <div className="p-4 rounded-xl mp-glass text-center">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Votre question</p>
+                    <p className="font-medium text-foreground">{question}</p>
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex flex-col gap-3 w-full max-w-xs">
-                  {!drawnCard && (
-                    <Button
-                      onClick={handleDrawCard}
-                      size="lg"
-                      disabled={isShuffling}
-                      className="w-full"
-                    >
-                      {isShuffling ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Mélange...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          Tirer une carte
-                        </>
-                      )}
-                    </Button>
+                <div className="flex flex-col items-center space-y-6">
+                  {/* Card Display */}
+                  <div className="w-48 md:w-56">
+                    {isShuffling ? (
+                      <div className="aspect-[2/3] rounded-xl mp-glass flex items-center justify-center">
+                        <OracleLoader size="sm" message="" />
+                      </div>
+                    ) : !drawnCard ? (
+                      <TarotCard
+                        id="draw-placeholder"
+                        name="Tirez une carte"
+                        isRevealed={false}
+                        onClick={handleDrawCard}
+                      />
+                    ) : (
+                      <TarotCard
+                        id={drawnCard.card.id}
+                        name={drawnCard.card.nom_fr}
+                        imageUrl={drawnCard.card.image_url || undefined}
+                        isRevealed={isRevealed}
+                        isSelected={isRevealed}
+                      />
+                    )}
+                  </div>
+
+                  {/* Card Name & Orientation */}
+                  {drawnCard && isRevealed && (
+                    <div className="text-center space-y-2 animate-fade-in-up">
+                      <h2 className="font-serif text-2xl font-semibold text-foreground">
+                        {drawnCard.card.nom_fr}
+                      </h2>
+                      <p className="text-muted-foreground">
+                        {drawnCard.drawnCard.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
+                      </p>
+                    </div>
                   )}
 
-                  {drawnCard && isRevealed && (
-                    <>
-                      <Button
-                        onClick={handleGetInterpretation}
+                  {/* Actions */}
+                  <div className="flex flex-col gap-3 w-full max-w-xs">
+                    {!drawnCard && !isShuffling && (
+                      <MysticButton
+                        onClick={handleDrawCard}
                         size="lg"
-                        disabled={aiStatus === 'loading'}
                         className="w-full"
+                        leftIcon={<Sparkles className="h-5 w-5" />}
                       >
-                        {aiStatus === 'loading' ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Interprétation en cours...
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="mr-2 h-5 w-5" />
-                            Recevoir l'interprétation
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={handleReset}
-                        disabled={aiStatus === 'loading'}
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Nouveau tirage
-                      </Button>
-                    </>
-                  )}
+                        Tirer une carte
+                      </MysticButton>
+                    )}
+
+                    {drawnCard && isRevealed && (
+                      <>
+                        <MysticButton
+                          onClick={handleGetInterpretation}
+                          size="lg"
+                          className="w-full"
+                          leftIcon={<Wand2 className="h-5 w-5" />}
+                        >
+                          Recevoir l'interprétation
+                        </MysticButton>
+                        <MysticButton
+                          variant="outline"
+                          onClick={handleReset}
+                          leftIcon={<RefreshCw className="h-4 w-4" />}
+                        >
+                          Nouveau tirage
+                        </MysticButton>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 3: Interpretation */}
-          {step === 'interpretation' && interpretation && drawnCard && (
-            <div className="space-y-8">
-              {/* Fallback Warning Banner */}
-              {isFallbackInterpretation && (
-                <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <AlertDescription className="text-amber-700 dark:text-amber-300">
-                    <strong>Interprétation simplifiée</strong> – L'IA est temporairement indisponible 
-                    {(interpretation as FallbackInterpretationData)._meta.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
-                    {(interpretation as FallbackInterpretationData)._meta.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
-                    . Cette interprétation est générée à partir des données de la carte. 
-                    Vos cartes sont bien tirées et vous pouvez sauvegarder ce tirage.
-                  </AlertDescription>
-                </Alert>
-              )}
+            {/* Step 3: Interpretation */}
+            {step === 'interpretation' && interpretation && drawnCard && (
+              <div className="space-y-8 animate-fade-in-up">
+                {/* Fallback Warning Banner */}
+                {isFallbackInterpretation && (
+                  <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    <AlertDescription className="text-amber-700 dark:text-amber-300">
+                      <strong>Interprétation simplifiée</strong> – L'IA est temporairement indisponible 
+                      {(interpretation as FallbackInterpretationData)._meta.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
+                      {(interpretation as FallbackInterpretationData)._meta.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
+                      . Cette interprétation est générée à partir des données de la carte.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {/* Card Display */}
-              <div className="flex justify-center">
-                <TarotCard
-                  card={drawnCard.card}
-                  orientation={drawnCard.drawnCard.orientation}
-                  size="md"
-                  isRevealed={true}
-                />
+                {/* Card Display */}
+                <div className="flex justify-center">
+                  <div className="w-36 md:w-44">
+                    <TarotCard
+                      id={drawnCard.card.id}
+                      name={drawnCard.card.nom_fr}
+                      imageUrl={drawnCard.card.image_url || undefined}
+                      isRevealed={true}
+                      isSelected={true}
+                    />
+                  </div>
+                </div>
+
+                {/* Interpretation */}
+                <div className="mp-glass rounded-2xl p-6">
+                  <InterpretationDisplay interpretation={interpretation} />
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <MysticButton
+                    onClick={handleSaveReading}
+                    size="lg"
+                    isLoading={isSaving}
+                    leftIcon={<Save className="h-5 w-5" />}
+                  >
+                    Sauvegarder ce tirage
+                  </MysticButton>
+                  <MysticButton
+                    variant="outline"
+                    onClick={handleReset}
+                    disabled={isSaving}
+                    leftIcon={<RefreshCw className="h-4 w-4" />}
+                  >
+                    Nouveau tirage
+                  </MysticButton>
+                </div>
               </div>
-
-              {/* Interpretation */}
-              <InterpretationDisplay interpretation={interpretation} />
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  onClick={handleSaveReading}
-                  size="lg"
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Sauvegarde...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-5 w-5" />
-                      Sauvegarder ce tirage
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleReset}
-                  disabled={isSaving}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Nouveau tirage
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </MysticBackground>
     </Layout>
   );
 }
