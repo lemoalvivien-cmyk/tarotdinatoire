@@ -9,7 +9,8 @@ import {
   Clock,
   FileText,
   ScrollText,
-  FlaskConical
+  FlaskConical,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-5 gap-4">
             <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
               <Link to="/admin/flags">
                 <Settings className="h-5 w-5" />
@@ -81,6 +82,12 @@ export default function AdminDashboard() {
               <Link to="/admin/edge-test">
                 <FlaskConical className="h-5 w-5" />
                 <span>Tests Edge</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-4 flex flex-col gap-2">
+              <Link to="/admin/card-assets">
+                <ImageIcon className="h-5 w-5" />
+                <span>Images Cartes</span>
               </Link>
             </Button>
           </div>
