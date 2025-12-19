@@ -95,13 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateSession(null);
   };
 
-  // Don't render children until we've at least tried to get the session
-  if (!initialized) {
-    return null;
-  }
-
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, refreshSession }}>
+    <AuthContext.Provider value={{ user, session, loading: loading || !initialized, signUp, signIn, signOut, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
