@@ -191,8 +191,8 @@ const Landing = () => {
                   >
                     <feature.icon className="h-7 w-7" />
                   </div>
-                  <h3 className="font-serif text-xl font-semibold text-foreground">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-serif text-xl font-semibold text-card-foreground text-contrast">{feature.title}</h3>
+                  <p className="text-sm text-card-foreground/85 leading-relaxed">
                     {feature.description}
                   </p>
                 </motion.div>
@@ -211,15 +211,15 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <p className="font-serif text-xl md:text-2xl text-foreground italic">
+              <p className="font-serif text-xl md:text-2xl text-card-foreground italic text-contrast">
                 "Fait et développé avec le savoir-faire d'une trentaine de Tarologues professionnels"
               </p>
               <div className="flex items-center justify-center gap-3">
-                <div className="h-px w-12 bg-mp-surface-border" />
+                <div className="h-px w-12 bg-border" />
                 <Sparkles className="h-4 w-4 text-mp-brand-gold" />
-                <div className="h-px w-12 bg-mp-surface-border" />
+                <div className="h-px w-12 bg-border" />
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-card-foreground/80 leading-relaxed">
                 Notre engagement : vous offrir une guidance respectueuse, éthique et véritablement éclairante.
               </p>
             </motion.div>
