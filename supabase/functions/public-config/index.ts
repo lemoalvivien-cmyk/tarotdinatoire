@@ -7,6 +7,9 @@ const corsHeaders = {
   'Cache-Control': 'public, max-age=30', // Cache for 30 seconds
 };
 
+// App version - update this with each release
+const APP_VERSION = '0.1.0-beta';
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -28,7 +31,7 @@ serve(async (req) => {
   try {
     console.log('[public-config] Fetching public configuration...');
 
-    // Use service role to bypass RLS (since this is a public endpoint)
+    // Use service role to bypass RLS (feature_flags is now admin-only)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
@@ -36,7 +39,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from('feature_flags')
-      .select('maintenance_mode, enable_waitlist')
+      .select('maintenance_mode')
       .eq('id', 1)
       .single();
 
@@ -45,10 +48,10 @@ serve(async (req) => {
       throw error;
     }
 
-    // Return only the safe public fields
+    // Return ONLY the minimal public fields (no sensitive flags)
     const publicConfig = {
       maintenance_mode: data?.maintenance_mode ?? false,
-      enable_waitlist: data?.enable_waitlist ?? false,
+      app_version: APP_VERSION,
     };
 
     console.log('[public-config] Returning config:', publicConfig);
@@ -67,7 +70,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         maintenance_mode: false, 
-        enable_waitlist: false,
+        app_version: APP_VERSION,
         error: 'Failed to fetch configuration' 
       }),
       { 

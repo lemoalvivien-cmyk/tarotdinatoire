@@ -12,9 +12,10 @@ export interface FeatureFlags {
 }
 
 /**
- * Hook to fetch all feature flags - REQUIRES AUTHENTICATION
- * This should only be used in admin contexts where the user is authenticated
- * For public config (maintenance_mode, enable_waitlist), use usePublicConfig instead
+ * Hook to fetch all feature flags - REQUIRES ADMIN ROLE
+ * This should only be used in admin contexts where the user has admin role
+ * For public config (maintenance_mode, app_version), use usePublicConfig instead
+ * Regular authenticated users will get RLS errors - this is by design
  */
 export function useFeatureFlags() {
   return useQuery({

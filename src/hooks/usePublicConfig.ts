@@ -3,13 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface PublicConfig {
   maintenance_mode: boolean;
-  enable_waitlist: boolean;
+  app_version: string;
 }
 
 /**
- * Hook to fetch public configuration (maintenance_mode, enable_waitlist)
+ * Hook to fetch public configuration (maintenance_mode, app_version)
  * Uses an Edge Function to avoid exposing the full feature_flags table
- * Safe for unauthenticated users
+ * Safe for unauthenticated users - feature_flags table is admin-only
  */
 export function usePublicConfig() {
   return useQuery({
@@ -22,12 +22,12 @@ export function usePublicConfig() {
       if (error) {
         console.error('[usePublicConfig] Error fetching config:', error);
         // Return safe defaults on error
-        return { maintenance_mode: false, enable_waitlist: false };
+        return { maintenance_mode: false, app_version: 'unknown' };
       }
 
       return {
         maintenance_mode: data?.maintenance_mode ?? false,
-        enable_waitlist: data?.enable_waitlist ?? false,
+        app_version: data?.app_version ?? 'unknown',
       };
     },
     staleTime: 30000, // 30 seconds - matches edge function cache
