@@ -4,42 +4,52 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { useTarotCards, useRandomCard } from '@/hooks/useTarotCards';
+import { useTarotCards } from '@/hooks/useTarotCards';
+import { useRitualMachine } from '@/hooks/useRitualMachine';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Sparkles, RefreshCw, Wand2, AlertTriangle, Save, Home } from 'lucide-react';
+import { RefreshCw, Wand2, AlertTriangle, Save, Home } from 'lucide-react';
 import { z } from 'zod';
-import type { TarotCard as TarotCardType, DrawnCard, TarotInterpretation } from '@/types/tarot';
+import type { TarotCard as TarotCardType, TarotInterpretation } from '@/types/tarot';
 import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
 import { preloadCardBack, getCardFaceUrl } from '@/utils/tarotImageHelpers';
 import { preloadImages } from '@/lib/preloadImages';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
+import { SelectableCardGrid, CardCounter } from '@/components/tarot/SelectableCardGrid';
+import { 
+  RitualStepIndicator, 
+  ShufflePhase, 
+  CutPhase, 
+  SelectionHeader,
+  ValidateButton 
+} from '@/components/tarot/RitualSteps';
 
 // Mystic Premium Components
-import { MysticBackground, MysticButton, BetaBadge } from '@/components/mystic';
-import { StepHeader, TarotCard, TarotGrid, OracleLoader } from '@/components/tarot-ui';
+import { MysticBackground, MysticButton } from '@/components/mystic';
+import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
-type Step = 'question' | 'draw' | 'interpretation';
+type PageStep = 'question' | 'ritual' | 'interpretation';
 type AIStatus = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
 
 // Number of cards to preload initially
 const PRELOAD_COUNT = 12;
-
-// Default spread if none specified
 const DEFAULT_SPREAD_ID = 'one_card';
+
+interface SpreadPosition {
+  key: string;
+  label: string;
+  label_fr?: string;
+}
 
 export default function NewReading() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const { user } = useAuth();
   const { data: cards, isLoading: cardsLoading, error: cardsError } = useTarotCards();
-  const { drawCard } = useRandomCard(cards);
   
-  // Determine the spread ID from URL or default
   const spreadId = slug || DEFAULT_SPREAD_ID;
   
   // Load spread configuration
@@ -60,13 +70,29 @@ export default function NewReading() {
     },
     staleTime: 60000,
   });
+
+  // Parse positions from spread
+  const positions: SpreadPosition[] = useMemo(() => {
+    if (!spread?.positions) return [{ key: 'single', label: 'Carte unique' }];
+    try {
+      const parsed = spread.positions as unknown as SpreadPosition[];
+      return Array.isArray(parsed) ? parsed : [{ key: 'single', label: 'Carte unique' }];
+    } catch {
+      return [{ key: 'single', label: 'Carte unique' }];
+    }
+  }, [spread]);
+
+  const cardsRequired = spread?.card_count ?? 1;
   
-  const [step, setStep] = useState<Step>('question');
+  // Initialize ritual machine
+  const ritual = useRitualMachine({
+    cardsRequired,
+    positions: positions.map(p => ({ key: p.key, label: p.label_fr || p.label })),
+  });
+
+  const [pageStep, setPageStep] = useState<PageStep>('question');
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
-  const [drawnCard, setDrawnCard] = useState<{ card: TarotCardType; drawnCard: DrawnCard } | null>(null);
-  const [isShuffling, setIsShuffling] = useState(false);
-  const [isRevealed, setIsRevealed] = useState(false);
   const [interpretation, setInterpretation] = useState<TarotInterpretation | FallbackInterpretationData | null>(null);
   const [aiStatus, setAIStatus] = useState<AIStatus>('idle');
   const [isSaving, setIsSaving] = useState(false);
@@ -75,8 +101,6 @@ export default function NewReading() {
   // Get URLs for preloading
   const preloadUrls = useMemo(() => {
     if (!cards || cards.length === 0) return [];
-    
-    // Get first N card face URLs
     return cards
       .slice(0, PRELOAD_COUNT)
       .map(card => getCardFaceUrl(card))
@@ -88,18 +112,12 @@ export default function NewReading() {
     if (cardsLoading || !cards || cards.length === 0) return;
     
     const preload = async () => {
-      // Preload card back first (priority)
       await preloadCardBack();
-      
-      // Then preload first N card faces
       if (preloadUrls.length > 0) {
         await preloadImages(preloadUrls, {
           concurrency: 4,
           onProgress: (loaded, total) => {
-            // Could add progress state here if needed
-            if (loaded === total) {
-              setImagesPreloaded(true);
-            }
+            if (loaded === total) setImagesPreloaded(true);
           },
         });
       } else {
@@ -120,39 +138,32 @@ export default function NewReading() {
     return true;
   };
 
-  const handleStartDrawing = () => {
+  const handleStartRitual = () => {
     if (!validateQuestion()) return;
-    setStep('draw');
+    setPageStep('ritual');
   };
 
-  const handleDrawCard = async () => {
-    if (!cards || cards.length === 0) {
-      toast.error('Impossible de charger les cartes');
-      return;
-    }
-
-    setIsShuffling(true);
-    setIsRevealed(false);
-    setAIStatus('idle');
-    setInterpretation(null);
-
-    // Simulate shuffle animation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const result = drawCard();
-    if (result) {
-      setDrawnCard(result);
-      setIsShuffling(false);
-      
-      // Reveal after a short delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setIsRevealed(true);
-    }
+  const handleShuffle = async () => {
+    await ritual.startShuffle();
   };
 
-  const handleGetInterpretation = async () => {
-    if (!drawnCard || !user) return;
+  const handleCut = async () => {
+    await ritual.startCut();
+  };
 
+  const handleCardSelect = (card: TarotCardType) => {
+    if (!ritual.currentPositionKey) return;
+    ritual.selectCard(card, ritual.currentPositionKey);
+  };
+
+  const handleCardDeselect = (cardId: string) => {
+    ritual.deselectCard(cardId);
+  };
+
+  const handleValidate = async () => {
+    if (!ritual.canValidate || !user) return;
+    
+    ritual.startInterpretation();
     setAIStatus('loading');
 
     try {
@@ -165,6 +176,8 @@ export default function NewReading() {
         return;
       }
 
+      const drawnCards = ritual.state.selectedCards.map(sc => sc.drawnCard);
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation`,
         {
@@ -176,7 +189,7 @@ export default function NewReading() {
           body: JSON.stringify({
             spread_id: spreadId,
             question: question || null,
-            cards: [drawnCard.drawnCard],
+            cards: drawnCards,
           }),
         }
       );
@@ -189,37 +202,39 @@ export default function NewReading() {
 
       // Handle 402 - Credits exhausted
       if (response.status === 402) {
-        console.log('AI credits exhausted, using fallback interpretation');
-        const fallbackInterp = generateFallbackInterpretation(
-          drawnCard.card,
-          drawnCard.drawnCard.orientation,
-          question
-        );
-        const fallbackData = createFallbackForStorage(fallbackInterp, 'INSUFFICIENT_BALANCE');
-        setInterpretation(fallbackData);
+        const firstCard = ritual.state.selectedCards[0];
+        if (firstCard) {
+          const fallbackInterp = generateFallbackInterpretation(
+            firstCard.card,
+            firstCard.drawnCard.orientation,
+            question
+          );
+          const fallbackData = createFallbackForStorage(fallbackInterp, 'INSUFFICIENT_BALANCE');
+          setInterpretation(fallbackData);
+        }
         setAIStatus('unavailable');
-        setStep('interpretation');
-        toast.warning('Crédits IA épuisés. Une interprétation simplifiée a été générée.', {
-          duration: 6000,
-        });
+        setPageStep('interpretation');
+        ritual.complete();
+        toast.warning('Crédits IA épuisés. Une interprétation simplifiée a été générée.', { duration: 6000 });
         return;
       }
 
       // Handle 429 - Rate limited
       if (response.status === 429) {
-        console.log('Rate limited, using fallback interpretation');
-        const fallbackInterp = generateFallbackInterpretation(
-          drawnCard.card,
-          drawnCard.drawnCard.orientation,
-          question
-        );
-        const fallbackData = createFallbackForStorage(fallbackInterp, 'RATE_LIMITED');
-        setInterpretation(fallbackData);
+        const firstCard = ritual.state.selectedCards[0];
+        if (firstCard) {
+          const fallbackInterp = generateFallbackInterpretation(
+            firstCard.card,
+            firstCard.drawnCard.orientation,
+            question
+          );
+          const fallbackData = createFallbackForStorage(fallbackInterp, 'RATE_LIMITED');
+          setInterpretation(fallbackData);
+        }
         setAIStatus('unavailable');
-        setStep('interpretation');
-        toast.warning('Limite quotidienne atteinte. Une interprétation simplifiée a été générée.', {
-          duration: 6000,
-        });
+        setPageStep('interpretation');
+        ritual.complete();
+        toast.warning('Limite quotidienne atteinte. Une interprétation simplifiée a été générée.', { duration: 6000 });
         return;
       }
 
@@ -231,36 +246,42 @@ export default function NewReading() {
       const data = await response.json();
       setInterpretation(data);
       setAIStatus('success');
-      setStep('interpretation');
+      setPageStep('interpretation');
+      ritual.complete();
     } catch (error) {
       console.error('Interpretation error:', error);
-      // Fallback on any error
-      const fallbackInterp = generateFallbackInterpretation(
-        drawnCard.card,
-        drawnCard.drawnCard.orientation,
-        question
-      );
-      const fallbackData = createFallbackForStorage(fallbackInterp, 'AI_ERROR');
-      setInterpretation(fallbackData);
+      const firstCard = ritual.state.selectedCards[0];
+      if (firstCard) {
+        const fallbackInterp = generateFallbackInterpretation(
+          firstCard.card,
+          firstCard.drawnCard.orientation,
+          question
+        );
+        const fallbackData = createFallbackForStorage(fallbackInterp, 'AI_ERROR');
+        setInterpretation(fallbackData);
+      }
       setAIStatus('error');
-      setStep('interpretation');
+      setPageStep('interpretation');
+      ritual.complete();
       toast.error('Erreur IA. Une interprétation simplifiée a été générée.');
     }
   };
 
   const handleSaveReading = async () => {
-    if (!drawnCard || !interpretation || !user) return;
+    if (!interpretation || !user || ritual.state.selectedCards.length === 0) return;
 
     setIsSaving(true);
 
     try {
+      const drawnCards = ritual.state.selectedCards.map(sc => sc.drawnCard);
+      
       const { data, error } = await supabase
         .from('tarot_readings')
         .insert([{
           user_id: user.id,
           spread_id: spreadId,
           question: question || null,
-          cards: JSON.parse(JSON.stringify([drawnCard.drawnCard])),
+          cards: JSON.parse(JSON.stringify(drawnCards)),
           ai_interpretation: JSON.parse(JSON.stringify(interpretation)),
           is_favorite: false,
         }])
@@ -280,17 +301,17 @@ export default function NewReading() {
   };
 
   const handleReset = () => {
-    setStep('question');
+    setPageStep('question');
     setQuestion('');
-    setDrawnCard(null);
-    setIsRevealed(false);
     setInterpretation(null);
     setAIStatus('idle');
+    ritual.reset();
   };
 
   const isFallbackInterpretation = interpretation && '_meta' in interpretation;
+  const selectedCardIds = ritual.state.selectedCards.map(sc => sc.card.id);
 
-  // Loading state - Full screen OracleLoader (cards loading OR images preloading OR spread loading)
+  // Loading state
   if (cardsLoading || spreadLoading || (!imagesPreloaded && !cardsError)) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
@@ -336,7 +357,7 @@ export default function NewReading() {
     );
   }
 
-  // AI Loading state - Full screen
+  // AI Loading state
   if (aiStatus === 'loading') {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
@@ -349,26 +370,26 @@ export default function NewReading() {
     <Layout>
       <MysticBackground className="min-h-screen py-8 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-4xl mx-auto space-y-8">
             
-            {/* Step Header */}
+            {/* Page Header */}
             <StepHeader
               title={
-                step === 'question' ? (spread?.name_fr || 'Nouveau Tirage') :
-                step === 'draw' ? 'Tirez votre carte' :
+                pageStep === 'question' ? (spread?.name_fr || 'Nouveau Tirage') :
+                pageStep === 'ritual' ? 'Rituel du Tirage' :
                 'Votre Interprétation'
               }
               subtitle={
-                step === 'question' ? 'Concentrez-vous sur votre question et laissez les cartes vous guider.' :
-                step === 'draw' ? 'Cliquez sur la carte pour la révéler.' :
+                pageStep === 'question' ? 'Concentrez-vous sur votre question et laissez les cartes vous guider.' :
+                pageStep === 'ritual' ? `Tirage ${cardsRequired} carte${cardsRequired > 1 ? 's' : ''}` :
                 undefined
               }
-              currentStep={step === 'question' ? 1 : step === 'draw' ? 2 : 3}
+              currentStep={pageStep === 'question' ? 1 : pageStep === 'ritual' ? 2 : 3}
               totalSteps={3}
             />
 
             {/* Step 1: Question */}
-            {step === 'question' && (
+            {pageStep === 'question' && (
               <div className="space-y-6 animate-fade-in-up">
                 <div className="p-6 rounded-2xl mp-glass space-y-4">
                   <label className="block text-sm font-medium text-foreground">
@@ -391,7 +412,7 @@ export default function NewReading() {
                 </div>
 
                 <MysticButton
-                  onClick={handleStartDrawing}
+                  onClick={handleStartRitual}
                   size="lg"
                   className="w-full"
                   leftIcon={<Wand2 className="h-5 w-5" />}
@@ -401,8 +422,8 @@ export default function NewReading() {
               </div>
             )}
 
-            {/* Step 2: Draw Card */}
-            {step === 'draw' && (
+            {/* Step 2: Ritual */}
+            {pageStep === 'ritual' && (
               <div className="space-y-8 animate-fade-in-up">
                 {question && (
                   <div className="p-4 rounded-xl mp-glass text-center">
@@ -411,82 +432,88 @@ export default function NewReading() {
                   </div>
                 )}
 
-                <div className="flex flex-col items-center space-y-6">
-                  {/* Card Display */}
-                  <div className="w-48 md:w-56">
-                    {isShuffling ? (
-                      <div className="aspect-[2/3] rounded-xl mp-glass flex items-center justify-center">
-                        <OracleLoader size="sm" message="" />
-                      </div>
-                    ) : !drawnCard ? (
-                      <TarotCard
-                        id="draw-placeholder"
-                        name="Tirez une carte"
-                        isRevealed={false}
-                        onClick={handleDrawCard}
-                      />
-                    ) : (
-                      <TarotCard
-                        id={drawnCard.card.id}
-                        name={drawnCard.card.nom_fr}
-                        imageUrl={drawnCard.card.image_url || undefined}
-                        isRevealed={isRevealed}
-                        isSelected={isRevealed}
-                      />
-                    )}
-                  </div>
+                {/* Ritual Step Indicator */}
+                <RitualStepIndicator phase={ritual.state.phase} />
 
-                  {/* Card Name & Orientation */}
-                  {drawnCard && isRevealed && (
-                    <div className="text-center space-y-2 animate-fade-in-up">
-                      <h2 className="font-serif text-2xl font-semibold text-foreground">
-                        {drawnCard.card.nom_fr}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {drawnCard.drawnCard.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
-                      </p>
+                {/* Idle / Shuffling Phase */}
+                {(ritual.state.phase === 'idle' || ritual.state.phase === 'shuffling') && (
+                  <ShufflePhase 
+                    isShuffling={ritual.state.phase === 'shuffling'} 
+                    onShuffle={handleShuffle} 
+                  />
+                )}
+
+                {/* Shuffled / Cutting Phase */}
+                {(ritual.state.phase === 'shuffled' || ritual.state.phase === 'cutting') && (
+                  <CutPhase 
+                    isCutting={ritual.state.phase === 'cutting'} 
+                    onCut={handleCut} 
+                  />
+                )}
+
+                {/* Cut / Selecting / Ready Phase */}
+                {(ritual.state.phase === 'cut' || ritual.state.phase === 'selecting' || ritual.state.phase === 'ready') && cards && (
+                  <div className="space-y-6">
+                    <SelectionHeader 
+                      currentPosition={ritual.currentPositionLabel}
+                      selectedCount={ritual.selectedCount}
+                      totalRequired={cardsRequired}
+                    />
+
+                    {/* Counter */}
+                    <div className="flex justify-center">
+                      <CardCounter 
+                        current={ritual.selectedCount} 
+                        total={cardsRequired} 
+                      />
                     </div>
-                  )}
 
-                  {/* Actions */}
-                  <div className="flex flex-col gap-3 w-full max-w-xs">
-                    {!drawnCard && !isShuffling && (
-                      <MysticButton
-                        onClick={handleDrawCard}
-                        size="lg"
-                        className="w-full"
-                        leftIcon={<Sparkles className="h-5 w-5" />}
-                      >
-                        Tirer une carte
-                      </MysticButton>
+                    {/* Card Grid */}
+                    <SelectableCardGrid
+                      cards={cards}
+                      selectedCardIds={selectedCardIds}
+                      maxSelections={cardsRequired}
+                      onSelect={handleCardSelect}
+                      onDeselect={handleCardDeselect}
+                      disabled={ritual.state.phase === 'cut'}
+                    />
+
+                    {/* Start selecting button (only in cut phase) */}
+                    {ritual.state.phase === 'cut' && (
+                      <div className="flex justify-center">
+                        <MysticButton
+                          onClick={() => {
+                            // Transition to selecting
+                            if (cards && cards.length > 0) {
+                              handleCardSelect(cards[0]);
+                              handleCardDeselect(cards[0].id);
+                            }
+                          }}
+                          size="lg"
+                        >
+                          Commencer la sélection
+                        </MysticButton>
+                      </div>
                     )}
 
-                    {drawnCard && isRevealed && (
-                      <>
-                        <MysticButton
-                          onClick={handleGetInterpretation}
-                          size="lg"
-                          className="w-full"
-                          leftIcon={<Wand2 className="h-5 w-5" />}
-                        >
-                          Recevoir l'interprétation
-                        </MysticButton>
-                        <MysticButton
-                          variant="outline"
-                          onClick={handleReset}
-                          leftIcon={<RefreshCw className="h-4 w-4" />}
-                        >
-                          Nouveau tirage
-                        </MysticButton>
-                      </>
+                    {/* Validate Button */}
+                    {ritual.state.phase !== 'cut' && (
+                      <div className="flex justify-center pt-4">
+                        <ValidateButton
+                          canValidate={ritual.canValidate}
+                          onClick={handleValidate}
+                          selectedCount={ritual.selectedCount}
+                          totalRequired={cardsRequired}
+                        />
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             )}
 
             {/* Step 3: Interpretation */}
-            {step === 'interpretation' && interpretation && drawnCard && (
+            {pageStep === 'interpretation' && interpretation && (
               <div className="space-y-8 animate-fade-in-up">
                 {/* Fallback Warning Banner */}
                 {isFallbackInterpretation && (
@@ -501,17 +528,25 @@ export default function NewReading() {
                   </Alert>
                 )}
 
-                {/* Card Display */}
-                <div className="flex justify-center">
-                  <div className="w-36 md:w-44">
-                    <TarotCard
-                      id={drawnCard.card.id}
-                      name={drawnCard.card.nom_fr}
-                      imageUrl={drawnCard.card.image_url || undefined}
-                      isRevealed={true}
-                      isSelected={true}
-                    />
-                  </div>
+                {/* Selected Cards Display */}
+                <div className="flex flex-wrap justify-center gap-4">
+                  {ritual.state.selectedCards.map((sc, index) => (
+                    <div key={sc.card.id} className="w-28 md:w-36">
+                      <div className="text-center text-xs text-muted-foreground mb-2">
+                        {positions[index]?.label_fr || positions[index]?.label || `Position ${index + 1}`}
+                      </div>
+                      <TarotCard
+                        id={sc.card.id}
+                        name={sc.card.nom_fr}
+                        imageUrl={sc.card.image_url || undefined}
+                        isRevealed={true}
+                        isSelected={true}
+                      />
+                      <div className="text-center text-xs text-muted-foreground mt-2">
+                        {sc.drawnCard.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Interpretation */}
