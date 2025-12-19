@@ -332,7 +332,7 @@ Génère une interprétation mystique, bienveillante et personnalisée pour les 
     }
 
     // Lovable AI configuration - using Gemini Flash for balanced cost/performance
-    const LOVABLE_AI_URL = "https://ai-gateway.lovable.dev/v1/chat/completions";
+    const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
     const AI_MODEL = "google/gemini-2.5-flash";
     
     console.log("Using provider: Lovable AI, model:", AI_MODEL);
