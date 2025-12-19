@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { MysticButton } from '@/components/mystic';
+import { HoneypotField } from '@/components/forms/HoneypotField';
+import { useCooldown } from '@/hooks/useCooldown';
 import { Mail, Check, Loader2 } from 'lucide-react';
 
 const CONSENT_TEXT = "J'accepte de recevoir des emails concernant mes tirages et des conseils de tarot. Je peux me désinscrire à tout moment.";
@@ -31,10 +33,26 @@ export function EmailOptInForm({ sessionId, spreadId, onSuccess }: EmailOptInFor
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const honeypotRef = useRef<string>('');
+  const { isCoolingDown, remainingSeconds, startCooldown } = useCooldown({ cooldownMs: 3000 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Anti-spam: check honeypot
+    if (honeypotRef.current) {
+      console.warn('[Honeypot] Bot detected - silently blocking');
+      toast.success("Merci ! Vous recevrez bientôt des conseils personnalisés.");
+      setIsSubmitted(true);
+      return;
+    }
+
+    // Anti-spam: cooldown check
+    if (isCoolingDown) {
+      toast.error(`Veuillez patienter ${remainingSeconds}s avant de réessayer.`);
+      return;
+    }
 
     // Validate with zod
     const validation = emailLeadSchema.safeParse({ email, firstName: firstName || undefined, consent });
@@ -58,6 +76,7 @@ export function EmailOptInForm({ sessionId, spreadId, onSuccess }: EmailOptInFor
     }
 
     setIsSubmitting(true);
+    startCooldown();
 
     try {
       const { error } = await supabase
@@ -114,6 +133,11 @@ export function EmailOptInForm({ sessionId, spreadId, onSuccess }: EmailOptInFor
 
   return (
     <form onSubmit={handleSubmit} className="p-6 rounded-2xl mp-glass space-y-5">
+      {/* Honeypot anti-spam */}
+      <HoneypotField 
+        name="website_url" 
+        onBotDetected={() => { honeypotRef.current = 'bot'; }} 
+      />
       <div className="text-center space-y-2">
         <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
           <Mail className="h-5 w-5 text-primary" />
@@ -185,7 +209,7 @@ export function EmailOptInForm({ sessionId, spreadId, onSuccess }: EmailOptInFor
 
       <MysticButton
         type="submit"
-        disabled={isSubmitting || !consent}
+        disabled={isSubmitting || !consent || isCoolingDown}
         className="w-full"
         size="lg"
       >
