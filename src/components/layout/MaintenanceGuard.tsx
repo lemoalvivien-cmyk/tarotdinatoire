@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingScreen } from '@/components/ui/loading-screen';
@@ -21,7 +21,8 @@ const ALWAYS_ALLOWED_ROUTES = [
 ];
 
 export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
-  const { data: flags, isLoading: flagsLoading } = useFeatureFlags();
+  // Use public config (via edge function) instead of direct table access
+  const { data: publicConfig, isLoading: configLoading } = usePublicConfig();
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -52,8 +53,8 @@ export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
 
   // Handle maintenance mode redirection
   useEffect(() => {
-    if (flagsLoading || authLoading || checkingAdmin) return;
-    if (!flags?.maintenance_mode) return;
+    if (configLoading || authLoading || checkingAdmin) return;
+    if (!publicConfig?.maintenance_mode) return;
 
     const currentPath = location.pathname;
 
@@ -69,9 +70,9 @@ export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
 
     // Redirect everyone else to status page
     navigate('/status', { replace: true });
-  }, [flags, flagsLoading, authLoading, checkingAdmin, isAdmin, location.pathname, navigate]);
+  }, [publicConfig, configLoading, authLoading, checkingAdmin, isAdmin, location.pathname, navigate]);
 
-  if (flagsLoading || authLoading || (user && checkingAdmin)) {
+  if (configLoading || authLoading || (user && checkingAdmin)) {
     return <LoadingScreen />;
   }
 
