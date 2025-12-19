@@ -494,6 +494,16 @@
    MYSTIC PREMIUM - Keyframes
    ======================================== */
 
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Animation subtile pour les étoiles */
 @keyframes starshine {
   0% {

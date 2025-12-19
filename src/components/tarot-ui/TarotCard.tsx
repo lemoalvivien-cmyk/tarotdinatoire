@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { isImageLoaded, preloadImage } from '@/lib/preloadImages';
 
 export interface TarotCardProps {
   id: string;
@@ -16,6 +17,7 @@ export interface TarotCardProps {
 
 /**
  * Carte de Tarot avec flip 3D, hover lift, et états visuels
+ * Inclut skeleton loading et fallback gracieux
  */
 export function TarotCard({
   id,
@@ -29,7 +31,36 @@ export function TarotCard({
   flipDuration = 0.75,
 }: TarotCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const shouldReduceMotion = useReducedMotion();
+
+  // Preload image when URL changes
+  useEffect(() => {
+    if (!imageUrl) {
+      setImageLoading(false);
+      return;
+    }
+
+    // Check if already loaded
+    if (isImageLoaded(imageUrl)) {
+      setImageLoading(false);
+      setImageError(false);
+      return;
+    }
+
+    setImageLoading(true);
+    setImageError(false);
+
+    preloadImage(imageUrl)
+      .then(() => {
+        setImageLoading(false);
+        setImageError(false);
+      })
+      .catch(() => {
+        setImageLoading(false);
+        setImageError(true);
+      });
+  }, [imageUrl]);
 
   // Générer un gradient fallback unique basé sur l'id
   const fallbackGradient = useMemo(() => {
@@ -40,6 +71,7 @@ export function TarotCard({
   }, [id]);
 
   const showFallback = !imageUrl || imageError;
+  const showSkeleton = imageUrl && imageLoading && !imageError;
 
   // Animation variants
   const cardVariants = {
@@ -52,7 +84,7 @@ export function TarotCard({
       rotateY: shouldReduceMotion ? 0 : 180,
       transition: { 
         duration: shouldReduceMotion ? 0.1 : flipDuration,
-        ease: [0.34, 1.56, 0.64, 1] as const, // Custom bounce easing
+        ease: [0.34, 1.56, 0.64, 1] as const,
       },
     },
     hover: shouldReduceMotion ? {} : {
@@ -159,31 +191,58 @@ export function TarotCard({
           transform: 'rotateY(180deg)',
         }}
       >
-        {/* Image or fallback */}
-        {showFallback ? (
+        {/* Skeleton loading state */}
+        {showSkeleton && (
+          <div 
+            className="absolute inset-0 flex flex-col items-center justify-center"
+            style={{ background: fallbackGradient }}
+          >
+            {/* Shimmer animation */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div 
+                className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite]"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+                }}
+              />
+            </div>
+            {/* Loading indicator */}
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white/60 animate-spin" />
+              <span className="text-white/60 text-xs">Chargement...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Fallback state (no image or error) */}
+        {showFallback && !showSkeleton && (
           <div 
             className="absolute inset-0 flex flex-col items-center justify-center p-4"
             style={{ background: fallbackGradient }}
           >
-            {/* Skeleton shimmer */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+            {/* Decorative symbol */}
+            <div className="flex-1 flex items-center justify-center">
+              <span className="text-5xl text-white/40">✦</span>
+            </div>
             {/* Card name */}
-            <span className="text-center font-serif text-sm text-white/80 mt-auto mb-4">
+            <span className="text-center font-serif text-sm text-white/80 mb-4">
               {name}
             </span>
           </div>
-        ) : (
+        )}
+
+        {/* Loaded image */}
+        {!showFallback && !showSkeleton && imageUrl && (
           <img
             src={imageUrl}
             alt={name}
             className="absolute inset-0 w-full h-full object-cover"
             onError={() => setImageError(true)}
-            loading="lazy"
           />
         )}
 
-        {/* Name overlay */}
-        {!showFallback && (
+        {/* Name overlay (only when image is loaded) */}
+        {!showFallback && !showSkeleton && (
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
             <span className="text-white font-serif text-sm truncate block text-center">
               {name}
