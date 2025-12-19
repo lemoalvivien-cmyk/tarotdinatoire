@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +12,8 @@ import { Sparkles, RefreshCw, Wand2, AlertTriangle, Save, Home } from 'lucide-re
 import { z } from 'zod';
 import type { TarotCard as TarotCardType, DrawnCard, TarotInterpretation } from '@/types/tarot';
 import { generateFallbackInterpretation, createFallbackForStorage, type FallbackInterpretationData } from '@/utils/tarotFallback';
-import { preloadCardBack } from '@/utils/tarotImageHelpers';
+import { preloadCardBack, getCardFaceUrl } from '@/utils/tarotImageHelpers';
+import { preloadImages } from '@/lib/preloadImages';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
 
 // Mystic Premium Components
@@ -23,6 +24,9 @@ const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 24
 
 type Step = 'question' | 'draw' | 'interpretation';
 type AIStatus = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
+
+// Number of cards to preload initially
+const PRELOAD_COUNT = 12;
 
 export default function NewReading() {
   const navigate = useNavigate();
@@ -39,11 +43,45 @@ export default function NewReading() {
   const [interpretation, setInterpretation] = useState<TarotInterpretation | FallbackInterpretationData | null>(null);
   const [aiStatus, setAIStatus] = useState<AIStatus>('idle');
   const [isSaving, setIsSaving] = useState(false);
+  const [imagesPreloaded, setImagesPreloaded] = useState(false);
 
-  // Preload card back on mount
+  // Get URLs for preloading
+  const preloadUrls = useMemo(() => {
+    if (!cards || cards.length === 0) return [];
+    
+    // Get first N card face URLs
+    return cards
+      .slice(0, PRELOAD_COUNT)
+      .map(card => getCardFaceUrl(card))
+      .filter((url): url is string => url !== null);
+  }, [cards]);
+
+  // Preload card back + first N faces when cards are loaded
   useEffect(() => {
-    preloadCardBack();
-  }, []);
+    if (cardsLoading || !cards || cards.length === 0) return;
+    
+    const preload = async () => {
+      // Preload card back first (priority)
+      await preloadCardBack();
+      
+      // Then preload first N card faces
+      if (preloadUrls.length > 0) {
+        await preloadImages(preloadUrls, {
+          concurrency: 4,
+          onProgress: (loaded, total) => {
+            // Could add progress state here if needed
+            if (loaded === total) {
+              setImagesPreloaded(true);
+            }
+          },
+        });
+      } else {
+        setImagesPreloaded(true);
+      }
+    };
+    
+    preload();
+  }, [cards, cardsLoading, preloadUrls]);
 
   const validateQuestion = () => {
     const result = questionSchema.safeParse(question);
@@ -225,11 +263,14 @@ export default function NewReading() {
 
   const isFallbackInterpretation = interpretation && '_meta' in interpretation;
 
-  // Loading state - Full screen OracleLoader
-  if (cardsLoading) {
+  // Loading state - Full screen OracleLoader (cards loading OR images preloading)
+  if (cardsLoading || (!imagesPreloaded && !cardsError)) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
-        <OracleLoader size="lg" message="Préparation des arcanes..." />
+        <OracleLoader 
+          size="lg" 
+          message={cardsLoading ? "Préparation des arcanes..." : "Chargement des cartes..."} 
+        />
       </MysticBackground>
     );
   }
