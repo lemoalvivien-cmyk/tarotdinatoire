@@ -102,12 +102,12 @@ serve(async (req) => {
         );
       }
 
-      const hasTarotKey = !!Deno.env.get("TAROT_API_KEY");
+      const hasLovableKey = !!Deno.env.get("LOVABLE_API_KEY");
       
       return new Response(
         JSON.stringify({ 
-          hasTarotKey, 
-          provider: hasTarotKey ? "deepseek" : "none"
+          hasLovableKey, 
+          provider: hasLovableKey ? "lovable-ai" : "none"
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -318,33 +318,33 @@ ${cardContexts.map(c => `- ${c.name_fr} (${c.type === "major" ? "Arcane Majeur" 
 
 Génère une interprétation mystique, bienveillante et personnalisée pour les 4 domaines (général, amour, travail, finances). Réponds UNIQUEMENT en JSON valide.`;
 
-    console.log("Calling DeepSeek AI...");
+    console.log("Calling Lovable AI...");
 
-    // Only use TAROT_API_KEY for DeepSeek
-    const TAROT_API_KEY = Deno.env.get("TAROT_API_KEY");
+    // Use Lovable AI - no API key required from user
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    if (!TAROT_API_KEY) {
-      console.error("Missing TAROT_API_KEY - no DeepSeek API key configured");
+    if (!LOVABLE_API_KEY) {
+      console.error("Missing LOVABLE_API_KEY - Lovable AI not configured");
       return new Response(
-        JSON.stringify({ error: "Missing TAROT_API_KEY" }),
+        JSON.stringify({ error: "Configuration IA manquante" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // DeepSeek API configuration
-    const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
-    const DEEPSEEK_MODEL = "deepseek-chat";
+    // Lovable AI configuration - using Gemini Flash for balanced cost/performance
+    const LOVABLE_AI_URL = "https://ai-gateway.lovable.dev/v1/chat/completions";
+    const AI_MODEL = "google/gemini-2.5-flash";
     
-    console.log("Using provider: DeepSeek, model:", DEEPSEEK_MODEL);
+    console.log("Using provider: Lovable AI, model:", AI_MODEL);
 
-    const aiResponse = await fetch(DEEPSEEK_API_URL, {
+    const aiResponse = await fetch(LOVABLE_AI_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${TAROT_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
+        model: AI_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -356,7 +356,7 @@ Génère une interprétation mystique, bienveillante et personnalisée pour les 
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("AI Gateway error:", aiResponse.status, errorText);
+      console.error("Lovable AI Gateway error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
         return new Response(
@@ -364,14 +364,8 @@ Génère une interprétation mystique, bienveillante et personnalisée pour les 
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Crédits IA épuisés" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
 
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      throw new Error(`Lovable AI Gateway error: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
