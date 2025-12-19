@@ -83,7 +83,7 @@ const App = () => (
                 <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
                 <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
-                <Route path="/app/resultat/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
+                <Route path="/app/result/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
                 <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
                 <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

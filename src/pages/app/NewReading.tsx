@@ -190,7 +190,7 @@ export default function NewReading() {
       }
 
       // Navigate to result page - interpretation will be requested there
-      navigate(`/app/resultat/${newSession.id}`);
+      navigate(`/app/result/${newSession.id}`);
     } catch (error) {
       console.error('Session creation error:', error);
       toast.error('Erreur lors de la création de la session');

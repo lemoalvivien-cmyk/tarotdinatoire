@@ -282,7 +282,7 @@ export default function ReadingSession() {
           <div className="flex flex-col gap-3">
             <MysticButton onClick={() => navigate('/app/history')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voir l'historique
+            Voir l'historique
             </MysticButton>
             <MysticButton variant="outline" onClick={() => navigate('/app')}>
               <Home className="mr-2 h-4 w-4" />

@@ -222,7 +222,7 @@ export default function History() {
 
   const handleItemClick = (item: HistoryItem) => {
     if (item.type === 'session') {
-      navigate(`/app/resultat/${item.id}`);
+      navigate(`/app/result/${item.id}`);
     } else {
       navigate(`/app/reading/${item.id}`);
     }
