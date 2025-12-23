@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface MysticBackgroundProps {
@@ -10,13 +10,10 @@ interface MysticBackgroundProps {
 /**
  * Fond cosmique premium avec dégradé violet, étoiles et filigrane zodiac optionnel
  */
-export function MysticBackground({ 
-  children, 
-  className,
-  withFiligree = false 
-}: MysticBackgroundProps) {
-  return (
-    <div className={cn('mystic-bg min-h-screen', className)}>
+export const MysticBackground = forwardRef<HTMLDivElement, MysticBackgroundProps>(
+  function MysticBackground({ children, className, withFiligree = false }, ref) {
+    return (
+      <div ref={ref} className={cn('mystic-bg min-h-screen', className)}>
       {/* Filigrane zodiac SVG */}
       {withFiligree && (
         <div 
@@ -84,8 +81,9 @@ export function MysticBackground({
       <div className="relative z-10">
         {children}
       </div>
-    </div>
-  );
-}
+      </div>
+    );
+  }
+);
 
 export default MysticBackground;

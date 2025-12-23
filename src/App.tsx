@@ -9,6 +9,7 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CookieBanner } from "@/components/cookies/CookieBanner";
+import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 
 // Public Pages
@@ -132,6 +133,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieBanner />
+              <PWAInstallPrompt />
             </MaintenanceGuard>
           </BrowserRouter>
         </TooltipProvider>

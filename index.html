@@ -1,26 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- Primary Meta Tags -->
+    <title>Tarot Divinatoire - VERSION BÊTA GRATUITE | Guidance & Introspection</title>
+    <meta name="title" content="Tarot Divinatoire - VERSION BÊTA GRATUITE | Guidance & Introspection" />
+    <meta name="description" content="Découvrez votre avenir avec le Tarot Divinatoire. Interprétations créées par 30 tarologues professionnels. Guidance, introspection et développement personnel. Essayez gratuitement." />
+    <meta name="author" content="Tarot Divinatoire" />
+    <meta name="keywords" content="tarot, tarot divinatoire, tirage tarot, voyance, cartomancie, guidance, introspection, développement personnel, tarot de marseille" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1a1625" />
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://tarotdivinatoire.app/" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:url" content="https://tarotdivinatoire.app/" />
+    <meta property="og:title" content="Tarot Divinatoire - VERSION BÊTA GRATUITE" />
+    <meta property="og:description" content="Découvrez votre avenir avec le Tarot Divinatoire. Interprétations créées par 30 tarologues professionnels. Guidance mystique et introspection personnelle." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:site_name" content="Tarot Divinatoire" />
+    <meta property="og:locale" content="fr_FR" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:url" content="https://tarotdivinatoire.app/" />
+    <meta name="twitter:title" content="Tarot Divinatoire - VERSION BÊTA GRATUITE" />
+    <meta name="twitter:description" content="Guidance mystique et introspection personnelle. Fait avec le savoir-faire de 30 tarologues professionnels." />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tarot" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, forwardRef } from 'react';
 
 interface SEOHeadProps {
   title: string;
@@ -9,14 +9,15 @@ interface SEOHeadProps {
   noindex?: boolean;
 }
 
-export function SEOHead({
-  title,
-  description,
-  ogTitle,
-  ogDescription,
-  canonical,
-  noindex = false,
-}: SEOHeadProps) {
+export const SEOHead = forwardRef<HTMLDivElement, SEOHeadProps>(
+  function SEOHead({
+    title,
+    description,
+    ogTitle,
+    ogDescription,
+    canonical,
+    noindex = false,
+  }, ref) {
   useEffect(() => {
     // Update document title
     document.title = title;
@@ -68,5 +69,6 @@ export function SEOHead({
     };
   }, [title, description, ogTitle, ogDescription, canonical, noindex]);
 
-  return null;
-}
+    return <span ref={ref} className="sr-only" aria-hidden="true" />;
+  }
+);
