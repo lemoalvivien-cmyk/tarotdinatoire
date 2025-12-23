@@ -28,7 +28,6 @@ import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
 type PageStep = 'question' | 'ritual' | 'table';
-type AIStatus = 'idle' | 'loading' | 'error';
 
 const PRELOAD_COUNT = 12;
 const DEFAULT_SPREAD_ID = 'one_card';
@@ -89,8 +88,15 @@ export default function NewReading() {
   const [pageStep, setPageStep] = useState<PageStep>('question');
   const [question, setQuestion] = useState('');
   const [questionError, setQuestionError] = useState<string | null>(null);
-  const [aiStatus, setAIStatus] = useState<AIStatus>('idle');
+  const [isInterpreting, setIsInterpreting] = useState(false);
   const [imagesPreloaded, setImagesPreloaded] = useState(false);
+
+  // Set initial deck when cards are loaded
+  useEffect(() => {
+    if (cards && cards.length > 0 && ritual.shuffledDeck.length === 0) {
+      ritual.setInitialDeck(cards);
+    }
+  }, [cards, ritual]);
 
   // Get URLs for preloading
   const preloadUrls = useMemo(() => {
@@ -149,10 +155,11 @@ export default function NewReading() {
   };
 
   const handleStartSelection = () => {
-    // Force transition to selecting phase by attempting a select/deselect
-    if (cards && cards.length > 0) {
-      ritual.selectCard(cards[0], ritual.currentPositionKey || 'single');
-      ritual.deselectCard(cards[0].id);
+    // Force transition to selecting phase
+    if (ritual.shuffledDeck.length > 0) {
+      const firstCard = ritual.shuffledDeck[0];
+      ritual.selectCard(firstCard, ritual.currentPositionKey || 'single');
+      ritual.deselectCard(firstCard.id);
     }
   };
 
@@ -175,53 +182,89 @@ export default function NewReading() {
     
     track('validate', { spread_id: spreadId, cards_count: ritual.state.selectedCards.length });
     ritual.startInterpretation();
-    setAIStatus('loading');
+    setIsInterpreting(true);
 
     try {
-      // Build selected cards array for session
-      const sessionCards = ritual.state.selectedCards.map(sc => ({
+      // Build cards array for saving - using the JSONB format expected by tarot_readings
+      const cardsToSave = ritual.state.selectedCards.map(sc => ({
         card_id: sc.card.id,
         orientation: sc.drawnCard.orientation,
         position_key: sc.drawnCard.position_key,
       }));
 
-      // Create session in database FIRST
-      const { data: newSession, error: sessionError } = await supabase
-        .from('reading_sessions')
+      // Get access token for edge function call
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        toast.error('Session expirée. Veuillez vous reconnecter.');
+        navigate('/auth');
+        return;
+      }
+
+      // Call interpretation edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            spread_id: spreadId,
+            question: question || null,
+            cards: cardsToSave,
+          }),
+        }
+      );
+
+      let interpretation = null;
+
+      if (response.ok) {
+        interpretation = await response.json();
+      } else if (response.status === 429) {
+        toast.error('Limite atteinte. Réessayez plus tard.');
+      } else if (response.status === 401) {
+        toast.error('Session expirée.');
+        navigate('/auth');
+        return;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Interpretation error:', errorData);
+        toast.error(errorData.message || 'Erreur lors de l\'interprétation');
+      }
+
+      // Save to tarot_readings table
+      const { data: newReading, error: saveError } = await supabase
+        .from('tarot_readings')
         .insert({
           user_id: user.id,
           spread_id: spreadId,
           question: question || null,
-          selected_cards: sessionCards,
-          seed: Math.floor(Math.random() * 1000000),
+          cards: cardsToSave,
+          ai_interpretation: interpretation,
         })
         .select('id')
         .single();
 
-      if (sessionError) {
-        console.error('Error creating session:', sessionError);
-        toast.error('Erreur lors de la création de la session');
-        setAIStatus('error');
+      if (saveError) {
+        console.error('Save error:', saveError);
+        toast.error('Erreur lors de la sauvegarde');
+        setIsInterpreting(false);
         return;
       }
 
-      // Navigate to result page - interpretation will be requested there
-      navigate(`/app/result/${newSession.id}`);
+      // Navigate to result page
+      navigate(`/app/reading/${newReading.id}`);
     } catch (error) {
-      console.error('Session creation error:', error);
-      toast.error('Erreur lors de la création de la session');
-      setAIStatus('error');
+      console.error('Validate error:', error);
+      toast.error('Une erreur est survenue');
+      setIsInterpreting(false);
     }
   };
 
-  const handleReset = () => {
-    setPageStep('question');
-    setQuestion('');
-    setAIStatus('idle');
-    ritual.reset();
-  };
-
-  // Determine if we show deck/selection view
+  // Determine phases
   const showDeckPhase = ritual.state.phase === 'idle' || ritual.state.phase === 'shuffling' || 
                         ritual.state.phase === 'shuffled' || ritual.state.phase === 'cutting' || 
                         ritual.state.phase === 'cut';
@@ -244,18 +287,12 @@ export default function NewReading() {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-6 p-8 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 max-w-md mx-4">
-          <div 
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20"
-          >
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20">
             <AlertTriangle className="h-8 w-8 text-red-400" />
           </div>
           <div className="space-y-2">
-            <h2 className="font-serif text-xl font-semibold text-white">
-              Erreur de chargement
-            </h2>
-            <p className="text-white/80 text-sm">
-              Impossible de charger les cartes. Vérifiez votre connexion.
-            </p>
+            <h2 className="font-serif text-xl font-semibold text-white">Erreur de chargement</h2>
+            <p className="text-white/80 text-sm">Impossible de charger les cartes.</p>
           </div>
           <div className="flex flex-col gap-3">
             <MysticButton onClick={() => window.location.reload()}>
@@ -272,8 +309,8 @@ export default function NewReading() {
     );
   }
 
-  // AI Loading state - full page cosmic loader
-  if (aiStatus === 'loading') {
+  // Interpretation loading state
+  if (isInterpreting) {
     return <InterpretationLoader question={question || undefined} />;
   }
 
@@ -357,10 +394,10 @@ export default function NewReading() {
                 )}
 
                 {/* Selection Phase */}
-                {showSelectionPhase && cards && (
+                {showSelectionPhase && ritual.shuffledDeck.length > 0 && (
                   <div className="space-y-6">
                     <CardSelectionView
-                      cards={cards}
+                      cards={ritual.shuffledDeck}
                       selectedCards={ritual.state.selectedCards}
                       maxSelections={cardsRequired}
                       currentPositionLabel={ritual.currentPositionLabel}
