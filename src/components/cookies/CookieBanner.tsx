@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useCookieConsent } from '@/hooks/useCookieConsent';
-import { Cookie, Shield, BarChart3, Megaphone, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Cookie, Shield, BarChart3, Megaphone, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export function CookieBanner() {
+export const CookieBanner = forwardRef<HTMLDivElement>((_, ref) => {
   const { showBanner, acceptAll, acceptEssential, saveChoices, isLoading } = useCookieConsent();
   const [showDetails, setShowDetails] = useState(false);
   const [analytics, setAnalytics] = useState(false);
@@ -22,6 +22,7 @@ export function CookieBanner() {
   return (
     <AnimatePresence>
       <motion.div
+        ref={ref}
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
@@ -153,4 +154,6 @@ export function CookieBanner() {
       </motion.div>
     </AnimatePresence>
   );
-}
+});
+
+CookieBanner.displayName = 'CookieBanner';

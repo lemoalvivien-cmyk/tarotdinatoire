@@ -10,7 +10,8 @@ import {
   FileText,
   ScrollText,
   FlaskConical,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ClipboardCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -87,7 +88,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Secondary Actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
               <Link to="/admin/flags">
                 <Settings className="h-4 w-4" />
@@ -110,6 +111,12 @@ export default function AdminDashboard() {
               <Link to="/admin/edge-test">
                 <FlaskConical className="h-4 w-4" />
                 <span className="text-xs">Tests Edge</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto py-3 flex flex-col gap-1.5 border-green-500/50 text-green-600 hover:bg-green-500/10">
+              <Link to="/admin/prod-check">
+                <ClipboardCheck className="h-4 w-4" />
+                <span className="text-xs">Prod Check</span>
               </Link>
             </Button>
           </div>
