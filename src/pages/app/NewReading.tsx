@@ -9,30 +9,27 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { RefreshCw, Wand2, AlertTriangle, Home } from 'lucide-react';
+import { RefreshCw, Wand2, AlertTriangle, Home, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 import type { TarotCard as TarotCardType } from '@/types/tarot';
 import { preloadCardBack, getCardFaceUrl } from '@/utils/tarotImageHelpers';
 import { preloadImages } from '@/lib/preloadImages';
-import { SelectableCardGrid, CardCounter } from '@/components/tarot/SelectableCardGrid';
-import { 
-  RitualStepIndicator, 
-  ShufflePhase, 
-  CutPhase, 
-  SelectionHeader,
-  ValidateButton 
-} from '@/components/tarot/RitualSteps';
 
 // Mystic Premium Components
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, OracleLoader } from '@/components/tarot-ui';
 
+// New ritual components
+import { DeckView } from '@/components/tarot/DeckView';
+import { CardSelectionView } from '@/components/tarot/CardSelectionView';
+import { SpreadTableView } from '@/components/tarot/SpreadTableView';
+import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
+
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
-type PageStep = 'question' | 'ritual';
+type PageStep = 'question' | 'ritual' | 'table';
 type AIStatus = 'idle' | 'loading' | 'error';
 
-// Number of cards to preload initially
 const PRELOAD_COUNT = 12;
 const DEFAULT_SPREAD_ID = 'one_card';
 
@@ -151,6 +148,14 @@ export default function NewReading() {
     await ritual.startCut();
   };
 
+  const handleStartSelection = () => {
+    // Force transition to selecting phase by attempting a select/deselect
+    if (cards && cards.length > 0) {
+      ritual.selectCard(cards[0], ritual.currentPositionKey || 'single');
+      ritual.deselectCard(cards[0].id);
+    }
+  };
+
   const handleCardSelect = (card: TarotCardType) => {
     if (!ritual.currentPositionKey) return;
     track('select_card', { spread_id: spreadId, card_id: card.id, card_index: ritual.state.selectedCards.length });
@@ -159,6 +164,10 @@ export default function NewReading() {
 
   const handleCardDeselect = (cardId: string) => {
     ritual.deselectCard(cardId);
+  };
+
+  const handleShowTable = () => {
+    setPageStep('table');
   };
 
   const handleValidate = async () => {
@@ -212,7 +221,11 @@ export default function NewReading() {
     ritual.reset();
   };
 
-  const selectedCardIds = ritual.state.selectedCards.map(sc => sc.card.id);
+  // Determine if we show deck/selection view
+  const showDeckPhase = ritual.state.phase === 'idle' || ritual.state.phase === 'shuffling' || 
+                        ritual.state.phase === 'shuffled' || ritual.state.phase === 'cutting' || 
+                        ritual.state.phase === 'cut';
+  const showSelectionPhase = ritual.state.phase === 'selecting' || ritual.state.phase === 'ready';
 
   // Loading state
   if (cardsLoading || spreadLoading || (!imagesPreloaded && !cardsError)) {
@@ -230,12 +243,11 @@ export default function NewReading() {
   if (cardsError) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-6 p-8 mp-glass rounded-2xl max-w-md mx-4">
+        <div className="text-center space-y-6 p-8 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 max-w-md mx-4">
           <div 
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full"
-            style={{ backgroundColor: 'hsl(var(--destructive) / 0.1)' }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20"
           >
-            <AlertTriangle className="h-8 w-8 text-destructive" />
+            <AlertTriangle className="h-8 w-8 text-red-400" />
           </div>
           <div className="space-y-2">
             <h2 className="font-serif text-xl font-semibold text-white">
@@ -260,13 +272,9 @@ export default function NewReading() {
     );
   }
 
-  // AI Loading state
+  // AI Loading state - full page cosmic loader
   if (aiStatus === 'loading') {
-    return (
-      <MysticBackground className="min-h-screen flex items-center justify-center">
-        <OracleLoader size="lg" message="L'oracle médite sur votre tirage..." />
-      </MysticBackground>
-    );
+    return <InterpretationLoader question={question || undefined} />;
   }
 
   return (
@@ -279,8 +287,8 @@ export default function NewReading() {
             <StepHeader
               title={
                 pageStep === 'question' ? (spread?.name_fr || 'Nouveau Tirage') :
-                pageStep === 'ritual' ? 'Rituel du Tirage' :
-                'Votre Interprétation'
+                pageStep === 'table' ? 'Votre Tirage' :
+                'Rituel du Tirage'
               }
               subtitle={
                 pageStep === 'question' ? 'Concentrez-vous sur votre question et laissez les cartes vous guider.' :
@@ -294,7 +302,7 @@ export default function NewReading() {
             {/* Step 1: Question */}
             {pageStep === 'question' && (
               <div className="space-y-6 animate-fade-in-up">
-                <div className="p-6 rounded-2xl mp-glass space-y-4">
+                <div className="p-6 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 space-y-4">
                   <label className="block text-sm font-medium text-white">
                     Votre question ou intention (optionnel)
                   </label>
@@ -305,11 +313,11 @@ export default function NewReading() {
                       setQuestion(e.target.value);
                       if (questionError) validateQuestion();
                     }}
-                    className="min-h-[100px] resize-none bg-background/50 border-mp-surface-border text-white placeholder:text-white/50"
+                    className="min-h-[100px] resize-none bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
                     maxLength={240}
                   />
-                  <div className="flex justify-between items-center text-xs text-white/70">
-                    <span>{questionError && <span className="text-destructive">{questionError}</span>}</span>
+                  <div className="flex justify-between items-center text-xs text-white/60">
+                    <span>{questionError && <span className="text-red-400">{questionError}</span>}</span>
                     <span>{question.length}/240</span>
                   </div>
                 </div>
@@ -328,90 +336,105 @@ export default function NewReading() {
             {/* Step 2: Ritual */}
             {pageStep === 'ritual' && (
               <div className="space-y-8 animate-fade-in-up">
+                {/* Question reminder */}
                 {question && (
-                  <div className="p-4 rounded-xl mp-glass text-center">
-                    <p className="text-xs text-white/70 uppercase tracking-wider mb-1">Votre question</p>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                    <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Votre question</p>
                     <p className="font-medium text-white">{question}</p>
                   </div>
                 )}
 
-                {/* Ritual Step Indicator */}
-                <RitualStepIndicator phase={ritual.state.phase} />
-
-                {/* Idle / Shuffling Phase */}
-                {(ritual.state.phase === 'idle' || ritual.state.phase === 'shuffling') && (
-                  <ShufflePhase 
-                    isShuffling={ritual.state.phase === 'shuffling'} 
-                    onShuffle={handleShuffle} 
+                {/* Deck Phase: Shuffle & Cut */}
+                {showDeckPhase && (
+                  <DeckView
+                    phase={ritual.state.phase}
+                    isShuffling={ritual.state.phase === 'shuffling'}
+                    isCutting={ritual.state.phase === 'cutting'}
+                    onShuffle={handleShuffle}
+                    onCut={handleCut}
+                    onStartSelection={handleStartSelection}
                   />
                 )}
 
-                {/* Shuffled / Cutting Phase */}
-                {(ritual.state.phase === 'shuffled' || ritual.state.phase === 'cutting') && (
-                  <CutPhase 
-                    isCutting={ritual.state.phase === 'cutting'} 
-                    onCut={handleCut} 
-                  />
-                )}
-
-                {/* Cut / Selecting / Ready Phase */}
-                {(ritual.state.phase === 'cut' || ritual.state.phase === 'selecting' || ritual.state.phase === 'ready') && cards && (
+                {/* Selection Phase */}
+                {showSelectionPhase && cards && (
                   <div className="space-y-6">
-                    <SelectionHeader 
-                      currentPosition={ritual.currentPositionLabel}
-                      selectedCount={ritual.selectedCount}
-                      totalRequired={cardsRequired}
-                    />
-
-                    {/* Counter */}
-                    <div className="flex justify-center">
-                      <CardCounter 
-                        current={ritual.selectedCount} 
-                        total={cardsRequired} 
-                      />
-                    </div>
-
-                    {/* Card Grid */}
-                    <SelectableCardGrid
+                    <CardSelectionView
                       cards={cards}
-                      selectedCardIds={selectedCardIds}
+                      selectedCards={ritual.state.selectedCards}
                       maxSelections={cardsRequired}
+                      currentPositionLabel={ritual.currentPositionLabel}
                       onSelect={handleCardSelect}
                       onDeselect={handleCardDeselect}
-                      disabled={ritual.state.phase === 'cut'}
                     />
 
-                    {/* Start selecting button (only in cut phase) */}
-                    {ritual.state.phase === 'cut' && (
-                      <div className="flex justify-center">
-                        <MysticButton
-                          onClick={() => {
-                            // Transition to selecting
-                            if (cards && cards.length > 0) {
-                              handleCardSelect(cards[0]);
-                              handleCardDeselect(cards[0].id);
-                            }
-                          }}
-                          size="lg"
-                        >
-                          Commencer la sélection
-                        </MysticButton>
-                      </div>
-                    )}
-
-                    {/* Validate Button */}
-                    {ritual.state.phase !== 'cut' && (
-                      <div className="flex justify-center pt-4">
-                        <ValidateButton
-                          canValidate={ritual.canValidate}
-                          onClick={handleValidate}
-                          selectedCount={ritual.selectedCount}
-                          totalRequired={cardsRequired}
-                        />
-                      </div>
-                    )}
+                    {/* Action buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+                      {ritual.canValidate ? (
+                        <>
+                          <MysticButton
+                            onClick={handleShowTable}
+                            size="lg"
+                            variant="outline"
+                          >
+                            Voir le tirage
+                          </MysticButton>
+                          <MysticButton
+                            onClick={handleValidate}
+                            size="lg"
+                            leftIcon={<Sparkles className="w-5 h-5" />}
+                          >
+                            Valider et interpréter
+                          </MysticButton>
+                        </>
+                      ) : (
+                        <div className="text-center">
+                          <p className="text-white/60 text-sm">
+                            Sélectionnez {cardsRequired - ritual.selectedCount} carte{cardsRequired - ritual.selectedCount > 1 ? 's' : ''} de plus
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Step 3: Table View */}
+            {pageStep === 'table' && (
+              <div className="space-y-8 animate-fade-in-up">
+                {/* Question reminder */}
+                {question && (
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                    <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Votre question</p>
+                    <p className="font-medium text-white">{question}</p>
+                  </div>
+                )}
+
+                <SpreadTableView
+                  selectedCards={ritual.state.selectedCards}
+                  positions={positions}
+                  allCards={cards}
+                  spreadName={spread?.name_fr}
+                />
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+                  <MysticButton
+                    onClick={() => setPageStep('ritual')}
+                    size="lg"
+                    variant="outline"
+                  >
+                    Modifier la sélection
+                  </MysticButton>
+                  <MysticButton
+                    onClick={handleValidate}
+                    size="lg"
+                    leftIcon={<Sparkles className="w-5 h-5" />}
+                  >
+                    Recevoir l'interprétation
+                  </MysticButton>
+                </div>
               </div>
             )}
           </div>
