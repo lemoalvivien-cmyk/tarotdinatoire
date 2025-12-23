@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { TarotCard, DrawnCard } from '@/types/tarot';
+import { shuffleArray, cutDeck, generateSeed, createSeededRandom } from '@/utils/deckUtils';
 
 /**
  * Ritual State Machine
@@ -26,9 +27,31 @@ interface RitualState {
   phase: RitualPhase;
   selectedCards: SelectedCard[];
   revealedCardIds: Set<string>;
+  seed: number;
+  shuffledDeck: TarotCard[];
+  shuffleCount: number;
+  cutCount: number;
 }
 
-interface RitualActions {
+interface UseRitualMachineOptions {
+  cardsRequired: number;
+  positions: { key: string; label: string }[];
+  shuffleDuration?: number;
+  cutDuration?: number;
+  initialCards?: TarotCard[];
+}
+
+interface UseRitualMachineReturn {
+  state: RitualState;
+  cardsRequired: number;
+  selectedCount: number;
+  isComplete: boolean;
+  canValidate: boolean;
+  progress: number;
+  currentPositionKey: string | null;
+  currentPositionLabel: string | null;
+  shuffledDeck: TarotCard[];
+  seed: number;
   startShuffle: () => Promise<void>;
   completeShuffle: () => void;
   startCut: () => Promise<void>;
@@ -41,24 +64,7 @@ interface RitualActions {
   complete: () => void;
   reset: () => void;
   canProceed: () => boolean;
-}
-
-interface UseRitualMachineOptions {
-  cardsRequired: number;
-  positions: { key: string; label: string }[];
-  shuffleDuration?: number;
-  cutDuration?: number;
-}
-
-interface UseRitualMachineReturn extends RitualActions {
-  state: RitualState;
-  cardsRequired: number;
-  selectedCount: number;
-  isComplete: boolean;
-  canValidate: boolean;
-  progress: number;
-  currentPositionKey: string | null;
-  currentPositionLabel: string | null;
+  setInitialDeck: (cards: TarotCard[]) => void;
 }
 
 const SHUFFLE_DURATION = 2000;
@@ -69,12 +75,17 @@ export function useRitualMachine({
   positions,
   shuffleDuration = SHUFFLE_DURATION,
   cutDuration = CUT_DURATION,
+  initialCards = [],
 }: UseRitualMachineOptions): UseRitualMachineReturn {
-  const [state, setState] = useState<RitualState>({
+  const [state, setState] = useState<RitualState>(() => ({
     phase: 'idle',
     selectedCards: [],
     revealedCardIds: new Set(),
-  });
+    seed: generateSeed(),
+    shuffledDeck: [...initialCards],
+    shuffleCount: 0,
+    cutCount: 0,
+  }));
 
   const selectedCount = state.selectedCards.length;
   const isComplete = selectedCount >= cardsRequired;
@@ -92,9 +103,31 @@ export function useRitualMachine({
     return positions[selectedCount]?.label ?? null;
   }, [selectedCount, positions]);
 
+  // Set initial deck (called when cards are loaded)
+  const setInitialDeck = useCallback((cards: TarotCard[]) => {
+    setState(prev => ({
+      ...prev,
+      shuffledDeck: [...cards],
+    }));
+  }, []);
+
   const startShuffle = useCallback(async () => {
-    setState(prev => ({ ...prev, phase: 'shuffling' }));
+    setState(prev => {
+      // Generate a new seed for each shuffle that incorporates the shuffle count
+      const newSeed = prev.seed + prev.shuffleCount + Date.now();
+      const shuffled = shuffleArray(prev.shuffledDeck, newSeed);
+      
+      return {
+        ...prev,
+        phase: 'shuffling',
+        shuffledDeck: shuffled,
+        shuffleCount: prev.shuffleCount + 1,
+        seed: newSeed,
+      };
+    });
+    
     await new Promise(resolve => setTimeout(resolve, shuffleDuration));
+    
     setState(prev => ({ ...prev, phase: 'shuffled' }));
   }, [shuffleDuration]);
 
@@ -103,8 +136,21 @@ export function useRitualMachine({
   }, []);
 
   const startCut = useCallback(async () => {
-    setState(prev => ({ ...prev, phase: 'cutting' }));
+    setState(prev => {
+      // Use seed + cutCount for reproducible cut position
+      const cutSeed = prev.seed + prev.cutCount + 1000;
+      const cutDeckResult = cutDeck(prev.shuffledDeck, cutSeed);
+      
+      return {
+        ...prev,
+        phase: 'cutting',
+        shuffledDeck: cutDeckResult,
+        cutCount: prev.cutCount + 1,
+      };
+    });
+    
     await new Promise(resolve => setTimeout(resolve, cutDuration));
+    
     setState(prev => ({ ...prev, phase: 'cut' }));
   }, [cutDuration]);
 
@@ -114,8 +160,11 @@ export function useRitualMachine({
 
   const selectCard = useCallback((card: TarotCard, positionKey: string) => {
     setState(prev => {
-      // Can't select if not in selecting or cut phase
-      if (prev.phase !== 'selecting' && prev.phase !== 'cut') return prev;
+      // Can only select in cut or selecting phase
+      const allowedPhases: RitualPhase[] = ['cut', 'selecting'];
+      if (!allowedPhases.includes(prev.phase)) {
+        return prev;
+      }
       
       // Can't select more than required
       if (prev.selectedCards.length >= cardsRequired) return prev;
@@ -123,7 +172,11 @@ export function useRitualMachine({
       // Can't select same card twice
       if (prev.selectedCards.some(sc => sc.card.id === card.id)) return prev;
 
-      const orientation: 'upright' | 'reversed' = Math.random() < 0.5 ? 'upright' : 'reversed';
+      // Use seeded random for orientation (based on card position in selection + seed)
+      const orientationSeed = prev.seed + prev.selectedCards.length * 100;
+      const random = createSeededRandom(orientationSeed);
+      const orientation: 'upright' | 'reversed' = random() < 0.65 ? 'upright' : 'reversed';
+      
       const newSelected: SelectedCard = {
         card,
         drawnCard: {
@@ -154,14 +207,24 @@ export function useRitualMachine({
       const newRevealedCardIds = new Set(prev.revealedCardIds);
       newRevealedCardIds.delete(cardId);
 
+      // Reindex remaining cards
+      const reindexedCards = newSelectedCards.map((sc, index) => ({
+        ...sc,
+        positionIndex: index,
+        drawnCard: {
+          ...sc.drawnCard,
+          position_key: positions[index]?.key || sc.drawnCard.position_key,
+        },
+      }));
+
       return {
         ...prev,
         phase: 'selecting',
-        selectedCards: newSelectedCards,
+        selectedCards: reindexedCards,
         revealedCardIds: newRevealedCardIds,
       };
     });
-  }, []);
+  }, [positions]);
 
   const revealCard = useCallback((cardId: string) => {
     setState(prev => {
@@ -186,17 +249,21 @@ export function useRitualMachine({
   }, []);
 
   const reset = useCallback(() => {
-    setState({
+    setState(prev => ({
       phase: 'idle',
       selectedCards: [],
       revealedCardIds: new Set(),
-    });
+      seed: generateSeed(),
+      shuffledDeck: prev.shuffledDeck.length > 0 ? [...prev.shuffledDeck] : [],
+      shuffleCount: 0,
+      cutCount: 0,
+    }));
   }, []);
 
   const canProceed = useCallback((): boolean => {
     switch (state.phase) {
       case 'idle':
-        return true; // Can start shuffle
+        return state.shuffledDeck.length > 0; // Can shuffle only if deck is loaded
       case 'shuffled':
         return true; // Can cut
       case 'cut':
@@ -206,7 +273,7 @@ export function useRitualMachine({
       default:
         return false;
     }
-  }, [state.phase, isComplete]);
+  }, [state.phase, state.shuffledDeck.length, isComplete]);
 
   return {
     state,
@@ -217,6 +284,8 @@ export function useRitualMachine({
     progress,
     currentPositionKey,
     currentPositionLabel,
+    shuffledDeck: state.shuffledDeck,
+    seed: state.seed,
     startShuffle,
     completeShuffle,
     startCut,
@@ -229,5 +298,6 @@ export function useRitualMachine({
     complete,
     reset,
     canProceed,
+    setInitialDeck,
   };
 }

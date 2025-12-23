@@ -18,18 +18,32 @@ interface RequestPayload {
   cards: CardInput[];
 }
 
+// New structured interpretation format as requested
+interface PositionInterpretation {
+  position: string;
+  carte: string;
+  sens: "upright" | "reversed";
+  message: string;
+}
+
 interface TarotInterpretation {
-  title: string;
-  summary: string;
-  interpretation: {
+  resume_court: string;
+  interpretation_par_position: PositionInterpretation[];
+  message_global: string;
+  actions_concretes: string[];
+  limites_ethiques: string;
+  // Legacy fields for backward compatibility
+  title?: string;
+  summary?: string;
+  interpretation?: {
     general: string;
     love: string;
     work: string;
     money: string;
   };
-  advice: string[];
-  reflection_questions: string[];
-  safety: {
+  advice?: string[];
+  reflection_questions?: string[];
+  safety?: {
     medical: string;
     legal: string;
     financial: string;
@@ -37,33 +51,32 @@ interface TarotInterpretation {
 }
 
 const JSON_SCHEMA = `{
-  "title": "Titre évocateur du tirage (ex: 'La Voie de la Transformation')",
-  "summary": "Résumé global de l'interprétation en 2-3 phrases mystiques et bienveillantes",
-  "interpretation": {
-    "general": "Interprétation générale et guidance spirituelle (3-4 phrases)",
-    "love": "Ce que cette carte révèle pour les relations amoureuses et affectives (2-3 phrases)",
-    "work": "Guidance pour la carrière et les projets professionnels (2-3 phrases)",
-    "money": "Éclairages sur les questions financières et matérielles (2-3 phrases)"
-  },
-  "advice": ["Conseil concret 1", "Conseil concret 2", "Conseil concret 3"],
-  "reflection_questions": ["Question introspective 1 ?", "Question introspective 2 ?"],
-  "safety": {
-    "medical": "Rappel: consulter un professionnel de santé pour toute question médicale",
-    "legal": "Rappel: consulter un avocat pour toute question juridique",
-    "financial": "Rappel: consulter un conseiller financier pour toute décision importante"
-  }
+  "resume_court": "Résumé du tirage en 2-3 phrases évocatrices (max 300 caractères)",
+  "interpretation_par_position": [
+    {
+      "position": "Nom de la position (ex: Passé, Présent, Futur, Conseil...)",
+      "carte": "Nom de la carte tirée",
+      "sens": "upright ou reversed",
+      "message": "Interprétation de cette carte à cette position (3-5 phrases)"
+    }
+  ],
+  "message_global": "Synthèse globale du tirage avec conseils bienveillants (5-7 phrases)",
+  "actions_concretes": [
+    "Action concrète 1 à mettre en pratique",
+    "Action concrète 2 à mettre en pratique",
+    "Action concrète 3 à mettre en pratique",
+    "Action concrète 4 à mettre en pratique",
+    "Action concrète 5 à mettre en pratique"
+  ],
+  "limites_ethiques": "Rappel bienveillant que le tarot est un outil d'introspection et ne remplace pas l'avis de professionnels (médecins, avocats, conseillers financiers) pour les décisions importantes."
 }`;
 
-// In-memory rate limit store (resets on function cold start)
-// For production, consider using Redis or database-backed rate limiting
+// Rate limit store
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-// Rate limit configuration
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 10; // Max requests per window per IP
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
 
 function getRateLimitKey(req: Request): string {
-  // Get client IP from various headers (Supabase Edge uses x-forwarded-for)
   const forwarded = req.headers.get("x-forwarded-for");
   const realIp = req.headers.get("x-real-ip");
   const ip = forwarded?.split(",")[0]?.trim() || realIp || "unknown";
@@ -74,7 +87,6 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number; res
   const now = Date.now();
   const record = rateLimitStore.get(key);
   
-  // Clean up expired entries periodically
   if (Math.random() < 0.1) {
     for (const [k, v] of rateLimitStore.entries()) {
       if (v.resetAt < now) rateLimitStore.delete(k);
@@ -82,7 +94,6 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number; res
   }
   
   if (!record || record.resetAt < now) {
-    // New window
     rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
   }
@@ -96,18 +107,17 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number; res
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // IP-based rate limiting (before any auth checks)
+    // IP-based rate limiting
     const rateLimitKey = getRateLimitKey(req);
     const rateLimit = checkRateLimit(rateLimitKey);
     
     if (!rateLimit.allowed) {
-      console.warn(`[RateLimit] Blocked IP rate limit: ${rateLimitKey}`);
+      console.warn(`[RateLimit] Blocked IP: ${rateLimitKey}`);
       return new Response(
         JSON.stringify({ 
           error: "Trop de requêtes",
@@ -125,10 +135,9 @@ serve(async (req) => {
       );
     }
 
-    // Check for ENV CHECK mode (admin diagnostic - REQUIRES AUTH + ADMIN ROLE)
+    // ENV CHECK mode for admin diagnostic
     const url = new URL(req.url);
     if (url.searchParams.get("action") === "env-check") {
-      // ENV CHECK requires authentication
       const authHeader = req.headers.get("Authorization");
       if (!authHeader) {
         return new Response(
@@ -137,14 +146,12 @@ serve(async (req) => {
         );
       }
 
-      // Create Supabase client with user's JWT
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
       const supabaseEnvCheck = createClient(supabaseUrl, supabaseAnonKey, {
         global: { headers: { Authorization: authHeader } },
       });
 
-      // Verify user
       const { data: { user: envCheckUser }, error: envCheckUserError } = await supabaseEnvCheck.auth.getUser();
       if (envCheckUserError || !envCheckUser) {
         return new Response(
@@ -153,7 +160,6 @@ serve(async (req) => {
         );
       }
 
-      // Check admin role
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabaseAdminEnvCheck = createClient(supabaseUrl, supabaseServiceKey);
       
@@ -169,15 +175,12 @@ serve(async (req) => {
       const hasLovableKey = !!Deno.env.get("LOVABLE_API_KEY");
       
       return new Response(
-        JSON.stringify({ 
-          hasLovableKey, 
-          provider: hasLovableKey ? "lovable-ai" : "none"
-        }),
+        JSON.stringify({ hasLovableKey, provider: hasLovableKey ? "lovable-ai" : "none" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get authorization header
+    // Authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       console.error("No authorization header");
@@ -187,14 +190,12 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with user's JWT
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error("User auth error:", userError);
@@ -206,57 +207,34 @@ serve(async (req) => {
 
     console.log("User authenticated:", user.id);
 
-    // Check rate limit
+    // Daily rate limit check
     const today = new Date().toISOString().split("T")[0];
-    
-    // Use service role for rate limit operations
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get or create usage record
-    const { data: usageData, error: usageError } = await supabaseAdmin
+    const { data: usageData } = await supabaseAdmin
       .from("ai_usage_daily")
       .select("count")
       .eq("user_id", user.id)
       .eq("day", today)
       .maybeSingle();
 
-    if (usageError) {
-      console.error("Usage check error:", usageError);
-    }
-
     const currentCount = usageData?.count || 0;
     const DAILY_LIMIT = 20;
 
     if (currentCount >= DAILY_LIMIT) {
-      console.log("Rate limit exceeded for user:", user.id, "count:", currentCount);
-      
-      // Log rate limit hit to admin_audit_logs
-      await supabaseAdmin
-        .from("admin_audit_logs")
-        .insert({
-          action: "rate_limit_hit",
-          target_id: user.id,
-          target_type: "user",
-          metadata: { 
-            day: today, 
-            count: currentCount, 
-            limit: DAILY_LIMIT,
-            endpoint: "tarot-interpretation"
-          }
-        });
-
+      console.log("Daily limit exceeded for user:", user.id);
       return new Response(
         JSON.stringify({ 
           error: "Limite quotidienne atteinte",
-          message: `Vous avez atteint la limite de ${DAILY_LIMIT} interprétations par jour. Revenez demain !`,
+          message: `Vous avez atteint la limite de ${DAILY_LIMIT} interprétations par jour.`,
           remaining: 0
         }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Parse request body
+    // Parse request
     const payload: RequestPayload = await req.json();
     console.log("Request payload:", JSON.stringify(payload));
 
@@ -274,7 +252,16 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    // Get card details from database
+    // Get spread for position labels
+    const { data: spreadData } = await supabase
+      .from("tarot_spreads")
+      .select("name_fr, positions")
+      .eq("id", payload.spread_id)
+      .single();
+
+    const spreadPositions = spreadData?.positions as { key: string; label: string; label_fr?: string }[] || [];
+
+    // Get card details
     const cardIds = payload.cards.map(c => c.card_id);
     const { data: cardsData, error: cardsError } = await supabase
       .from("tarot_cards")
@@ -289,25 +276,12 @@ serve(async (req) => {
       );
     }
 
-    // Build card context
-    interface CardContext {
-      card_id: string;
-      name_fr: string;
-      type: string;
-      numero: number | null;
-      orientation: "upright" | "reversed";
-      position_key: string;
-      meaning: string | null;
-      keywords: string[];
-    }
-    
-    const cardContextsRaw = payload.cards.map(c => {
+    // Build card context with position labels
+    const cardContexts = payload.cards.map((c, index) => {
       const cardData = cardsData.find(cd => cd.id === c.card_id);
-      if (!cardData) return null;
+      const positionData = spreadPositions.find(p => p.key === c.position_key) || spreadPositions[index];
       
-      const meaning = c.orientation === "upright" 
-        ? cardData.meaning_upright_fr 
-        : cardData.meaning_reversed_fr;
+      if (!cardData) return null;
       
       return {
         card_id: c.card_id,
@@ -316,207 +290,174 @@ serve(async (req) => {
         numero: cardData.numero as number | null,
         orientation: c.orientation,
         position_key: c.position_key,
-        meaning: meaning as string | null,
+        position_label: positionData?.label_fr || positionData?.label || `Position ${index + 1}`,
+        meaning: (c.orientation === "upright" ? cardData.meaning_upright_fr : cardData.meaning_reversed_fr) as string | null,
         keywords: (cardData.keywords_fr || []) as string[]
       };
-    });
-    
-    const cardContexts = cardContextsRaw.filter((c): c is CardContext => c !== null);
+    }).filter(c => c !== null);
 
-    // Detect sensitive topics in question
-    const sensitivePatterns = {
-      medical: /\b(maladie|cancer|médecin|santé|diagnostic|guérir|mourir|mort|symptôme|traitement|médicament|opération|chirurgie|dépression|anxiété|suicide)\b/i,
-      legal: /\b(procès|avocat|tribunal|jugement|condamn|prison|divorce|garde|juridique|légal|plainte|litige)\b/i,
-      financial: /\b(investir|bourse|actions|bitcoin|crypto|prêt|crédit|dette|faillite|héritage|placement|trader)\b/i
-    };
-
+    // Detect sensitive topics
     const questionLower = (payload.question || "").toLowerCase();
-    const hasMedicalTopic = sensitivePatterns.medical.test(questionLower);
-    const hasLegalTopic = sensitivePatterns.legal.test(questionLower);
-    const hasFinancialTopic = sensitivePatterns.financial.test(questionLower);
+    const hasMedicalTopic = /\b(maladie|cancer|médecin|santé|diagnostic|guérir|mourir|mort|symptôme|traitement|médicament|opération|chirurgie|dépression|anxiété|suicide)\b/i.test(questionLower);
+    const hasLegalTopic = /\b(procès|avocat|tribunal|jugement|condamn|prison|divorce|garde|juridique|légal|plainte|litige)\b/i.test(questionLower);
+    const hasFinancialTopic = /\b(investir|bourse|actions|bitcoin|crypto|prêt|crédit|dette|faillite|héritage|placement|trader)\b/i.test(questionLower);
 
-    // Build the prompt
+    // Build prompt
     const systemPrompt = `Tu es un tarologue expert du Tarot de Marseille avec 30 ans d'expérience. Tu pratiques une approche bienveillante et introspective du tarot.
 
 STYLE ET TON:
 - Ton mystique et premium, jamais fataliste ni alarmiste
-- Langage évocateur avec métaphores lumineuses (aube, lumière, chemin, transformation)
+- Langage évocateur avec métaphores lumineuses
 - Français soutenu mais accessible
 - Toujours bienveillant et encourageant
-- Privilégie le Tarot de Marseille, mentionne le Rider-Waite seulement si pertinent
 
-RÈGLES DE SÉCURITÉ ABSOLUES:
-- Tu ne donnes JAMAIS d'avis médical, juridique ou financier
-- Si la question touche ces domaines sensibles, tu DOIS:
-  1. Rediriger vers un professionnel qualifié
-  2. Proposer une lecture symbolique et introspective à la place
-  3. Rappeler les limites du tarot dans la section "safety"
-- Tu ne prédis jamais la mort, la maladie grave ou les catastrophes
-- Tu rappelles toujours le libre arbitre de l'utilisateur
+RÈGLES DE SÉCURITÉ:
+- JAMAIS d'avis médical, juridique ou financier
+- Si question sensible: rediriger vers professionnel qualifié
+- Rappeler le libre arbitre de l'utilisateur
+${hasMedicalTopic ? "⚠️ La question touche la santé: recommander un médecin." : ""}
+${hasLegalTopic ? "⚠️ La question touche le juridique: recommander un avocat." : ""}
+${hasFinancialTopic ? "⚠️ La question touche les finances: recommander un conseiller." : ""}
 
-${hasMedicalTopic ? "⚠️ ATTENTION: La question semble concerner la santé. Tu DOIS recommander de consulter un médecin et proposer une lecture symbolique uniquement." : ""}
-${hasLegalTopic ? "⚠️ ATTENTION: La question semble concerner un aspect juridique. Tu DOIS recommander de consulter un avocat et proposer une lecture symbolique uniquement." : ""}
-${hasFinancialTopic ? "⚠️ ATTENTION: La question semble concerner les finances. Tu DOIS recommander de consulter un conseiller financier et proposer une lecture symbolique uniquement." : ""}
-
-STRUCTURE DE RÉPONSE:
-Tu dois répondre UNIQUEMENT en JSON valide selon ce schéma exact:
+STRUCTURE DE RÉPONSE (JSON STRICT):
 ${JSON_SCHEMA}
 
-IMPORTANT: Ta réponse doit être UNIQUEMENT le JSON, sans aucun texte avant ou après, sans bloc markdown.`;
+IMPORTANT: Répondre UNIQUEMENT en JSON valide, sans texte avant/après, sans bloc markdown.`;
 
     const userContext = profile ? 
-      `Contexte utilisateur: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention générale: ${profile.intention}. ` : ""}${profile.preferred_domain ? `Domaine de prédilection: ${profile.preferred_domain}.` : ""}` : "";
+      `Contexte: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention: ${profile.intention}. ` : ""}` : "";
 
     const userPrompt = `${userContext}
 
-Question posée: ${payload.question || "Pas de question spécifique, guidance générale demandée."}
+Question: ${payload.question || "Guidance générale demandée."}
 
-Type de tirage: ${payload.spread_id}
+Tirage: ${spreadData?.name_fr || payload.spread_id} (${cardContexts.length} carte${cardContexts.length > 1 ? 's' : ''})
 
-Carte tirée:
-${cardContexts.map(c => `- ${c.name_fr} (${c.type === "major" ? "Arcane Majeur" : "Arcane Mineur"}${c.numero !== null ? ` #${c.numero}` : ""})
-  Orientation: ${c.orientation === "upright" ? "À l'endroit" : "Renversée"}
-  Position: ${c.position_key}
-  Signification de base: ${c.meaning || "Non disponible"}
-  Mots-clés: ${c.keywords?.join(", ") || "N/A"}`).join("\n\n")}
+Cartes tirées:
+${cardContexts.map(c => `- Position "${c!.position_label}": ${c!.name_fr} (${c!.type === "major" ? "Arcane Majeur" : "Mineur"})
+  Sens: ${c!.orientation === "upright" ? "À l'endroit" : "Renversée"}
+  Signification: ${c!.meaning || "N/A"}
+  Mots-clés: ${c!.keywords?.join(", ") || "N/A"}`).join("\n\n")}
 
-Génère une interprétation mystique, bienveillante et personnalisée pour les 4 domaines (général, amour, travail, finances). Réponds UNIQUEMENT en JSON valide.`;
+Génère une interprétation structurée avec:
+- resume_court (max 300 caractères)
+- interpretation_par_position (une entrée par carte avec position, carte, sens, message détaillé)
+- message_global (synthèse bienveillante)
+- actions_concretes (5 actions pratiques)
+- limites_ethiques (rappel déontologique)`;
 
     console.log("Calling Lovable AI...");
 
-    // Use Lovable AI - no API key required from user
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
-      console.error("Missing LOVABLE_API_KEY - Lovable AI not configured");
+      console.error("Missing LOVABLE_API_KEY");
       return new Response(
         JSON.stringify({ error: "Configuration IA manquante" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Lovable AI configuration - using Gemini Flash for balanced cost/performance
-    const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-    const AI_MODEL = "google/gemini-2.5-flash";
-    
-    console.log("Using provider: Lovable AI, model:", AI_MODEL);
-
-    const aiResponse = await fetch(LOVABLE_AI_URL, {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: AI_MODEL,
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 2500,
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("Lovable AI Gateway error:", aiResponse.status, errorText);
+      console.error("Lovable AI error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Service IA temporairement indisponible, réessayez dans quelques instants" }),
+          JSON.stringify({ error: "Service IA temporairement indisponible" }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      throw new Error(`Lovable AI Gateway error: ${aiResponse.status}`);
+      throw new Error(`AI error: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
     const rawContent = aiData.choices?.[0]?.message?.content;
 
     if (!rawContent) {
-      console.error("No content from AI");
       throw new Error("No AI response content");
     }
 
-    console.log("AI raw response length:", rawContent.length);
+    console.log("AI response length:", rawContent.length);
 
-    // Parse JSON response (handle markdown code blocks)
+    // Parse JSON
     let interpretation: TarotInterpretation;
     try {
-      // Remove markdown code block if present
       let jsonStr = rawContent.trim();
-      if (jsonStr.startsWith("```json")) {
-        jsonStr = jsonStr.slice(7);
-      } else if (jsonStr.startsWith("```")) {
-        jsonStr = jsonStr.slice(3);
-      }
-      if (jsonStr.endsWith("```")) {
-        jsonStr = jsonStr.slice(0, -3);
-      }
+      if (jsonStr.startsWith("```json")) jsonStr = jsonStr.slice(7);
+      else if (jsonStr.startsWith("```")) jsonStr = jsonStr.slice(3);
+      if (jsonStr.endsWith("```")) jsonStr = jsonStr.slice(0, -3);
       jsonStr = jsonStr.trim();
 
       interpretation = JSON.parse(jsonStr);
     } catch (parseError) {
-      console.error("JSON parse error:", parseError, "Raw:", rawContent.substring(0, 500));
+      console.error("JSON parse error:", parseError);
       
       // Fallback interpretation
       const cardName = cardContexts[0]?.name_fr || "La carte tirée";
-      const cardMeaning = cardContexts[0]?.meaning || "Une période de transformation";
-      
       interpretation = {
-        title: `Guidance de ${cardName}`,
-        summary: `${cardName} vous invite à une profonde réflexion sur votre chemin actuel. ${cardMeaning}.`,
-        interpretation: {
-          general: "Cette carte vous encourage à faire confiance à votre intuition et à accueillir les changements qui se présentent. Prenez le temps de méditer sur son message.",
-          love: "Dans le domaine affectif, cette énergie vous invite à l'authenticité et à l'ouverture du cœur. Les relations sincères sont favorisées.",
-          work: "Professionnellement, c'est le moment d'évaluer vos ambitions et de faire des choix alignés avec vos valeurs profondes.",
-          money: "Sur le plan financier, la prudence et la réflexion sont de mise. Évitez les décisions impulsives."
-        },
-        advice: [
-          "Prenez un moment de calme pour méditer sur le message de cette carte",
+        resume_court: `${cardName} vous invite à une profonde réflexion sur votre chemin actuel.`,
+        interpretation_par_position: cardContexts.map(c => ({
+          position: c!.position_label,
+          carte: c!.name_fr,
+          sens: c!.orientation,
+          message: c!.meaning || "Cette carte vous encourage à faire confiance à votre intuition et à accueillir les changements qui se présentent."
+        })),
+        message_global: "Ce tirage vous encourage à écouter votre voix intérieure. Les cartes révèlent un moment propice à l'introspection et à la prise de conscience. Faites confiance au chemin qui s'ouvre devant vous.",
+        actions_concretes: [
+          "Prenez un moment de calme pour méditer sur le message de ce tirage",
           "Notez vos impressions et ressentis dans votre journal",
-          "Faites confiance à votre intuition pour les décisions à venir"
+          "Faites confiance à votre intuition pour les décisions à venir",
+          "Observez les synchronicités dans votre quotidien",
+          "Accordez-vous du temps pour la réflexion personnelle"
         ],
-        reflection_questions: [
-          "Qu'est-ce que cette carte éveille en vous ?",
-          "Dans quel domaine de votre vie son message résonne-t-il le plus ?"
-        ],
-        safety: {
-          medical: "Pour toute question de santé, consultez un professionnel médical qualifié.",
-          legal: "Pour tout aspect juridique, adressez-vous à un avocat ou conseiller juridique.",
-          financial: "Pour vos décisions financières importantes, consultez un conseiller financier agréé."
-        }
+        limites_ethiques: "Le tarot est un outil d'introspection et de guidance personnelle. Il ne remplace pas l'avis de professionnels qualifiés (médecins, avocats, conseillers financiers) pour les décisions importantes de votre vie."
       };
     }
 
-    // Ensure safety section is always present
-    if (!interpretation.safety) {
-      interpretation.safety = {
-        medical: "Pour toute question de santé, consultez un professionnel médical qualifié.",
-        legal: "Pour tout aspect juridique, adressez-vous à un avocat ou conseiller juridique.",
-        financial: "Pour vos décisions financières importantes, consultez un conseiller financier agréé."
-      };
+    // Ensure all required fields are present
+    if (!interpretation.limites_ethiques) {
+      interpretation.limites_ethiques = "Le tarot est un outil d'introspection et ne remplace pas l'avis de professionnels qualifiés.";
+    }
+    if (!interpretation.actions_concretes || interpretation.actions_concretes.length < 5) {
+      interpretation.actions_concretes = [
+        "Méditez sur le message de ce tirage",
+        "Notez vos ressentis dans un journal",
+        "Faites confiance à votre intuition",
+        "Observez les synchronicités autour de vous",
+        "Accordez-vous du temps de réflexion"
+      ];
     }
 
     // Update rate limit counter
-    const { error: upsertError } = await supabaseAdmin
+    await supabaseAdmin
       .from("ai_usage_daily")
       .upsert({
         user_id: user.id,
         day: today,
         count: currentCount + 1,
         updated_at: new Date().toISOString()
-      }, {
-        onConflict: "user_id,day"
-      });
+      }, { onConflict: "user_id,day" });
 
-    if (upsertError) {
-      console.error("Usage upsert error:", upsertError);
-    }
-
-    // Log successful interpretation to admin_audit_logs
+    // Log to audit
     await supabaseAdmin
       .from("admin_audit_logs")
       .insert({
@@ -527,12 +468,11 @@ Génère une interprétation mystique, bienveillante et personnalisée pour les 
           day: today, 
           count: currentCount + 1,
           spread_id: payload.spread_id,
-          card_ids: cardIds,
-          has_question: !!payload.question
+          card_ids: cardIds
         }
       });
 
-    console.log("Interpretation generated successfully, new count:", currentCount + 1);
+    console.log("Interpretation generated, count:", currentCount + 1);
 
     return new Response(
       JSON.stringify(interpretation),
