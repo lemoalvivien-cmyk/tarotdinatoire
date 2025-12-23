@@ -3,10 +3,13 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+type AuthStatus = 'loading' | 'unauthenticated' | 'authenticated';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  status: AuthStatus;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -18,30 +21,38 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<AuthStatus>('loading');
   const initialCheckDone = useRef(false);
+  const mountedRef = useRef(true);
 
   // Centralized session update function with logging
   const updateSession = useCallback((newSession: Session | null, source: string) => {
+    if (!mountedRef.current) return;
+    
     if (import.meta.env.DEV) {
       console.log('[Auth] updateSession from', source, {
         userId: newSession?.user?.id ?? 'null',
         hasSession: !!newSession,
       });
     }
+    
     setSession(newSession);
     setUser(newSession?.user ?? null);
+    setStatus(newSession ? 'authenticated' : 'unauthenticated');
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
+    
     // Set up auth state listener FIRST (synchronous callback only!)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mountedRef.current) return;
+        
         if (import.meta.env.DEV) {
           console.log('[Auth] onAuthStateChange:', event, session?.user?.id);
         }
         updateSession(session, `onAuthStateChange:${event}`);
-        setLoading(false);
       }
     );
 
@@ -49,18 +60,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!initialCheckDone.current) {
       initialCheckDone.current = true;
       supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (!mountedRef.current) return;
+        
         if (error) {
           console.error('[Auth] getSession error:', error);
+          setStatus('unauthenticated');
+          return;
         }
         if (import.meta.env.DEV) {
           console.log('[Auth] Initial getSession:', session?.user?.id ?? 'no session');
         }
         updateSession(session, 'getSession');
-        setLoading(false);
       });
     }
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
   }, [updateSession]);
 
   const refreshSession = useCallback(async () => {
@@ -137,11 +154,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateSession(null, 'signOut');
   };
 
+  // Derive loading from status
+  const loading = status === 'loading';
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       session, 
-      loading, 
+      loading,
+      status,
       signUp, 
       signIn, 
       signOut, 

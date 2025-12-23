@@ -1,58 +1,70 @@
-import { useEffect, ReactNode } from 'react';
+import { useEffect, ReactNode, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { LoadingScreen } from '@/components/ui/loading-screen';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, LogOut, RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
   requireOnboarding?: boolean;
 }
 
+/**
+ * AuthGate - Robust protected route with clear states:
+ * 1. loading - waiting for auth check
+ * 2. unauthenticated - redirect to /auth
+ * 3. authenticated - check profile, then render children
+ */
 export function ProtectedRoute({ children, requireOnboarding = true }: ProtectedRouteProps) {
-  const { user, loading: authLoading } = useAuth();
-  const { profile, loading: profileLoading, refetch } = useProfile();
+  const { user, session, status } = useAuth();
+  const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
+  const [retryCount, setRetryCount] = useState(0);
+  const hasRedirected = useRef(false);
 
   // Log navigation for debugging
   useEffect(() => {
     if (import.meta.env.DEV) {
       console.log('[ProtectedRoute]', {
         path: location.pathname,
-        authLoading,
+        status,
         profileLoading,
         userId: user?.id,
+        profileId: profile?.id,
         onboardingCompleted: profile?.onboarding_completed,
         requireOnboarding,
+        retryCount,
       });
     }
-  }, [location.pathname, authLoading, profileLoading, user?.id, profile?.onboarding_completed, requireOnboarding]);
+  }, [location.pathname, status, profileLoading, user?.id, profile, requireOnboarding, retryCount]);
 
-  // Check authentication - redirect only when we're sure there's no user
+  // Redirect unauthenticated users ONLY after auth check is complete
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (status === 'unauthenticated' && !hasRedirected.current) {
+      hasRedirected.current = true;
       if (import.meta.env.DEV) {
-        console.log('[ProtectedRoute] No user, redirecting to /auth');
+        console.log('[ProtectedRoute] Not authenticated, redirecting to /auth');
       }
       navigate('/auth', { state: { from: location.pathname }, replace: true });
     }
-  }, [user, authLoading, navigate, location.pathname]);
+  }, [status, navigate, location.pathname]);
 
-  // Refetch profile when user changes (e.g., after signup)
+  // Reset redirect flag when user changes
   useEffect(() => {
-    if (user && !authLoading) {
-      refetch();
+    if (status === 'authenticated') {
+      hasRedirected.current = false;
     }
-  }, [user?.id, authLoading, refetch]);
+  }, [status]);
 
   // Redirect to onboarding if not completed (but not if already on onboarding)
   useEffect(() => {
     if (
-      !authLoading &&
+      status === 'authenticated' &&
       !profileLoading &&
-      user &&
-      profile !== undefined && // profile query has resolved
+      profile !== undefined &&
       requireOnboarding &&
       profile?.onboarding_completed !== true &&
       location.pathname !== '/app/onboarding'
@@ -62,27 +74,82 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
       }
       navigate('/app/onboarding', { replace: true });
     }
-  }, [authLoading, profileLoading, user, profile, requireOnboarding, navigate, location.pathname]);
+  }, [status, profileLoading, profile, requireOnboarding, navigate, location.pathname]);
 
-  // Show loading while checking auth or profile
-  if (authLoading || (user && profileLoading)) {
+  // Handle retry
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    refetch();
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    const { signOut } = await import('@/contexts/AuthContext').then(() => ({ 
+      signOut: async () => {
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase.auth.signOut();
+        navigate('/auth', { replace: true });
+      }
+    }));
+    await signOut();
+  };
+
+  // STATE 1: Auth is loading
+  if (status === 'loading') {
     return <LoadingScreen />;
   }
 
-  // If no user, show loading (we're redirecting) - never show blank
-  if (!user) {
+  // STATE 2: Unauthenticated (redirect in progress)
+  if (status === 'unauthenticated' || !user || !session) {
     return <LoadingScreen />;
   }
 
-  // Allow access to onboarding page regardless of onboarding status
+  // STATE 3: Authenticated but profile error (after 3 retries, show error screen)
+  if (profileError && retryCount >= 3) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="max-w-md w-full p-8 rounded-2xl bg-card border border-border shadow-lg text-center space-y-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 text-destructive">
+            <AlertTriangle className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-serif text-2xl font-semibold text-foreground">
+              Erreur de chargement
+            </h1>
+            <p className="text-muted-foreground">
+              Impossible de charger votre profil. Veuillez réessayer ou vous reconnecter.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={handleRetry} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Réessayer
+            </Button>
+            <Button onClick={handleLogout} variant="destructive">
+              <LogOut className="h-4 w-4 mr-2" />
+              Se déconnecter
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // STATE 4: Authenticated, loading profile
+  if (profileLoading) {
+    return <LoadingScreen />;
+  }
+
+  // STATE 5: Allow access to onboarding page regardless of onboarding status
   if (location.pathname === '/app/onboarding') {
     return <>{children}</>;
   }
 
-  // Block access to other /app/* routes if onboarding not completed
+  // STATE 6: Block access to other /app/* routes if onboarding not completed
   if (requireOnboarding && profile?.onboarding_completed !== true) {
     return <LoadingScreen />;
   }
 
+  // STATE 7: All checks passed - render children
   return <>{children}</>;
 }
