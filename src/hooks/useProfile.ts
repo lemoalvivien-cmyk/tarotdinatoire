@@ -8,7 +8,7 @@ type Profile = Tables<'profiles'>;
 const PROFILE_QUERY_KEY = 'profile';
 
 export function useProfile() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const queryClient = useQueryClient();
 
   const {
@@ -19,7 +19,22 @@ export function useProfile() {
   } = useQuery({
     queryKey: [PROFILE_QUERY_KEY, user?.id],
     queryFn: async (): Promise<Profile | null> => {
-      if (!user) return null;
+      // Double-check user and session are valid before querying
+      if (!user || !session) {
+        if (import.meta.env.DEV) {
+          console.log('[useProfile] Skipping fetch - no user or session');
+        }
+        return null;
+      }
+
+      // Verify session hasn't expired
+      const expiresAt = session.expires_at;
+      if (expiresAt && expiresAt * 1000 < Date.now()) {
+        if (import.meta.env.DEV) {
+          console.log('[useProfile] Session expired, skipping fetch');
+        }
+        return null;
+      }
 
       if (import.meta.env.DEV) {
         console.log('[useProfile] Fetching profile for user:', user.id);
@@ -31,7 +46,14 @@ export function useProfile() {
         .eq('id', user.id)
         .maybeSingle();
 
+      // Handle permission errors gracefully (likely expired token)
       if (fetchError) {
+        // 403 or permission denied errors during transient auth states
+        if (fetchError.code === '42501' || fetchError.message?.includes('permission denied')) {
+          console.warn('[useProfile] Permission denied - likely transient auth state, returning null');
+          return null;
+        }
+        
         console.error('[useProfile] Fetch error:', fetchError);
         throw fetchError;
       }
@@ -42,14 +64,25 @@ export function useProfile() {
 
       return data;
     },
-    enabled: !!user,
+    // Only enable when both user AND session are present
+    enabled: !!user && !!session,
     staleTime: 30_000, // 30 seconds
-    retry: 3,
+    retry: (failureCount, error) => {
+      // Don't retry permission errors - they indicate auth state issues
+      if (error && typeof error === 'object' && 'code' in error) {
+        if ((error as { code: string }).code === '42501') {
+          return false;
+        }
+      }
+      return failureCount < 3;
+    },
     retryDelay: (attemptIndex) => Math.min(300 * 2 ** attemptIndex, 3000),
   });
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('Not authenticated') };
+    if (!user || !session) {
+      return { error: new Error('Not authenticated') };
+    }
 
     if (import.meta.env.DEV) {
       console.log('[useProfile] Updating profile:', updates);
