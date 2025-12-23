@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Stars, Moon, Sparkles } from 'lucide-react';
@@ -5,7 +6,7 @@ import { SEOHead } from '@/components/seo/SEOHead';
 import { MysticBackground, BetaBadge, MysticButton, SiteHeader, SiteFooter } from '@/components/mystic';
 import { motion, useReducedMotion } from 'framer-motion';
 
-const Landing = () => {
+const Landing = forwardRef<HTMLDivElement>((_, ref) => {
   const { user } = useAuth();
   const shouldReduceMotion = useReducedMotion();
 
@@ -28,7 +29,7 @@ const Landing = () => {
   };
 
   return (
-    <MysticBackground withFiligree className="min-h-screen flex flex-col">
+    <MysticBackground ref={ref} withFiligree className="min-h-screen flex flex-col">
       <SEOHead
         title="Tarot Divinatoire - VERSION BÊTA GRATUITE | Guidance & Introspection"
         description="Découvrez votre avenir avec le Tarot Divinatoire. VERSION BÊTA GRATUITE. Interprétations créées par 30 tarologues professionnels. Guidance, introspection et développement personnel."
@@ -230,6 +231,8 @@ const Landing = () => {
       <SiteFooter />
     </MysticBackground>
   );
-};
+});
+
+Landing.displayName = 'Landing';
 
 export default Landing;
