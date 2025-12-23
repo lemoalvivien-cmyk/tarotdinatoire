@@ -259,10 +259,10 @@ export default function History() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
               <BookOpen className="h-8 w-8" />
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold">
+            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
               Journal des Tirages
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-foreground/80">
               Retrouvez l'historique de tous vos tirages.
             </p>
           </div>
@@ -281,7 +281,7 @@ export default function History() {
           {/* Readings List */}
           {filteredItems.length === 0 ? (
             <div className="p-12 rounded-2xl glass-mystic shadow-soft text-center animate-scale-in">
-              <p className="text-muted-foreground">
+              <p className="text-foreground/80">
                 {searchQuery ? 'Aucun tirage ne correspond à votre recherche.' : 'Vous n\'avez pas encore de tirages.'}
               </p>
               {!searchQuery && (
@@ -310,7 +310,7 @@ export default function History() {
                         onClick={() => handleItemClick(item)}
                       >
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-foreground/70">
                             {new Date(item.created_at).toLocaleDateString('fr-FR', {
                               day: 'numeric',
                               month: 'short',
@@ -319,11 +319,11 @@ export default function History() {
                           </span>
                           {cardDetails && (
                             <>
-                              <span className="text-muted-foreground">•</span>
+                              <span className="text-foreground/60">•</span>
                               <span className="font-medium text-foreground">
                                 {cardDetails.nom_fr}
                               </span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-foreground/70">
                                 ({item.first_card_orientation === 'upright' ? 'Endroit' : 'Renversée'})
                               </span>
                             </>
@@ -331,7 +331,7 @@ export default function History() {
                         </div>
                         
                         {item.summary && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
+                          <p className="text-sm text-foreground/75 line-clamp-2">
                             {item.summary}
                           </p>
                         )}
@@ -375,7 +375,7 @@ export default function History() {
                 Précédent
               </Button>
               
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-foreground/80">
                 Page {page + 1} sur {totalPages}
               </span>
               

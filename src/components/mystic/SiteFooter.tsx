@@ -44,7 +44,7 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(
                   to={link.href}
                   className={cn(
                     'text-sm transition-colors duration-200',
-                    'text-muted-foreground hover:text-mp-brand-violet',
+                    'text-white/80 hover:text-mp-brand-gold',
                     'focus:outline-none focus-visible:underline'
                   )}
                 >
@@ -55,10 +55,10 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(
 
             {/* Copyright */}
             <div className="text-center">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/75">
                 © {currentYear} Tarot Divinatoire. Tous droits réservés.
               </p>
-              <p className="mt-1 text-xs text-muted-foreground/60">
+              <p className="mt-1 text-xs text-white/60">
                 Service de guidance spirituelle — ne remplace pas un avis professionnel
               </p>
             </div>

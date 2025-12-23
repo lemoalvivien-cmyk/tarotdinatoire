@@ -81,11 +81,11 @@ const Landing = () => {
               {/* Main Heading */}
               <motion.h1 
                 variants={fadeInUp}
-                className="font-serif text-4xl md:text-6xl lg:text-7xl font-semibold leading-tight text-foreground"
+                className="font-serif text-4xl md:text-6xl lg:text-7xl font-semibold leading-tight text-white heading-glow"
               >
                 Découvrez les messages
                 <span 
-                  className="block bg-gradient-to-r from-mp-brand-violet to-mp-brand-violet2 bg-clip-text text-transparent"
+                  className="block bg-gradient-to-r from-mp-brand-violet to-mp-brand-violet2 bg-clip-text text-transparent drop-shadow-lg"
                 >
                   de l'univers
                 </span>
@@ -94,7 +94,7 @@ const Landing = () => {
               {/* Subtitle */}
               <motion.p 
                 variants={fadeInUp}
-                className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+                className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed"
               >
                 Une expérience de tarot divinatoire unique, guidée par l'intelligence artificielle 
                 et le savoir-faire d'une trentaine de tarologues professionnels.
@@ -141,10 +141,10 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold mb-4 text-foreground">
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold mb-4 text-white heading-glow">
                 Une guidance authentique
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-white/85 max-w-2xl mx-auto leading-relaxed">
                 Notre approche combine tradition ancestrale et technologie moderne 
                 pour vous offrir une expérience de tarot unique.
               </p>
@@ -180,19 +180,19 @@ const Landing = () => {
                 <motion.div 
                   key={index}
                   variants={fadeInUp}
-                  className="text-center space-y-4 p-6 rounded-xl mp-glass"
+                  className="text-center space-y-4 feature-card"
                 >
                   <div 
                     className="inline-flex items-center justify-center w-14 h-14 rounded-full"
                     style={{ 
-                      backgroundColor: `hsl(var(--${feature.color}) / 0.15)`,
+                      backgroundColor: `hsl(var(--${feature.color}) / 0.20)`,
                       color: `hsl(var(--${feature.color}))`
                     }}
                   >
                     <feature.icon className="h-7 w-7" />
                   </div>
-                  <h3 className="font-serif text-xl font-semibold text-card-foreground text-contrast">{feature.title}</h3>
-                  <p className="text-sm text-card-foreground/85 leading-relaxed">
+                  <h3 className="font-serif text-xl font-semibold text-white text-contrast">{feature.title}</h3>
+                  <p className="text-white/80 leading-relaxed">
                     {feature.description}
                   </p>
                 </motion.div>
@@ -205,21 +205,21 @@ const Landing = () => {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <motion.div 
-              className="max-w-3xl mx-auto text-center space-y-6 p-8 rounded-2xl mp-glass"
+              className="max-w-3xl mx-auto text-center space-y-6 p-8 rounded-2xl feature-card"
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <p className="font-serif text-xl md:text-2xl text-card-foreground italic text-contrast">
+              <p className="font-serif text-xl md:text-2xl text-white italic text-contrast">
                 "Fait et développé avec le savoir-faire d'une trentaine de Tarologues professionnels"
               </p>
               <div className="flex items-center justify-center gap-3">
-                <div className="h-px w-12 bg-border" />
+                <div className="h-px w-12 bg-white/20" />
                 <Sparkles className="h-4 w-4 text-mp-brand-gold" />
-                <div className="h-px w-12 bg-border" />
+                <div className="h-px w-12 bg-white/20" />
               </div>
-              <p className="text-sm text-card-foreground/80 leading-relaxed">
+              <p className="text-white/80 leading-relaxed">
                 Notre engagement : vous offrir une guidance respectueuse, éthique et véritablement éclairante.
               </p>
             </motion.div>

@@ -42,8 +42,8 @@ export const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(
                 />
               </div>
               <span 
-                className="font-serif text-xl font-semibold tracking-tight"
-                style={{ color: 'hsl(var(--foreground))' }}
+                className="font-serif text-xl font-semibold tracking-tight text-white"
+                style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
               >
                 Tarot Divinatoire
               </span>
@@ -66,8 +66,7 @@ export const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(
               aria-label="Menu"
             >
               <Menu 
-                className="h-6 w-6" 
-                style={{ color: 'hsl(var(--foreground))' }}
+                className="h-6 w-6 text-white"
               />
             </button>
           </div>
