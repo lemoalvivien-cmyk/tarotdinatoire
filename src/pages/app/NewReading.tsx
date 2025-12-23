@@ -238,10 +238,10 @@ export default function NewReading() {
             <AlertTriangle className="h-8 w-8 text-destructive" />
           </div>
           <div className="space-y-2">
-            <h2 className="font-serif text-xl font-semibold text-foreground">
+            <h2 className="font-serif text-xl font-semibold text-white">
               Erreur de chargement
             </h2>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-white/80 text-sm">
               Impossible de charger les cartes. Vérifiez votre connexion.
             </p>
           </div>
@@ -295,7 +295,7 @@ export default function NewReading() {
             {pageStep === 'question' && (
               <div className="space-y-6 animate-fade-in-up">
                 <div className="p-6 rounded-2xl mp-glass space-y-4">
-                  <label className="block text-sm font-medium text-foreground">
+                  <label className="block text-sm font-medium text-white">
                     Votre question ou intention (optionnel)
                   </label>
                   <Textarea
@@ -305,10 +305,10 @@ export default function NewReading() {
                       setQuestion(e.target.value);
                       if (questionError) validateQuestion();
                     }}
-                    className="min-h-[100px] resize-none bg-background/50 border-mp-surface-border"
+                    className="min-h-[100px] resize-none bg-background/50 border-mp-surface-border text-white placeholder:text-white/50"
                     maxLength={240}
                   />
-                  <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <div className="flex justify-between items-center text-xs text-white/70">
                     <span>{questionError && <span className="text-destructive">{questionError}</span>}</span>
                     <span>{question.length}/240</span>
                   </div>
@@ -330,8 +330,8 @@ export default function NewReading() {
               <div className="space-y-8 animate-fade-in-up">
                 {question && (
                   <div className="p-4 rounded-xl mp-glass text-center">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Votre question</p>
-                    <p className="font-medium text-foreground">{question}</p>
+                    <p className="text-xs text-white/70 uppercase tracking-wider mb-1">Votre question</p>
+                    <p className="font-medium text-white">{question}</p>
                   </div>
                 )}
 

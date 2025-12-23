@@ -119,26 +119,26 @@
   .dark {
     /* Background légèrement éclairci pour meilleur contraste */
     --background: 260 28% 10%;
-    --foreground: 0 0% 98%;
+    --foreground: 0 0% 100%;
 
     /* Cartes avec fond plus visible */
     --card: 260 22% 14%;
-    --card-foreground: 0 0% 98%;
+    --card-foreground: 0 0% 100%;
 
     --popover: 260 22% 14%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 0 0% 100%;
 
     /* Primary plus lumineux */
     --primary: 265 55% 68%;
     --primary-foreground: 260 30% 8%;
 
     /* Secondary or plus visible */
-    --secondary: 42 55% 50%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 42 65% 55%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Muted avec meilleur contraste texte */
+    /* Muted avec meilleur contraste texte - ENHANCED */
     --muted: 260 18% 20%;
-    --muted-foreground: 220 20% 82%;
+    --muted-foreground: 0 0% 85%;
 
     --accent: 270 35% 28%;
     --accent-foreground: 0 0% 98%;
@@ -358,11 +358,11 @@
   /* Glass surface Mystic Premium - Enhanced for readability */
   .mp-glass {
     @apply backdrop-blur-xl;
-    background: hsl(260 30% 8% / 0.75);
-    border: 1px solid hsl(260 25% 100% / 0.18);
+    background: hsl(260 30% 8% / 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.20);
     box-shadow: 
       var(--mp-shadow-card),
-      inset 0 1px 0 0 hsl(260 30% 100% / 0.05);
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
   }
 
   /* Card avec glow violet */
@@ -384,6 +384,61 @@
 
   .text-contrast-strong {
     text-shadow: 0 2px 12px hsl(260 50% 5% / 0.7);
+  }
+
+  /* ========================================
+     READABILITY SYSTEM - High Contrast Text
+     ======================================== */
+  
+  /* Primary text - 100% white for headings */
+  .text-readable-primary {
+    @apply text-white;
+    text-shadow: 0 1px 3px hsl(260 50% 5% / 0.4);
+  }
+
+  /* Body text - 90% white for paragraphs */
+  .text-readable-body {
+    color: rgba(255, 255, 255, 0.90);
+  }
+
+  /* Muted text - 80% white for secondary text */
+  .text-readable-muted {
+    color: rgba(255, 255, 255, 0.80);
+  }
+
+  /* Faint text - 70% white (legal/footnotes only) */
+  .text-readable-faint {
+    color: rgba(255, 255, 255, 0.70);
+  }
+
+  /* Heading styles with glow for dark backgrounds */
+  .heading-glow {
+    @apply text-white;
+    text-shadow: 
+      0 0 20px hsl(265 55% 65% / 0.3),
+      0 2px 10px hsl(260 50% 5% / 0.5);
+  }
+
+  /* Feature card enhanced for readability */
+  .feature-card {
+    @apply backdrop-blur-xl rounded-xl p-6;
+    background: hsl(260 30% 10% / 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 8px 32px -8px hsl(260 50% 5% / 0.5),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .feature-card:hover {
+    background: hsl(260 30% 12% / 0.85);
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+
+  /* Reading layer - overlay for text on busy backgrounds */
+  .reading-layer {
+    @apply backdrop-blur-sm;
+    background: hsl(260 30% 8% / 0.60);
+    border-radius: inherit;
   }
 }
 

@@ -86,10 +86,10 @@ export default function Dashboard() {
         <div className="max-w-5xl mx-auto space-y-10">
           {/* Welcome */}
           <div className="text-center space-y-4 animate-fade-in-up">
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold">
+            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
               Bienvenue dans votre espace mystique
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-foreground/80">
               Que souhaitez-vous explorer aujourd'hui ?
             </p>
           </div>
@@ -103,8 +103,8 @@ export default function Dashboard() {
                     <Plus className="h-7 w-7 text-primary" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-xl font-semibold">Nouveau tirage</h2>
-                    <p className="text-sm text-muted-foreground">Commencer une consultation</p>
+                    <h2 className="font-serif text-xl font-semibold text-foreground">Nouveau tirage</h2>
+                    <p className="text-sm text-foreground/75">Commencer une consultation</p>
                   </div>
                   <ArrowRight className="ml-auto h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                 </div>
@@ -118,10 +118,10 @@ export default function Dashboard() {
                     <BookOpen className="h-7 w-7 text-foreground" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-xl font-semibold">Mon journal</h2>
-                    <p className="text-sm text-muted-foreground">Consulter mes tirages passés</p>
+                    <h2 className="font-serif text-xl font-semibold text-foreground">Mon journal</h2>
+                    <p className="text-sm text-foreground/75">Consulter mes tirages passés</p>
                   </div>
-                  <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+                  <ArrowRight className="ml-auto h-5 w-5 text-foreground/60 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                 </div>
               </div>
             </Link>
@@ -131,18 +131,18 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="p-6 rounded-xl bg-card border border-border/50 text-center">
               <p className="text-3xl font-serif font-semibold text-primary">{stats.totalReadings}</p>
-              <p className="text-sm text-muted-foreground">Tirages réalisés</p>
+              <p className="text-sm text-foreground/75">Tirages réalisés</p>
             </div>
             <div className="p-6 rounded-xl bg-card border border-border/50 text-center">
               <p className="text-3xl font-serif font-semibold text-secondary">{stats.favorites}</p>
-              <p className="text-sm text-muted-foreground">Favoris</p>
+              <p className="text-sm text-foreground/75">Favoris</p>
             </div>
             <div className="p-6 rounded-xl bg-card border border-border/50 text-center col-span-2 md:col-span-1">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium text-primary">BÊTA GRATUITE</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Accès illimité</p>
+              <p className="text-sm text-foreground/75 mt-1">Accès illimité</p>
             </div>
           </div>
 
@@ -153,8 +153,8 @@ export default function Dashboard() {
                 <Star className="h-8 w-8" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-serif text-xl font-semibold">Commencez votre voyage</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
+                <h3 className="font-serif text-xl font-semibold text-foreground">Commencez votre voyage</h3>
+                <p className="text-foreground/80 max-w-md mx-auto">
                   Vous n'avez pas encore effectué de tirage. 
                   Laissez les cartes vous guider vers une meilleure compréhension de vous-même.
                 </p>
@@ -169,7 +169,7 @@ export default function Dashboard() {
           ) : (
             <div className="p-6 rounded-xl bg-card border border-border/50">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-serif text-lg font-semibold">Actions rapides</h3>
+                <h3 className="font-serif text-lg font-semibold text-foreground">Actions rapides</h3>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link to="/app/favorites">
