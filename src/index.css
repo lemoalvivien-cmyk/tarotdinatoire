@@ -117,33 +117,39 @@
   }
 
   .dark {
-    --background: 260 30% 8%;
-    --foreground: 0 0% 97%;
+    /* Background légèrement éclairci pour meilleur contraste */
+    --background: 260 28% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 260 25% 12%;
-    --card-foreground: 0 0% 96%;
+    /* Cartes avec fond plus visible */
+    --card: 260 22% 14%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 260 25% 12%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 260 22% 14%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 265 50% 65%;
+    /* Primary plus lumineux */
+    --primary: 265 55% 68%;
     --primary-foreground: 260 30% 8%;
 
-    --secondary: 42 50% 45%;
-    --secondary-foreground: 0 0% 96%;
+    /* Secondary or plus visible */
+    --secondary: 42 55% 50%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 260 20% 18%;
-    --muted-foreground: 220 15% 78%;
+    /* Muted avec meilleur contraste texte */
+    --muted: 260 18% 20%;
+    --muted-foreground: 220 20% 82%;
 
-    --accent: 270 35% 25%;
-    --accent-foreground: 0 0% 96%;
+    --accent: 270 35% 28%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 60% 45%;
-    --destructive-foreground: 0 0% 96%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 260 20% 22%;
-    --input: 260 20% 20%;
-    --ring: 265 50% 65%;
+    /* Borders plus visibles */
+    --border: 260 18% 28%;
+    --input: 260 18% 22%;
+    --ring: 265 55% 68%;
 
     --mystic-gold: 42 60% 50%;
     --mystic-violet: 265 50% 65%;
@@ -161,20 +167,20 @@
     --shadow-glow: 0 0 30px hsl(265 50% 65% / 0.25);
     --shadow-gold: 0 4px 20px -4px hsl(42 60% 50% / 0.3);
 
-    /* Mystic Premium - Dark Mode */
-    --mp-bg-900: 260 35% 4%;
-    --mp-bg-800: 260 32% 7%;
-    --mp-bg-700: 260 28% 11%;
-    --mp-bg-600: 260 25% 15%;
-    --mp-surface-glass: 260 30% 100% / 0.08;
-    --mp-surface-border: 260 25% 100% / 0.15;
-    --mp-brand-violet: 265 55% 60%;
-    --mp-brand-violet2: 275 50% 70%;
-    --mp-brand-gold: 42 70% 50%;
-    --mp-brand-gold2: 38 65% 60%;
-    --mp-shadow-card: 0 8px 32px -8px hsl(260 50% 5% / 0.6);
-    --mp-shadow-glow-v: 0 0 50px hsl(265 55% 60% / 0.4);
-    --mp-shadow-glow-g: 0 0 50px hsl(42 70% 50% / 0.4);
+    /* Mystic Premium - Dark Mode - Enhanced Contrast */
+    --mp-bg-900: 260 32% 6%;
+    --mp-bg-800: 260 28% 10%;
+    --mp-bg-700: 260 24% 14%;
+    --mp-bg-600: 260 20% 18%;
+    --mp-surface-glass: 260 30% 100% / 0.12;
+    --mp-surface-border: 260 25% 100% / 0.20;
+    --mp-brand-violet: 265 60% 65%;
+    --mp-brand-violet2: 275 55% 72%;
+    --mp-brand-gold: 42 75% 55%;
+    --mp-brand-gold2: 38 70% 62%;
+    --mp-shadow-card: 0 8px 32px -8px hsl(260 50% 5% / 0.5);
+    --mp-shadow-glow-v: 0 0 50px hsl(265 60% 65% / 0.35);
+    --mp-shadow-glow-g: 0 0 50px hsl(42 75% 55% / 0.35);
     
     /* Dark mode premium gradients */
     --gradient-premium: linear-gradient(135deg, hsl(265 55% 60%), hsl(275 50% 70%));

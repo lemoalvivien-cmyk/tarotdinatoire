@@ -38,6 +38,7 @@ import ReadingDetail from "./pages/app/ReadingDetail";
 import ReadingRedirect from "./pages/app/ReadingRedirect";
 import ReadingSession from "./pages/app/ReadingSession";
 import Profile from "./pages/app/Profile";
+import Diagnostic from "./pages/app/Diagnostic";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
                 <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+                <Route path="/app/diagnostic" element={<ProtectedRoute><Diagnostic /></ProtectedRoute>} />
                 
                 {/* ========== ADMIN ROUTES (ASCII only) ========== */}
                 <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
