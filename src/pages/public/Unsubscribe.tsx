@@ -19,40 +19,35 @@ export default function Unsubscribe() {
       return;
     }
 
+    // Basic UUID format validation on client side
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(token)) {
+      setStatus('error');
+      return;
+    }
+
     const processUnsubscribe = async () => {
       try {
-        // Find lead by unsubscribe token
-        const { data: lead, error: fetchError } = await supabase
-          .from('email_leads')
-          .select('id, unsubscribed_at')
-          .eq('unsubscribe_token', token)
-          .maybeSingle();
+        // Call secure edge function instead of direct database access
+        const response = await supabase.functions.invoke('unsubscribe', {
+          body: { token },
+        });
 
-        if (fetchError || !lead) {
+        if (response.error) {
+          console.error('Unsubscribe error:', response.error);
           setStatus('error');
           return;
         }
 
-        // Already unsubscribed
-        if (lead.unsubscribed_at) {
+        const data = response.data;
+
+        if (data.status === 'success') {
+          setStatus('success');
+        } else if (data.status === 'already') {
           setStatus('already');
-          return;
+        } else {
+          setStatus('error');
         }
-
-        // Update to unsubscribed
-        const { error: updateError } = await supabase
-          .from('email_leads')
-          .update({ 
-            unsubscribed_at: new Date().toISOString(),
-            consent: false,
-          })
-          .eq('id', lead.id);
-
-        if (updateError) {
-          throw updateError;
-        }
-
-        setStatus('success');
       } catch (error) {
         console.error('Unsubscribe error:', error);
         setStatus('error');
