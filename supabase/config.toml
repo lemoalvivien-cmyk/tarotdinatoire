@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.public-config]
 verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false
