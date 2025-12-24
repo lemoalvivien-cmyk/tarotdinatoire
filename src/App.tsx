@@ -10,6 +10,7 @@ import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CookieBanner } from "@/components/cookies/CookieBanner";
 import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
+import RemoveLovableBadge from "@/components/RemoveLovableBadge";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 
 // Public Pages
@@ -136,6 +137,7 @@ const App = () => (
               </Routes>
               <CookieBanner />
               <PWAInstallPrompt />
+              <RemoveLovableBadge />
             </MaintenanceGuard>
           </BrowserRouter>
         </TooltipProvider>
