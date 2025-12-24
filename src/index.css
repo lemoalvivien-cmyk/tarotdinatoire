@@ -4,6 +4,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   Hide Lovable Badge in Production
+   ======================================== */
+#lovable-badge {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Fallback if ID changes */
+[id*="lovable"][style*="position: fixed"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Extra safety net for any fixed badge-like element */
+a[href*="lovable.dev"][style*="fixed"],
+div[style*="fixed"] a[href*="lovable.dev"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 /* Tarot Divinatoire - Design Éthéré & Lumineux */
 
 @layer base {
