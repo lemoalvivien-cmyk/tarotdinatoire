@@ -238,9 +238,35 @@ serve(async (req) => {
     const payload: RequestPayload = await req.json();
     console.log("Request payload:", JSON.stringify(payload));
 
+    // Server-side input validation
     if (!payload.cards || payload.cards.length === 0) {
       return new Response(
         JSON.stringify({ error: "Aucune carte fournie" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate question length (server-side enforcement)
+    const MAX_QUESTION_LENGTH = 500;
+    if (payload.question && payload.question.length > MAX_QUESTION_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Question trop longue (max ${MAX_QUESTION_LENGTH} caractères)` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate spread_id format (prevent injection)
+    if (payload.spread_id && !/^[a-z0-9_-]+$/i.test(payload.spread_id)) {
+      return new Response(
+        JSON.stringify({ error: "Format de tirage invalide" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate cards array
+    if (payload.cards.length > 22) {
+      return new Response(
+        JSON.stringify({ error: "Trop de cartes sélectionnées" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
