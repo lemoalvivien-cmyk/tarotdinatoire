@@ -39,7 +39,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from('feature_flags')
-      .select('maintenance_mode')
+      .select('maintenance_mode, admin_bootstrap_used')
       .eq('id', 1)
       .single();
 
@@ -49,8 +49,10 @@ serve(async (req) => {
     }
 
     // Return ONLY the minimal public fields (no sensitive flags)
+    // admin_bootstrap_used is safe to expose (just indicates if bootstrap was done)
     const publicConfig = {
       maintenance_mode: data?.maintenance_mode ?? false,
+      admin_bootstrap_used: data?.admin_bootstrap_used ?? true,
       app_version: APP_VERSION,
     };
 

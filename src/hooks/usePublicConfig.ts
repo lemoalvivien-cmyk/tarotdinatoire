@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface PublicConfig {
   maintenance_mode: boolean;
+  admin_bootstrap_used: boolean;
   app_version: string;
 }
 
@@ -21,12 +22,13 @@ export function usePublicConfig() {
 
       if (error) {
         console.error('[usePublicConfig] Error fetching config:', error);
-        // Return safe defaults on error
-        return { maintenance_mode: false, app_version: 'unknown' };
+        // Return safe defaults on error (admin_bootstrap_used: true = hide bootstrap section)
+        return { maintenance_mode: false, admin_bootstrap_used: true, app_version: 'unknown' };
       }
 
       return {
         maintenance_mode: data?.maintenance_mode ?? false,
+        admin_bootstrap_used: data?.admin_bootstrap_used ?? true,
         app_version: data?.app_version ?? 'unknown',
       };
     },

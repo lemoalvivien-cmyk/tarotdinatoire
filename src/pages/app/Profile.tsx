@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { useQueryClient } from '@tanstack/react-query';
 import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle } from 'lucide-react';
 import {
@@ -26,7 +26,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: flags, refetch: refetchFlags } = useFeatureFlags();
+  const { data: publicConfig, refetch: refetchConfig } = usePublicConfig();
   
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -35,8 +35,8 @@ export default function Profile() {
   const [activated, setActivated] = useState(false);
 
   // Show bootstrap section only if admin_bootstrap_used is false
-  // The edge function will validate email server-side
-  const canShowBootstrap = flags?.admin_bootstrap_used === false;
+  // Uses public-config edge function to avoid RLS errors for non-admin users
+  const canShowBootstrap = publicConfig?.admin_bootstrap_used === false;
 
   const handleBootstrapAdmin = async () => {
     if (!session?.access_token || !bootstrapToken.trim()) return;
@@ -53,12 +53,11 @@ export default function Profile() {
         throw new Error(response.error.message || 'Bootstrap failed');
       }
 
-      // Clear token from memory immediately
       setBootstrapToken('');
       setActivated(true);
       
-      // Refresh feature flags
-      await refetchFlags();
+      // Refresh public config to update bootstrap status
+      await refetchConfig();
       
       // Invalidate any admin-related queries
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
@@ -133,12 +132,45 @@ export default function Profile() {
     
     setDeleting(true);
     try {
-      // Delete readings first (cascade should handle this, but being explicit)
+      // RGPD: Delete ALL user data from ALL tables
+      // Order matters: delete dependent tables first
+      
+      // 1. Delete reading results (via reading_sessions FK)
+      const { data: sessions } = await supabase
+        .from('reading_sessions')
+        .select('id')
+        .eq('user_id', user.id);
+      
+      if (sessions && sessions.length > 0) {
+        const sessionIds = sessions.map(s => s.id);
+        await supabase.from('reading_results').delete().in('session_id', sessionIds);
+      }
+      
+      // 2. Delete reading sessions
+      await supabase.from('reading_sessions').delete().eq('user_id', user.id);
+      
+      // 3. Delete tarot readings
       await supabase.from('tarot_readings').delete().eq('user_id', user.id);
-      await supabase.from('profiles').delete().eq('id', user.id);
+      
+      // 4. Delete email leads (P3: RGPD compliance)
+      await supabase.from('email_leads').delete().eq('user_id', user.id);
+      
+      // 5. Delete consent logs
+      await supabase.from('consent_logs').delete().eq('user_id', user.id);
+      
+      // 6. Delete analytics events
+      await supabase.from('analytics_events').delete().eq('user_id', user.id);
+      
+      // 7. Delete AI usage stats
+      await supabase.from('ai_usage_daily').delete().eq('user_id', user.id);
+      
+      // 8. Delete user roles
       await supabase.from('user_roles').delete().eq('user_id', user.id);
       
-      // Sign out - need to import signOut from useAuth
+      // 9. Delete profile (should cascade from auth.users, but being explicit)
+      await supabase.from('profiles').delete().eq('id', user.id);
+      
+      // Sign out
       await supabase.auth.signOut();
       
       toast({
@@ -150,7 +182,7 @@ export default function Profile() {
       console.error('Delete error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer votre compte.",
+        description: "Impossible de supprimer votre compte. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
