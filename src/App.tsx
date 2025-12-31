@@ -53,6 +53,7 @@ import AdminSpreads from "./pages/admin/AdminSpreads";
 import AdminLeads from "./pages/admin/AdminLeads";
 import AdminStats from "./pages/admin/AdminStats";
 import AdminProdChecklist from "./pages/admin/AdminProdChecklist";
+import AdminImportDeck from "./pages/admin/AdminImportDeck";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,7 @@ const App = () => (
                 <Route path="/admin/leads" element={<AdminRoute><AdminLeads /></AdminRoute>} />
                 <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
                 <Route path="/admin/prod-check" element={<AdminRoute><AdminProdChecklist /></AdminRoute>} />
+                <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
                 
                 {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
                 <Route path="/statut" element={<Navigate to="/status" replace />} />

@@ -74,6 +74,8 @@ export const CANONICAL_ROUTES = {
   ADMIN_SPREADS: '/admin/spreads',
   ADMIN_LEADS: '/admin/leads',
   ADMIN_STATS: '/admin/stats',
+  ADMIN_PROD_CHECK: '/admin/prod-check',
+  ADMIN_IMPORT_DECK: '/admin/import-deck',
 } as const;
 
 // Legacy redirect mappings (from -> to) - ALL ASCII ONLY

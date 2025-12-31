@@ -1,6 +1,6 @@
 import { Layout } from '@/components/layout/Layout';
 import { SEOHead } from '@/components/seo/SEOHead';
-import { Building2, Scale, Globe, Server, Lock, Brain, FileText, Link2, Clock, Shield, Gavel, RefreshCw } from 'lucide-react';
+import { Building2, Scale, Globe, Server, Lock, Brain, FileText, Link2, Clock, Shield, Gavel, RefreshCw, ImageIcon } from 'lucide-react';
 
 export default function Imprint() {
   const currentDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -197,9 +197,37 @@ export default function Imprint() {
                       Toute reproduction, représentation, modification, publication, adaptation totale ou partielle de ces éléments, 
                       quel que soit le moyen ou le procédé utilisé, est <strong>interdite sans l'autorisation écrite préalable</strong> de l'éditeur.
                     </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Crédits images */}
+            <section className="p-6 rounded-xl bg-card border border-border/50">
+              <div className="flex items-start gap-4">
+                <ImageIcon className="h-5 w-5 text-primary mt-1 shrink-0" />
+                <div className="flex-1 space-y-3">
+                  <h2 className="font-serif text-xl font-semibold">10. Crédits images</h2>
+                  <div className="space-y-3 text-muted-foreground">
                     <p>
-                      Les illustrations des arcanes du Tarot sont des créations originales ou des adaptations libres de droit, 
-                      spécifiquement réalisées pour Tarot Divinatoire.
+                      Les illustrations des 78 arcanes du Tarot utilisées sur ce site proviennent du <strong>CBD Tarot de Marseille</strong>, 
+                      créé par <strong>Yoav Ben-Dov</strong> (1957-2016), tarologue et auteur israélien reconnu.
+                    </p>
+                    <p>
+                      Ces images sont diffusées sous licence open source et utilisées dans le respect des conditions de cette licence. 
+                      Le deck original est disponible sur{' '}
+                      <a 
+                        href="https://www.cbdtarot.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary hover:underline"
+                      >
+                        cbdtarot.com
+                      </a>.
+                    </p>
+                    <p className="text-sm italic">
+                      Nous rendons hommage au travail de Yoav Ben-Dov et à sa contribution majeure à la préservation 
+                      et à la diffusion du Tarot de Marseille historique.
                     </p>
                   </div>
                 </div>
@@ -211,7 +239,7 @@ export default function Imprint() {
               <div className="flex items-start gap-4">
                 <Link2 className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <h2 className="font-serif text-xl font-semibold">10. Liens externes</h2>
+                  <h2 className="font-serif text-xl font-semibold">11. Liens externes</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     Le Site peut contenir des liens hypertextes vers d'autres sites. L'éditeur n'exerce aucun contrôle 
                     sur ces sites et décline toute responsabilité quant à leur contenu, leur politique de confidentialité 
@@ -226,7 +254,7 @@ export default function Imprint() {
               <div className="flex items-start gap-4">
                 <Clock className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <h2 className="font-serif text-xl font-semibold">11. Disponibilité du Site</h2>
+                  <h2 className="font-serif text-xl font-semibold">12. Disponibilité du Site</h2>
                   <div className="space-y-3 text-muted-foreground">
                     <p>
                       L'éditeur s'efforce de maintenir le Site accessible 24h/24 et 7j/7. Toutefois, l'accès peut être 
@@ -247,7 +275,7 @@ export default function Imprint() {
               <div className="flex items-start gap-4">
                 <Shield className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <h2 className="font-serif text-xl font-semibold">12. Données personnelles & Cookies</h2>
+                  <h2 className="font-serif text-xl font-semibold">13. Données personnelles & Cookies</h2>
                   <div className="space-y-3 text-muted-foreground">
                     <p>
                       La collecte et le traitement des données personnelles sont régis par notre{' '}
@@ -272,7 +300,7 @@ export default function Imprint() {
               <div className="flex items-start gap-4">
                 <Gavel className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <h2 className="font-serif text-xl font-semibold">13. Droit applicable & Juridiction</h2>
+                  <h2 className="font-serif text-xl font-semibold">14. Droit applicable & Juridiction</h2>
                   <div className="space-y-3 text-muted-foreground">
                     <p>
                       Les présentes mentions légales sont soumises au <strong>droit français</strong>.
@@ -295,7 +323,7 @@ export default function Imprint() {
               <div className="flex items-start gap-4">
                 <RefreshCw className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <h2 className="font-serif text-xl font-semibold">14. Mise à jour des mentions légales</h2>
+                  <h2 className="font-serif text-xl font-semibold">15. Mise à jour des mentions légales</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     Les présentes mentions légales peuvent être modifiées à tout moment. L'utilisateur est invité à les consulter 
                     régulièrement. La date de dernière mise à jour est indiquée ci-dessous.
