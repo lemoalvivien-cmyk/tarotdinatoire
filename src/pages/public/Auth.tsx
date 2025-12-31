@@ -141,7 +141,7 @@ export default function Auth() {
             <h1 className="font-serif text-3xl font-semibold text-foreground">
               {isLogin ? 'Bon retour' : 'Bienvenue'}
             </h1>
-            <p className="text-foreground/80">
+            <p className="text-muted-foreground">
               {isLogin ? 'Connectez-vous pour accéder à vos tirages' : 'Créez votre compte pour commencer'}
             </p>
             <div className="beta-badge mx-auto">
@@ -228,7 +228,7 @@ export default function Auth() {
             </Button>
 
             <div className="text-center text-sm">
-              <span className="text-foreground/80">
+              <span className="text-muted-foreground">
                 {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
               </span>{' '}
               <button
@@ -241,7 +241,7 @@ export default function Auth() {
             </div>
           </form>
 
-          <p className="text-center text-xs text-foreground/70">
+          <p className="text-center text-xs text-muted-foreground">
             En continuant, vous acceptez nos{' '}
             <a href="/legal/terms" className="text-primary hover:underline">CGU</a>
             {' '}et notre{' '}
