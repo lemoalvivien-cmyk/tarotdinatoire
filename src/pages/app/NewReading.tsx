@@ -1,41 +1,86 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Layout } from '@/components/layout/Layout';
-import { Textarea } from '@/components/ui/textarea';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { useRitualMachine } from '@/hooks/useRitualMachine';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { RefreshCw, Wand2, AlertTriangle, Home, Sparkles } from 'lucide-react';
+import { 
+  RefreshCw, 
+  Wand2, 
+  AlertTriangle, 
+  Home, 
+  Sparkles, 
+  Shuffle, 
+  Scissors,
+  Heart,
+  HelpCircle,
+  ArrowRight,
+  ArrowLeft,
+  Star,
+  Target,
+  Compass,
+  Check
+} from 'lucide-react';
 import { z } from 'zod';
+import { cn } from '@/lib/utils';
 import type { TarotCard as TarotCardType } from '@/types/tarot';
 import { preloadCardBack, getCardFaceUrl } from '@/utils/tarotImageHelpers';
 import { preloadImages } from '@/lib/preloadImages';
 
-// Mystic Premium Components
+// Components
 import { MysticBackground, MysticButton } from '@/components/mystic';
-import { StepHeader, OracleLoader } from '@/components/tarot-ui';
-
-// New ritual components
-import { DeckView } from '@/components/tarot/DeckView';
-import { CardSelectionView } from '@/components/tarot/CardSelectionView';
-import { SpreadTableView } from '@/components/tarot/SpreadTableView';
+import { OracleLoader } from '@/components/tarot-ui';
+import { RitualStepper } from '@/components/tarot/RitualStepper';
+import { AnimatedDeck } from '@/components/tarot/AnimatedDeck';
+import { SelectedCardsDisplay } from '@/components/tarot/SelectedCardsDisplay';
 import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
-type PageStep = 'question' | 'ritual' | 'table';
-
 const PRELOAD_COUNT = 12;
 const DEFAULT_SPREAD_ID = 'one_card';
+
+// Ritual steps
+const STEPS = [
+  { id: 'intention', label: 'Intention' },
+  { id: 'question', label: 'Question' },
+  { id: 'spread', label: 'Tirage' },
+  { id: 'ritual', label: 'Mélanger' },
+  { id: 'selection', label: 'Choisir' },
+  { id: 'reading', label: 'Lecture' },
+];
+
+type StepId = 'intention' | 'question' | 'spread' | 'ritual' | 'selection' | 'reading';
+
+// Intention options
+const INTENTIONS = [
+  { id: 'guidance', label: 'Guidance générale', icon: Compass, description: 'Un éclairage sur ma situation' },
+  { id: 'love', label: 'Amour', icon: Heart, description: 'Relations, sentiments' },
+  { id: 'career', label: 'Carrière', icon: Target, description: 'Travail, projets' },
+  { id: 'personal', label: 'Développement', icon: Star, description: 'Croissance personnelle' },
+];
 
 interface SpreadPosition {
   key: string;
   label: string;
   label_fr?: string;
+  description?: string;
+  description_fr?: string;
+}
+
+interface SpreadOption {
+  id: string;
+  name_fr: string;
+  description_fr: string | null;
+  card_count: number;
+  positions: SpreadPosition[];
+  layout_key: string | null;
 }
 
 export default function NewReading() {
@@ -44,52 +89,58 @@ export default function NewReading() {
   const { user } = useAuth();
   const { data: cards, isLoading: cardsLoading, error: cardsError } = useTarotCards();
   const { track } = useAnalytics();
-  
-  const spreadId = slug || DEFAULT_SPREAD_ID;
-  
-  // Load spread configuration
-  const { data: spread, isLoading: spreadLoading } = useQuery({
-    queryKey: ['spread', spreadId],
+
+  // Current step
+  const [currentStep, setCurrentStep] = useState<StepId>(slug ? 'ritual' : 'intention');
+  const stepIndex = STEPS.findIndex(s => s.id === currentStep);
+
+  // User choices
+  const [intention, setIntention] = useState<string | null>(null);
+  const [question, setQuestion] = useState('');
+  const [questionError, setQuestionError] = useState<string | null>(null);
+  const [selectedSpreadId, setSelectedSpreadId] = useState<string>(slug || DEFAULT_SPREAD_ID);
+
+  // State
+  const [isInterpreting, setIsInterpreting] = useState(false);
+  const [imagesPreloaded, setImagesPreloaded] = useState(false);
+
+  // Load spreads list
+  const { data: spreads, isLoading: spreadsLoading } = useQuery({
+    queryKey: ['spreads-list'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tarot_spreads')
-        .select('id, name_fr, description_fr, card_count, positions')
-        .eq('id', spreadId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('[NewReading] Error loading spread:', error);
-        throw error;
-      }
-      return data;
+        .select('id, name_fr, description_fr, card_count, positions, layout_key')
+        .eq('is_enabled', true)
+        .order('sort_order');
+      if (error) throw error;
+      return (data || []) as unknown as SpreadOption[];
     },
     staleTime: 60000,
   });
 
-  // Parse positions from spread
-  const positions: SpreadPosition[] = useMemo(() => {
-    if (!spread?.positions) return [{ key: 'single', label: 'Carte unique' }];
-    try {
-      const parsed = spread.positions as unknown as SpreadPosition[];
-      return Array.isArray(parsed) ? parsed : [{ key: 'single', label: 'Carte unique' }];
-    } catch {
-      return [{ key: 'single', label: 'Carte unique' }];
-    }
-  }, [spread]);
+  // Current spread config
+  const currentSpread = useMemo(() => {
+    return spreads?.find(s => s.id === selectedSpreadId) || null;
+  }, [spreads, selectedSpreadId]);
 
-  const cardsRequired = spread?.card_count ?? 1;
-  
+  const positions: SpreadPosition[] = useMemo(() => {
+    if (!currentSpread?.positions) return [{ key: 'single', label: 'La Carte' }];
+    try {
+      const parsed = currentSpread.positions as unknown as SpreadPosition[];
+      return Array.isArray(parsed) ? parsed : [{ key: 'single', label: 'La Carte' }];
+    } catch {
+      return [{ key: 'single', label: 'La Carte' }];
+    }
+  }, [currentSpread]);
+
+  const cardsRequired = currentSpread?.card_count ?? 1;
+
   // Initialize ritual machine
   const ritual = useRitualMachine({
     cardsRequired,
     positions: positions.map(p => ({ key: p.key, label: p.label_fr || p.label })),
   });
-
-  const [pageStep, setPageStep] = useState<PageStep>('question');
-  const [question, setQuestion] = useState('');
-  const [questionError, setQuestionError] = useState<string | null>(null);
-  const [isInterpreting, setIsInterpreting] = useState(false);
-  const [imagesPreloaded, setImagesPreloaded] = useState(false);
 
   // Set initial deck when cards are loaded
   useEffect(() => {
@@ -98,7 +149,7 @@ export default function NewReading() {
     }
   }, [cards, ritual]);
 
-  // Get URLs for preloading
+  // Preload URLs
   const preloadUrls = useMemo(() => {
     if (!cards || cards.length === 0) return [];
     return cards
@@ -107,10 +158,9 @@ export default function NewReading() {
       .filter((url): url is string => url !== null);
   }, [cards]);
 
-  // Preload card back + first N faces when cards are loaded
+  // Preload card images
   useEffect(() => {
     if (cardsLoading || !cards || cards.length === 0) return;
-    
     const preload = async () => {
       await preloadCardBack();
       if (preloadUrls.length > 0) {
@@ -124,10 +174,29 @@ export default function NewReading() {
         setImagesPreloaded(true);
       }
     };
-    
     preload();
   }, [cards, cardsLoading, preloadUrls]);
 
+  // Navigation
+  const goToStep = useCallback((stepId: StepId) => {
+    setCurrentStep(stepId);
+  }, []);
+
+  const goNext = useCallback(() => {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx < STEPS.length - 1) {
+      setCurrentStep(STEPS[idx + 1].id as StepId);
+    }
+  }, [currentStep]);
+
+  const goBack = useCallback(() => {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx > 0) {
+      setCurrentStep(STEPS[idx - 1].id as StepId);
+    }
+  }, [currentStep]);
+
+  // Validate question
   const validateQuestion = () => {
     const result = questionSchema.safeParse(question);
     if (!result.success) {
@@ -138,61 +207,68 @@ export default function NewReading() {
     return true;
   };
 
-  const handleStartRitual = () => {
+  // Handlers
+  const handleIntentionSelect = (id: string) => {
+    setIntention(id);
+    goNext();
+    goNext();
+  };
+
+  const handleQuestionSubmit = () => {
     if (!validateQuestion()) return;
-    track('reading_start', { spread_id: spreadId });
-    setPageStep('ritual');
+    goNext();
+  };
+
+  const handleSpreadSelect = (spreadId: string) => {
+    setSelectedSpreadId(spreadId);
+    ritual.reset();
+    ritual.reset();
+    goNext();
   };
 
   const handleShuffle = async () => {
-    track('shuffle', { spread_id: spreadId });
+    track('shuffle', { spread_id: selectedSpreadId });
     await ritual.startShuffle();
   };
 
   const handleCut = async () => {
-    track('cut', { spread_id: spreadId });
+    track('cut', { spread_id: selectedSpreadId });
     await ritual.startCut();
   };
 
   const handleStartSelection = () => {
-    // Force transition to selecting phase
-    if (ritual.shuffledDeck.length > 0) {
-      const firstCard = ritual.shuffledDeck[0];
-      ritual.selectCard(firstCard, ritual.currentPositionKey || 'single');
-      ritual.deselectCard(firstCard.id);
-    }
+    goToStep('selection');
   };
 
   const handleCardSelect = (card: TarotCardType) => {
     if (!ritual.currentPositionKey) return;
-    track('select_card', { spread_id: spreadId, card_id: card.id, card_index: ritual.state.selectedCards.length });
+    track('select_card', { 
+      spread_id: selectedSpreadId, 
+      card_id: card.id, 
+      card_index: ritual.state.selectedCards.length 
+    });
     ritual.selectCard(card, ritual.currentPositionKey);
-  };
-
-  const handleCardDeselect = (cardId: string) => {
-    ritual.deselectCard(cardId);
-  };
-
-  const handleShowTable = () => {
-    setPageStep('table');
+    
+    // Auto-advance to reading when complete
+    if (ritual.state.selectedCards.length + 1 >= cardsRequired) {
+      setTimeout(() => goToStep('reading'), 500);
+    }
   };
 
   const handleValidate = async () => {
     if (!ritual.canValidate || !user) return;
-    
-    track('validate', { spread_id: spreadId, cards_count: ritual.state.selectedCards.length });
+
+    track('validate', { spread_id: selectedSpreadId, cards_count: ritual.state.selectedCards.length });
     ritual.startInterpretation();
     setIsInterpreting(true);
 
     try {
-      // Build cards array for saving - using the JSONB format expected by tarot_readings
       const cardsToSave = ritual.state.selectedCards.map(sc => ({
         card_id: sc.card.id,
         orientation: sc.drawnCard.orientation,
         position_key: sc.drawnCard.position_key,
       }));
 
-      // Get access token for edge function call
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
@@ -202,7 +278,6 @@ export default function NewReading() {
         return;
       }
 
-      // Call interpretation edge function
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation`,
         {
@@ -212,7 +287,7 @@ export default function NewReading() {
             'Authorization': `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            spread_id: spreadId,
+            spread_id: selectedSpreadId,
             question: question || null,
             cards: cardsToSave,
           }),
@@ -235,12 +310,11 @@ export default function NewReading() {
         toast.error(errorData.message || 'Erreur lors de l\'interprétation');
       }
 
-      // Save to tarot_readings table
       const { data: newReading, error: saveError } = await supabase
         .from('tarot_readings')
         .insert({
           user_id: user.id,
-          spread_id: spreadId,
+          spread_id: selectedSpreadId,
           question: question || null,
           cards: cardsToSave,
           ai_interpretation: interpretation,
@@ -255,7 +329,6 @@ export default function NewReading() {
         return;
       }
 
-      // Navigate to result page
       navigate(`/app/reading/${newReading.id}`);
     } catch (error) {
       console.error('Validate error:', error);
@@ -264,36 +337,38 @@ export default function NewReading() {
     }
   };
 
-  // Determine phases
-  const showDeckPhase = ritual.state.phase === 'idle' || ritual.state.phase === 'shuffling' || 
-                        ritual.state.phase === 'shuffled' || ritual.state.phase === 'cutting' || 
-                        ritual.state.phase === 'cut';
-  const showSelectionPhase = ritual.state.phase === 'selecting' || ritual.state.phase === 'ready';
+  // Build slots for display
+  const slots = useMemo(() => {
+    return positions.map((pos, i) => ({
+      position: {
+        key: pos.key,
+        label: pos.label_fr || pos.label,
+        description: pos.description_fr || pos.description,
+      },
+      card: ritual.state.selectedCards.find(sc => sc.positionIndex === i) || null,
+      index: i,
+    }));
+  }, [positions, ritual.state.selectedCards]);
 
-  // Loading state
-  if (cardsLoading || spreadLoading || (!imagesPreloaded && !cardsError)) {
+  // Loading
+  if (cardsLoading || spreadsLoading || (!imagesPreloaded && !cardsError)) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
         <OracleLoader 
           size="lg" 
-          message={cardsLoading ? "Préparation des arcanes..." : spreadLoading ? "Chargement du tirage..." : "Chargement des cartes..."} 
+          message={cardsLoading ? "Préparation des arcanes..." : "Chargement..."} 
         />
       </MysticBackground>
     );
   }
 
-  // Error state
+  // Error
   if (cardsError) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-6 p-8 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 max-w-md mx-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20">
-            <AlertTriangle className="h-8 w-8 text-red-400" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="font-serif text-xl font-semibold text-white">Erreur de chargement</h2>
-            <p className="text-white/80 text-sm">Impossible de charger les cartes.</p>
-          </div>
+        <div className="text-center space-y-6 p-8 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 max-w-md mx-4">
+          <AlertTriangle className="h-12 w-12 text-red-400 mx-auto" />
+          <h2 className="font-serif text-xl font-semibold text-white">Erreur de chargement</h2>
           <div className="flex flex-col gap-3">
             <MysticButton onClick={() => window.location.reload()}>
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -309,174 +384,368 @@ export default function NewReading() {
     );
   }
 
-  // Interpretation loading state
+  // Interpreting
   if (isInterpreting) {
     return <InterpretationLoader question={question || undefined} />;
   }
 
   return (
-    <Layout>
-      <MysticBackground className="min-h-screen py-8 md:py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto space-y-8">
-            
-            {/* Page Header */}
-            <StepHeader
-              title={
-                pageStep === 'question' ? (spread?.name_fr || 'Nouveau Tirage') :
-                pageStep === 'table' ? 'Votre Tirage' :
-                'Rituel du Tirage'
-              }
-              subtitle={
-                pageStep === 'question' ? 'Concentrez-vous sur votre question et laissez les cartes vous guider.' :
-                pageStep === 'ritual' ? `Tirage ${cardsRequired} carte${cardsRequired > 1 ? 's' : ''}` :
-                undefined
-              }
-              currentStep={pageStep === 'question' ? 1 : pageStep === 'ritual' ? 2 : 3}
-              totalSteps={3}
-            />
+    <MysticBackground className="min-h-screen py-6 sm:py-10">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto space-y-8">
+          
+          {/* Stepper */}
+          <RitualStepper 
+            steps={STEPS} 
+            currentStep={stepIndex}
+          />
 
-            {/* Step 1: Question */}
-            {pageStep === 'question' && (
-              <div className="space-y-6 animate-fade-in-up">
-                <div className="p-6 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 space-y-4">
-                  <label className="block text-sm font-medium text-white">
-                    Votre question ou intention (optionnel)
-                  </label>
-                  <Textarea
-                    placeholder="Formulez votre question ou laissez vide pour une guidance générale..."
-                    value={question}
-                    onChange={(e) => {
-                      setQuestion(e.target.value);
-                      if (questionError) validateQuestion();
-                    }}
-                    className="min-h-[100px] resize-none bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-white/40"
-                    maxLength={240}
-                  />
-                  <div className="flex justify-between items-center text-xs text-white/60">
-                    <span>{questionError && <span className="text-red-400">{questionError}</span>}</span>
-                    <span>{question.length}/240</span>
+          {/* Step Content */}
+          <AnimatePresence mode="wait">
+            {/* Step 1: Intention */}
+            {currentStep === 'intention' && (
+              <StepContainer key="intention">
+                <StepTitle 
+                  title="Quelle est votre intention ?"
+                  subtitle="Choisissez le domaine qui vous préoccupe"
+                />
+                <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+                  {INTENTIONS.map((int) => (
+                    <button
+                      key={int.id}
+                      onClick={() => handleIntentionSelect(int.id)}
+                      className={cn(
+                        'p-4 sm:p-6 rounded-2xl text-left transition-all duration-200',
+                        'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400',
+                        intention === int.id && 'ring-2 ring-yellow-400 bg-yellow-400/10'
+                      )}
+                    >
+                      <int.icon className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 mb-2 sm:mb-3" />
+                      <h3 className="font-medium text-white text-sm sm:text-base">{int.label}</h3>
+                      <p className="text-white/60 text-xs sm:text-sm mt-1">{int.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </StepContainer>
+            )}
+
+            {/* Step 2: Question */}
+            {currentStep === 'question' && (
+              <StepContainer key="question">
+                <StepTitle 
+                  title="Formulez votre question"
+                  subtitle="Ou laissez vide pour une guidance générale"
+                />
+                <div className="max-w-lg mx-auto space-y-4">
+                  <div className="p-6 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10">
+                    <Textarea
+                      placeholder="Ex: Comment puis-je améliorer ma situation professionnelle ?"
+                      value={question}
+                      onChange={(e) => {
+                        setQuestion(e.target.value);
+                        if (questionError) validateQuestion();
+                      }}
+                      className="min-h-[100px] resize-none bg-white/5 border-white/20 text-white placeholder:text-white/40 focus:border-yellow-400/50"
+                      maxLength={240}
+                    />
+                    <div className="flex justify-between items-center mt-2 text-xs">
+                      <span className="text-red-400">{questionError}</span>
+                      <span className="text-white/50">{question.length}/240</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 justify-center">
+                    <MysticButton variant="outline" onClick={goBack}>
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Retour
+                    </MysticButton>
+                    <MysticButton onClick={handleQuestionSubmit}>
+                      Continuer
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </MysticButton>
+                  </div>
+                </div>
+              </StepContainer>
+            )}
+
+            {/* Step 3: Spread Selection */}
+            {currentStep === 'spread' && (
+              <StepContainer key="spread">
+                <StepTitle 
+                  title="Choisissez votre tirage"
+                  subtitle="Le nombre de cartes influence la profondeur de la lecture"
+                />
+                <div className="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                  {spreads?.slice(0, 3).map((spread) => (
+                    <button
+                      key={spread.id}
+                      onClick={() => handleSpreadSelect(spread.id)}
+                      className={cn(
+                        'p-5 rounded-2xl text-center transition-all duration-200',
+                        'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400',
+                        selectedSpreadId === spread.id && 'ring-2 ring-yellow-400'
+                      )}
+                    >
+                      <div className="text-3xl sm:text-4xl font-bold text-yellow-400 mb-2">
+                        {spread.card_count}
+                      </div>
+                      <h3 className="font-medium text-white text-sm sm:text-base">{spread.name_fr}</h3>
+                      <p className="text-white/60 text-xs mt-1">{spread.description_fr}</p>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-center mt-6">
+                  <MysticButton variant="outline" onClick={goBack}>
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Retour
+                  </MysticButton>
+                </div>
+              </StepContainer>
+            )}
+
+            {/* Step 4: Ritual (Shuffle & Cut) */}
+            {currentStep === 'ritual' && (
+              <StepContainer key="ritual">
+                <RitualPhase
+                  phase={ritual.state.phase}
+                  onShuffle={handleShuffle}
+                  onCut={handleCut}
+                  onStartSelection={handleStartSelection}
+                  shuffledDeck={ritual.shuffledDeck}
+                  cardsRequired={cardsRequired}
+                  goBack={goBack}
+                />
+              </StepContainer>
+            )}
+
+            {/* Step 5: Selection */}
+            {currentStep === 'selection' && (
+              <StepContainer key="selection">
+                <StepTitle 
+                  title={ritual.canValidate ? "Sélection complète" : `Choisissez ${cardsRequired} carte${cardsRequired > 1 ? 's' : ''}`}
+                  subtitle={ritual.currentPositionLabel ? `Position : ${ritual.currentPositionLabel}` : undefined}
+                />
+                
+                {/* Progress */}
+                <div className="max-w-md mx-auto mb-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-white/70">Progression</span>
+                    <span className="text-white font-medium">{ritual.selectedCount}/{cardsRequired}</span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{
+                        background: 'linear-gradient(90deg, hsl(260 60% 55%), hsl(45 80% 55%))',
+                      }}
+                      animate={{ width: `${ritual.progress}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
                   </div>
                 </div>
 
-                <MysticButton
-                  onClick={handleStartRitual}
-                  size="lg"
-                  className="w-full"
-                  leftIcon={<Wand2 className="h-5 w-5" />}
-                >
-                  Procéder au tirage
-                </MysticButton>
-              </div>
-            )}
+                {/* Selected cards display */}
+                <SelectedCardsDisplay
+                  slots={slots}
+                  layoutKey={currentSpread?.layout_key || 'single'}
+                />
 
-            {/* Step 2: Ritual */}
-            {pageStep === 'ritual' && (
-              <div className="space-y-8 animate-fade-in-up">
-                {/* Question reminder */}
-                {question && (
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-                    <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Votre question</p>
-                    <p className="font-medium text-white">{question}</p>
-                  </div>
-                )}
-
-                {/* Deck Phase: Shuffle & Cut */}
-                {showDeckPhase && (
-                  <DeckView
-                    phase={ritual.state.phase}
-                    isShuffling={ritual.state.phase === 'shuffling'}
-                    isCutting={ritual.state.phase === 'cutting'}
-                    onShuffle={handleShuffle}
-                    onCut={handleCut}
-                    onStartSelection={handleStartSelection}
-                  />
-                )}
-
-                {/* Selection Phase */}
-                {showSelectionPhase && ritual.shuffledDeck.length > 0 && (
-                  <div className="space-y-6">
-                    <CardSelectionView
-                      cards={ritual.shuffledDeck}
-                      selectedCards={ritual.state.selectedCards}
-                      maxSelections={cardsRequired}
-                      currentPositionLabel={ritual.currentPositionLabel}
-                      onSelect={handleCardSelect}
-                      onDeselect={handleCardDeselect}
-                    />
-
-                    {/* Action buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-                      {ritual.canValidate ? (
-                        <>
-                          <MysticButton
-                            onClick={handleShowTable}
-                            size="lg"
-                            variant="outline"
-                          >
-                            Voir le tirage
-                          </MysticButton>
-                          <MysticButton
-                            onClick={handleValidate}
-                            size="lg"
-                            leftIcon={<Sparkles className="w-5 h-5" />}
-                          >
-                            Valider et interpréter
-                          </MysticButton>
-                        </>
-                      ) : (
-                        <div className="text-center">
-                          <p className="text-white/60 text-sm">
-                            Sélectionnez {cardsRequired - ritual.selectedCount} carte{cardsRequired - ritual.selectedCount > 1 ? 's' : ''} de plus
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 3: Table View */}
-            {pageStep === 'table' && (
-              <div className="space-y-8 animate-fade-in-up">
-                {/* Question reminder */}
-                {question && (
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-                    <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Votre question</p>
-                    <p className="font-medium text-white">{question}</p>
-                  </div>
-                )}
-
-                <SpreadTableView
-                  selectedCards={ritual.state.selectedCards}
-                  positions={positions}
-                  allCards={cards}
-                  spreadName={spread?.name_fr}
+                {/* Deck for selection */}
+                <AnimatedDeck
+                  cards={ritual.shuffledDeck}
+                  phase={ritual.state.phase}
+                  selectedCardIds={ritual.state.selectedCards.map(sc => sc.card.id)}
+                  maxCards={cardsRequired}
+                  onCardSelect={handleCardSelect}
                 />
 
                 {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-                  <MysticButton
-                    onClick={() => setPageStep('ritual')}
-                    size="lg"
-                    variant="outline"
+                {ritual.canValidate && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-center pt-6"
                   >
-                    Modifier la sélection
+                    <MysticButton
+                      size="lg"
+                      onClick={() => goToStep('reading')}
+                      leftIcon={<Sparkles className="w-5 h-5" />}
+                    >
+                      Voir mon tirage
+                    </MysticButton>
+                  </motion.div>
+                )}
+              </StepContainer>
+            )}
+
+            {/* Step 6: Reading */}
+            {currentStep === 'reading' && (
+              <StepContainer key="reading">
+                <StepTitle 
+                  title="Votre tirage est prêt"
+                  subtitle={currentSpread?.name_fr}
+                />
+
+                {/* Question reminder */}
+                {question && (
+                  <div className="max-w-lg mx-auto p-4 rounded-xl bg-white/5 border border-white/10 text-center mb-6">
+                    <p className="text-white/60 text-xs uppercase tracking-wider mb-1">Votre question</p>
+                    <p className="text-white font-medium">{question}</p>
+                  </div>
+                )}
+
+                {/* Cards display */}
+                <SelectedCardsDisplay
+                  slots={slots}
+                  layoutKey={currentSpread?.layout_key || 'single'}
+                />
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+                  <MysticButton
+                    variant="outline"
+                    onClick={() => goToStep('selection')}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Modifier
                   </MysticButton>
                   <MysticButton
-                    onClick={handleValidate}
                     size="lg"
+                    onClick={handleValidate}
                     leftIcon={<Sparkles className="w-5 h-5" />}
+                    disabled={!ritual.canValidate}
                   >
                     Recevoir l'interprétation
                   </MysticButton>
                 </div>
-              </div>
+              </StepContainer>
             )}
-          </div>
+          </AnimatePresence>
         </div>
-      </MysticBackground>
-    </Layout>
+      </div>
+    </MysticBackground>
+  );
+}
+
+// Sub-components
+
+function StepContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="text-center space-y-2">
+      <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-white drop-shadow-lg">
+        {title}
+      </h1>
+      {subtitle && (
+        <p className="text-white/80 text-sm sm:text-base drop-shadow-md">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
+
+interface RitualPhaseProps {
+  phase: string;
+  onShuffle: () => void;
+  onCut: () => void;
+  onStartSelection: () => void;
+  shuffledDeck: TarotCardType[];
+  cardsRequired: number;
+  goBack: () => void;
+}
+
+function RitualPhase({
+  phase,
+  onShuffle,
+  onCut,
+  onStartSelection,
+  shuffledDeck,
+  cardsRequired,
+  goBack,
+}: RitualPhaseProps) {
+  const isShuffling = phase === 'shuffling';
+  const isCutting = phase === 'cutting';
+  const showShuffle = phase === 'idle' || phase === 'shuffling';
+  const showCut = phase === 'shuffled' || phase === 'cutting';
+  const showStart = phase === 'cut';
+
+  return (
+    <div className="space-y-8">
+      <StepTitle 
+        title={
+          showShuffle ? (isShuffling ? 'Le jeu se mélange...' : 'Mélangez le jeu') :
+          showCut ? (isCutting ? 'Coupe en cours...' : 'Coupez le jeu') :
+          'Le jeu est prêt'
+        }
+        subtitle={
+          showShuffle ? 'Concentrez-vous sur votre question' :
+          showCut ? 'La coupe scelle votre intention' :
+          'Choisissez vos cartes'
+        }
+      />
+
+      {/* Animated deck */}
+      <AnimatedDeck
+        cards={shuffledDeck}
+        phase={phase as 'idle' | 'shuffling' | 'shuffled' | 'cutting' | 'cut' | 'selecting' | 'ready'}
+        selectedCardIds={[]}
+        maxCards={cardsRequired}
+      />
+
+      {/* Actions */}
+      <div className="flex flex-col items-center gap-4">
+        {showShuffle && (
+          <MysticButton
+            size="lg"
+            onClick={onShuffle}
+            disabled={isShuffling}
+            leftIcon={<Shuffle className="w-5 h-5" />}
+          >
+            {isShuffling ? 'Mélange...' : 'Mélanger le jeu'}
+          </MysticButton>
+        )}
+        
+        {showCut && (
+          <MysticButton
+            size="lg"
+            onClick={onCut}
+            disabled={isCutting}
+            leftIcon={<Scissors className="w-5 h-5" />}
+          >
+            {isCutting ? 'Coupe...' : 'Couper le jeu'}
+          </MysticButton>
+        )}
+        
+        {showStart && (
+          <MysticButton
+            size="lg"
+            onClick={onStartSelection}
+            leftIcon={<Wand2 className="w-5 h-5" />}
+          >
+            Choisir mes cartes
+          </MysticButton>
+        )}
+        
+        <MysticButton variant="ghost" size="sm" onClick={goBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour
+        </MysticButton>
+      </div>
+    </div>
   );
 }
