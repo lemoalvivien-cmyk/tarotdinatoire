@@ -210,8 +210,8 @@ export default function NewReading() {
   // Handlers
   const handleIntentionSelect = (id: string) => {
     setIntention(id);
-    goNext();
-    goNext();
+    // Skip question step, go directly to spread selection
+    goToStep('spread');
   };
 
   const handleQuestionSubmit = () => {
@@ -221,7 +221,6 @@ export default function NewReading() {
 
   const handleSpreadSelect = (spreadId: string) => {
     setSelectedSpreadId(spreadId);
-    ritual.reset();
     ritual.reset();
     goNext();
   };
