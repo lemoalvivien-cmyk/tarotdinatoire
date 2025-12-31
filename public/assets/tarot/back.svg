@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 205 397" width="205" height="397">
+  <defs>
+    <!-- Gradient principal violet/or -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1035;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2d1b4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1035;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradient doré pour les éléments décoratifs -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f5d87a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4af37;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Pattern étoilé -->
+    <pattern id="starPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <!-- Petite étoile -->
+      <polygon points="20,5 22,15 32,15 24,21 27,31 20,25 13,31 16,21 8,15 18,15" 
+               fill="url(#goldGradient)" opacity="0.3" transform="scale(0.5) translate(20,20)"/>
+    </pattern>
+    
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Fond principal -->
+  <rect width="205" height="397" fill="url(#bgGradient)" rx="12"/>
+  
+  <!-- Pattern étoilé de fond -->
+  <rect width="205" height="397" fill="url(#starPattern)" rx="12"/>
+  
+  <!-- Bordure dorée externe -->
+  <rect x="8" y="8" width="189" height="381" fill="none" stroke="url(#goldGradient)" stroke-width="2" rx="8" opacity="0.8"/>
+  
+  <!-- Bordure dorée interne -->
+  <rect x="16" y="16" width="173" height="365" fill="none" stroke="url(#goldGradient)" stroke-width="1" rx="6" opacity="0.5"/>
+  
+  <!-- Losange central -->
+  <g transform="translate(102.5, 198.5)">
+    <!-- Losange externe -->
+    <polygon points="0,-80 60,0 0,80 -60,0" fill="none" stroke="url(#goldGradient)" stroke-width="2" filter="url(#glow)"/>
+    
+    <!-- Losange interne -->
+    <polygon points="0,-50 38,0 0,50 -38,0" fill="none" stroke="url(#goldGradient)" stroke-width="1.5" opacity="0.7"/>
+    
+    <!-- Étoile centrale à 8 branches -->
+    <g filter="url(#glow)">
+      <!-- Branches principales -->
+      <line x1="0" y1="-30" x2="0" y2="30" stroke="url(#goldGradient)" stroke-width="2"/>
+      <line x1="-30" y1="0" x2="30" y2="0" stroke="url(#goldGradient)" stroke-width="2"/>
+      <!-- Branches diagonales -->
+      <line x1="-21" y1="-21" x2="21" y2="21" stroke="url(#goldGradient)" stroke-width="1.5"/>
+      <line x1="21" y1="-21" x2="-21" y2="21" stroke="url(#goldGradient)" stroke-width="1.5"/>
+      <!-- Cercle central -->
+      <circle cx="0" cy="0" r="8" fill="#2d1b4e" stroke="url(#goldGradient)" stroke-width="1.5"/>
+      <circle cx="0" cy="0" r="4" fill="url(#goldGradient)" opacity="0.8"/>
+    </g>
+  </g>
+  
+  <!-- Étoiles décoratives aux coins -->
+  <g fill="url(#goldGradient)" opacity="0.6">
+    <!-- Haut gauche -->
+    <polygon points="30,30 32,36 38,36 33,40 35,46 30,42 25,46 27,40 22,36 28,36" transform="scale(0.8)"/>
+    <!-- Haut droit -->
+    <polygon points="175,30 177,36 183,36 178,40 180,46 175,42 170,46 172,40 167,36 173,36" transform="scale(0.8) translate(30, 0)"/>
+    <!-- Bas gauche -->
+    <polygon points="30,367 32,373 38,373 33,377 35,383 30,379 25,383 27,377 22,373 28,373" transform="scale(0.8) translate(0, 50)"/>
+    <!-- Bas droit -->
+    <polygon points="175,367 177,373 183,373 178,377 180,383 175,379 170,383 172,377 167,373 173,373" transform="scale(0.8) translate(30, 50)"/>
+  </g>
+  
+  <!-- Croissants de lune décoratifs -->
+  <g stroke="url(#goldGradient)" fill="none" stroke-width="1" opacity="0.5">
+    <!-- Haut -->
+    <path d="M 82.5 50 Q 102.5 35 122.5 50 Q 102.5 45 82.5 50"/>
+    <!-- Bas -->
+    <path d="M 82.5 347 Q 102.5 362 122.5 347 Q 102.5 352 82.5 347"/>
+  </g>
+  
+  <!-- Ornements latéraux -->
+  <g stroke="url(#goldGradient)" fill="none" stroke-width="1" opacity="0.4">
+    <!-- Gauche -->
+    <line x1="25" y1="100" x2="25" y2="130"/>
+    <circle cx="25" cy="95" r="3"/>
+    <circle cx="25" cy="135" r="3"/>
+    
+    <line x1="25" y1="267" x2="25" y2="297"/>
+    <circle cx="25" cy="262" r="3"/>
+    <circle cx="25" cy="302" r="3"/>
+    
+    <!-- Droite -->
+    <line x1="180" y1="100" x2="180" y2="130"/>
+    <circle cx="180" cy="95" r="3"/>
+    <circle cx="180" cy="135" r="3"/>
+    
+    <line x1="180" y1="267" x2="180" y2="297"/>
+    <circle cx="180" cy="262" r="3"/>
+    <circle cx="180" cy="302" r="3"/>
+  </g>
+</svg>
