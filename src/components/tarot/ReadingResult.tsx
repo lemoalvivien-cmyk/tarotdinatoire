@@ -2,20 +2,24 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { TarotCard as TarotCardUI } from '@/components/tarot-ui/TarotCard';
 import { OracleLoader } from '@/components/tarot-ui/OracleLoader';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
-import type { TarotInterpretation, DrawnCard, TarotCard } from '@/types/tarot';
+import type { DrawnCard, TarotCard } from '@/types/tarot';
 
 interface ReadingResultProps {
   cards: DrawnCard[];
-  interpretation: TarotInterpretation | null;
+  interpretation: unknown; // Accept any format, normalizer handles it
   allCards: TarotCard[] | undefined;
   isLoading?: boolean;
+  onRetry?: () => void;
+  isRetrying?: boolean;
 }
 
 export function ReadingResult({ 
   cards, 
   interpretation, 
   allCards,
-  isLoading = false 
+  isLoading = false,
+  onRetry,
+  isRetrying = false,
 }: ReadingResultProps) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -113,7 +117,7 @@ export function ReadingResult({
           variants={itemVariants}
           className="flex-1 lg:w-1/2 order-first lg:order-none"
         >
-          {isLoading || !interpretation ? (
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-6">
               <OracleLoader size="md" message="Interprétation en cours…" />
               <p className="text-muted-foreground text-center">
@@ -121,7 +125,11 @@ export function ReadingResult({
               </p>
             </div>
           ) : (
-            <InterpretationDisplay interpretation={interpretation} />
+            <InterpretationDisplay 
+              interpretation={interpretation} 
+              onRetry={onRetry}
+              isRetrying={isRetrying}
+            />
           )}
         </motion.div>
 

@@ -8,20 +8,58 @@ import {
   Wallet, 
   Info,
   Shield,
-  MapPin
+  MapPin,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { normalizeInterpretation, type NormalizedInterpretation } from '@/utils/interpretationNormalizer';
+import { Button } from '@/components/ui/button';
 
 interface InterpretationDisplayProps {
   interpretation: unknown;
+  onRetry?: () => void;
+  isRetrying?: boolean;
 }
 
-export function InterpretationDisplay({ interpretation }: InterpretationDisplayProps) {
-  // Normalize interpretation data - handles all formats safely
+export function InterpretationDisplay({ 
+  interpretation, 
+  onRetry,
+  isRetrying = false 
+}: InterpretationDisplayProps) {
+  // Normalize interpretation data - handles all formats safely, NEVER throws
   const data: NormalizedInterpretation = useMemo(
     () => normalizeInterpretation(interpretation),
     [interpretation]
   );
+
+  // Show error state with retry option
+  if (data.hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-6 text-center">
+        <div className="p-4 rounded-full bg-amber-500/10">
+          <AlertTriangle className="h-10 w-10 text-amber-500" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-serif text-xl font-semibold text-foreground">
+            Interprétation indisponible
+          </h3>
+          <p className="text-muted-foreground max-w-md">
+            {data.errorMessage || 'L\'interprétation n\'a pas pu être générée. Veuillez réessayer.'}
+          </p>
+        </div>
+        {onRetry && (
+          <Button 
+            onClick={onRetry} 
+            disabled={isRetrying}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
+            {isRetrying ? 'Nouvelle tentative...' : 'Réessayer'}
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   // Check if we have position-specific interpretations (new format)
   const hasPositionInterpretations = data.positionInterpretations.length > 0;

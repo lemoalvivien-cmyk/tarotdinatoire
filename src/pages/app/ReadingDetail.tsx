@@ -29,8 +29,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import type { TarotReading, TarotInterpretation, DrawnCard } from '@/types/tarot';
+import type { TarotReading, DrawnCard } from '@/types/tarot';
 import type { FallbackInterpretationData } from '@/utils/tarotFallback';
+import { isEmptyInterpretation } from '@/utils/interpretationNormalizer';
 
 export default function ReadingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -41,9 +42,10 @@ export default function ReadingDetail() {
   const [userNotes, setUserNotes] = useState('');
   const [isNotesModified, setIsNotesModified] = useState(false);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Fetch reading
-  const { data: reading, isLoading, error } = useQuery({
+  const { data: reading, isLoading, error, refetch } = useQuery({
     queryKey: ['reading', id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -61,7 +63,7 @@ export default function ReadingDetail() {
         spread_id: data.spread_id,
         question: data.question,
         cards: data.cards as unknown as DrawnCard[],
-        ai_interpretation: data.ai_interpretation as unknown as TarotInterpretation | null,
+        ai_interpretation: data.ai_interpretation as unknown as TarotReading['ai_interpretation'],
         user_notes: data.user_notes,
         is_favorite: data.is_favorite ?? false,
         created_at: data.created_at,
@@ -78,6 +80,74 @@ export default function ReadingDetail() {
       setUserNotes(reading.user_notes || '');
     }
   }, [reading?.user_notes]);
+
+  // Retry interpretation
+  const handleRetryInterpretation = useCallback(async () => {
+    if (!reading || !id) return;
+    
+    setIsRetrying(true);
+    
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        toast.error('Session expirée. Veuillez vous reconnecter.');
+        navigate('/auth');
+        return;
+      }
+
+      // Call the interpretation edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            spread_id: reading.spread_id || 'one_card',
+            question: reading.question || null,
+            cards: reading.cards,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const newInterpretation = await response.json();
+        
+        // Update the reading in the database
+        const { error: updateError } = await supabase
+          .from('tarot_readings')
+          .update({ ai_interpretation: newInterpretation })
+          .eq('id', id);
+
+        if (updateError) {
+          console.error('Update error:', updateError);
+          toast.error('Erreur lors de la mise à jour');
+        } else {
+          toast.success('Interprétation régénérée avec succès');
+          // Refetch the reading to get updated data
+          refetch();
+        }
+      } else if (response.status === 429) {
+        toast.error('Limite atteinte. Réessayez plus tard.');
+      } else if (response.status === 401) {
+        toast.error('Session expirée.');
+        navigate('/auth');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Interpretation error:', errorData);
+        toast.error(errorData.message || 'Erreur lors de l\'interprétation');
+      }
+    } catch (error) {
+      console.error('Retry error:', error);
+      toast.error('Une erreur est survenue');
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [reading, id, navigate, refetch]);
 
   // Debounced save for notes
   const saveNotes = useCallback(async (notes: string) => {
@@ -190,6 +260,7 @@ export default function ReadingDetail() {
   }
 
   const drawnCards = reading.cards || [];
+  const needsRetry = isEmptyInterpretation(reading.ai_interpretation);
 
   return (
     <Layout>
@@ -282,8 +353,10 @@ export default function ReadingDetail() {
           {/* Reading Result with Cards + Interpretation */}
           <ReadingResult
             cards={drawnCards}
-            interpretation={reading.ai_interpretation as TarotInterpretation | null}
+            interpretation={reading.ai_interpretation}
             allCards={allCards}
+            onRetry={needsRetry ? handleRetryInterpretation : undefined}
+            isRetrying={isRetrying}
           />
 
           {/* User Notes */}
