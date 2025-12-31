@@ -554,7 +554,7 @@ export default function NewReading() {
                 {/* Deck for selection */}
                 <AnimatedDeck
                   cards={ritual.shuffledDeck}
-                  phase={ritual.state.phase}
+                  phase={ritual.state.phase === 'interpreting' || ritual.state.phase === 'done' ? 'ready' : ritual.state.phase}
                   selectedCardIds={ritual.state.selectedCards.map(sc => sc.card.id)}
                   maxCards={cardsRequired}
                   onCardSelect={handleCardSelect}
