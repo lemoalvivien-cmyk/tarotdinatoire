@@ -95,6 +95,8 @@ export default function CardsList() {
                       <img
                         src={card.image_url}
                         alt={card.nom_fr}
+                        loading="lazy"
+                        decoding="async"
                         className="w-20 h-32 mx-auto rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform shadow-md"
                       />
                     ) : (
@@ -137,6 +139,8 @@ export default function CardsList() {
                       <img
                         src={card.image_url}
                         alt={card.nom_fr}
+                        loading="lazy"
+                        decoding="async"
                         className="w-20 h-32 mx-auto rounded-lg object-cover mb-3 group-hover:scale-105 transition-transform shadow-md"
                       />
                     ) : (
