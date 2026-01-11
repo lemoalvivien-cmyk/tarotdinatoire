@@ -22,11 +22,15 @@ import { useTarotCards } from '@/hooks/useTarotCards';
 
 export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: cards } = useTarotCards();
+  const { data: cards, isLoading: cardsLoading } = useTarotCards();
 
   // Create a map for quick card lookup
   const cardMap = new Map<string, TarotCard>();
   cards?.forEach(card => cardMap.set(card.id, card));
+
+  // Deck integration stats
+  const totalCards = cards?.length ?? 0;
+  const cardsWithImages = cards?.filter(c => c.image_url)?.length ?? 0;
 
   const getCardName = (cardsJson: unknown): string => {
     try {
@@ -122,7 +126,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -167,6 +171,29 @@ export default function AdminDashboard() {
                   <Skeleton className="h-8 w-16" />
                 ) : (
                   <p className="text-3xl font-serif font-semibold">{stats?.todayReadings ?? 0}</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/30">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Deck intégré
+                </CardTitle>
+                <ImageIcon className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                {cardsLoading ? (
+                  <Skeleton className="h-8 w-16" />
+                ) : (
+                  <div>
+                    <p className="text-3xl font-serif font-semibold text-primary">
+                      {cardsWithImages}<span className="text-lg text-muted-foreground">/78</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {Math.round((cardsWithImages / 78) * 100)}% complet
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
