@@ -136,10 +136,16 @@ export default function NewReading() {
 
   const cardsRequired = currentSpread?.card_count ?? 1;
 
+  // Memoize ritual positions to prevent re-renders
+  const ritualPositions = useMemo(
+    () => positions.map(p => ({ key: p.key, label: p.label_fr || p.label })),
+    [positions]
+  );
+
   // Initialize ritual machine
   const ritual = useRitualMachine({
     cardsRequired,
-    positions: positions.map(p => ({ key: p.key, label: p.label_fr || p.label })),
+    positions: ritualPositions,
   });
 
   // Set initial deck when cards are loaded
