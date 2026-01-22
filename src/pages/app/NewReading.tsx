@@ -522,40 +522,23 @@ export default function NewReading() {
             {currentStep === 'selection' && (
               <StepContainer key="selection">
                 <StepTitle 
-                  title={ritual.canValidate ? "Sélection complète" : `Choisissez ${cardsRequired} carte${cardsRequired > 1 ? 's' : ''}`}
-                  subtitle={ritual.currentPositionLabel ? `Position : ${ritual.currentPositionLabel}` : undefined}
+                  title={ritual.canValidate ? "Sélection complète" : `Choisissez vos cartes`}
+                  subtitle="Laissez-vous guider par votre intuition"
                 />
                 
-                {/* Progress */}
-                <div className="max-w-md mx-auto mb-6">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-white/70">Progression</span>
-                    <span className="text-white font-medium">{ritual.selectedCount}/{cardsRequired}</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{
-                        background: 'linear-gradient(90deg, hsl(260 60% 55%), hsl(45 80% 55%))',
-                      }}
-                      animate={{ width: `${ritual.progress}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                </div>
-
                 {/* Selected cards display */}
                 <SelectedCardsDisplay
                   slots={slots}
                   layoutKey={currentSpread?.layout_key || 'single'}
                 />
 
-                {/* Deck for selection */}
+                {/* Deck for selection - now uses PremiumCardGrid internally */}
                 <AnimatedDeck
                   cards={ritual.shuffledDeck}
                   phase={ritual.state.phase === 'interpreting' || ritual.state.phase === 'done' ? 'ready' : ritual.state.phase}
                   selectedCardIds={ritual.state.selectedCards.map(sc => sc.card.id)}
                   maxCards={cardsRequired}
+                  currentPositionLabel={ritual.currentPositionLabel}
                   onCardSelect={handleCardSelect}
                 />
 
