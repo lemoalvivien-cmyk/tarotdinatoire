@@ -1,3 +1,4 @@
+import { memo, useMemo, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { TarotCard as TarotCardUI } from '@/components/tarot-ui/TarotCard';
 import { OracleLoader } from '@/components/tarot-ui/OracleLoader';
@@ -13,7 +14,7 @@ interface ReadingResultProps {
   isRetrying?: boolean;
 }
 
-export function ReadingResult({ 
+export const ReadingResult = memo(function ReadingResult({ 
   cards, 
   interpretation, 
   allCards,
@@ -23,21 +24,22 @@ export function ReadingResult({
 }: ReadingResultProps) {
   const shouldReduceMotion = useReducedMotion();
 
-  const getCardDetails = (cardId: string) => {
+  // Memoized card lookup for performance
+  const getCardDetails = useCallback((cardId: string) => {
     return allCards?.find(c => c.id === cardId);
-  };
+  }, [allCards]);
 
-  // Get card data with details
-  const enrichedCards = cards.map(drawnCard => {
+  // Memoized enriched cards to prevent recalculation
+  const enrichedCards = useMemo(() => cards.map(drawnCard => {
     const details = getCardDetails(drawnCard.card_id);
     return {
       ...drawnCard,
       details,
     };
-  });
+  }), [cards, getCardDetails]);
 
   const leftCard = enrichedCards[0];
-  const rightCards = enrichedCards.slice(1);
+  const rightCards = useMemo(() => enrichedCards.slice(1), [enrichedCards]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -192,4 +194,4 @@ export function ReadingResult({
       </motion.div>
     </motion.div>
   );
-}
+});

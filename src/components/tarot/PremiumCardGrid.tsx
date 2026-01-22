@@ -219,8 +219,9 @@ const SelectableGridCard = memo(function SelectableGridCard({
         type: 'spring',
         stiffness: 400,
         damping: 25,
-        opacity: { delay: index * 0.015, duration: 0.3 },
-        scale: { delay: index * 0.015 },
+        // 16.67ms = 1 frame at 60fps for smooth staggering
+        opacity: { delay: index * 0.0167, duration: 0.3 },
+        scale: { delay: index * 0.0167 },
       }}
       whileTap={!isDisabled && !isFlying ? { scale: 0.95 } : undefined}
       aria-label={`Sélectionner une carte`}
