@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { memo, useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { isImageLoaded, preloadImage } from '@/lib/preloadImages';
@@ -254,4 +254,4 @@ export function TarotCard({
   );
 }
 
-export default TarotCard;
+export default memo(TarotCard);
