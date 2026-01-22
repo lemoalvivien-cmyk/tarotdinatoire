@@ -1,9 +1,9 @@
+import { memo, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 import { CARD_BACK_URL } from '@/constants/tarotAssets';
 import type { TarotCard } from '@/types/tarot';
-import { useState, useCallback } from 'react';
 
 interface PremiumCardGridProps {
   cards: TarotCard[];
@@ -32,8 +32,11 @@ export function PremiumCardGrid({
   const isComplete = selectedCardIds.length >= maxCards;
   const remaining = maxCards - selectedCardIds.length;
 
-  // Filter out already selected cards
-  const availableCards = cards.filter(c => !selectedCardIds.includes(c.id));
+  // Filter out already selected cards - memoized for performance
+  const availableCards = useMemo(
+    () => cards.filter(c => !selectedCardIds.includes(c.id)),
+    [cards, selectedCardIds]
+  );
 
   const handleCardClick = useCallback((card: TarotCard) => {
     if (isComplete || !onCardSelect) return;
@@ -159,7 +162,7 @@ interface SelectableGridCardProps {
   onClick: () => void;
 }
 
-function SelectableGridCard({
+const SelectableGridCard = memo(function SelectableGridCard({
   card,
   index,
   isFlying,
@@ -168,14 +171,18 @@ function SelectableGridCard({
 }: SelectableGridCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
+  // Memoized hover handlers for performance
+  const handleHoverStart = useCallback(() => setIsHovered(true), []);
+  const handleHoverEnd = useCallback(() => setIsHovered(false), []);
+
   return (
     <motion.button
       onClick={onClick}
       disabled={isDisabled || isFlying}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      onFocus={() => setIsHovered(true)}
-      onBlur={() => setIsHovered(false)}
+      onHoverStart={handleHoverStart}
+      onHoverEnd={handleHoverEnd}
+      onFocus={handleHoverStart}
+      onBlur={handleHoverEnd}
       className={cn(
         // Base: minimum 44px touch target (aspect-ratio maintains height)
         'relative w-full min-w-[44px] aspect-[2/3] rounded-lg sm:rounded-xl overflow-hidden',
@@ -265,6 +272,6 @@ function SelectableGridCard({
       )}
     </motion.button>
   );
-}
+});
 
-export default PremiumCardGrid;
+export default memo(PremiumCardGrid);
