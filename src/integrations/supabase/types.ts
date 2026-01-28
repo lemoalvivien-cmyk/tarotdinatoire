@@ -496,7 +496,65 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      email_leads_admin_safe: {
+        Row: {
+          consent: boolean | null
+          consent_text: string | null
+          consent_timestamp: string | null
+          created_at: string | null
+          email: string | null
+          email_verified: boolean | null
+          first_name: string | null
+          id: string | null
+          session_id: string | null
+          spread_id: string | null
+          unsubscribed_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          verification_sent_at: string | null
+        }
+        Insert: {
+          consent?: boolean | null
+          consent_text?: string | null
+          consent_timestamp?: string | null
+          created_at?: string | null
+          email?: string | null
+          email_verified?: boolean | null
+          first_name?: string | null
+          id?: string | null
+          session_id?: string | null
+          spread_id?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_sent_at?: string | null
+        }
+        Update: {
+          consent?: boolean | null
+          consent_text?: string | null
+          consent_timestamp?: string | null
+          created_at?: string | null
+          email?: string | null
+          email_verified?: boolean | null
+          first_name?: string | null
+          id?: string | null
+          session_id?: string | null
+          spread_id?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_leads_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "reading_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       bootstrap_first_admin: {
