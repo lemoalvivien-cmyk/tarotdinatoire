@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { CARD_BACK_URL } from '@/constants/tarotAssets';
 import type { TarotCard } from '@/types/tarot';
 import { useState } from 'react';
-import { PremiumCardGrid } from './PremiumCardGrid';
+import { ImmersiveCardSelection } from './ImmersiveCardSelection';
 
 type DeckPhase = 'idle' | 'shuffling' | 'shuffled' | 'cutting' | 'cut' | 'selecting' | 'ready';
 
@@ -14,6 +14,8 @@ interface AnimatedDeckProps {
   maxCards: number;
   currentPositionLabel?: string | null;
   onCardSelect?: (card: TarotCard) => void;
+  /** Use immersive fullscreen mode for selection */
+  useImmersiveMode?: boolean;
 }
 
 /**
@@ -26,38 +28,39 @@ export function AnimatedDeck({
   maxCards,
   currentPositionLabel,
   onCardSelect,
+  useImmersiveMode = true,
 }: AnimatedDeckProps) {
   const isShuffling = phase === 'shuffling';
   const isCutting = phase === 'cutting';
   const isSelectable = phase === 'cut' || phase === 'selecting' || phase === 'ready';
 
-  // Show grid view for selection, stacked view for shuffle/cut
-  const showGrid = isSelectable;
+  // Show immersive fullscreen grid for selection
+  const showImmersive = isSelectable && useImmersiveMode;
   
   // For stacked deck view
   const stackedCards = cards.slice(0, 10);
 
+  // Immersive fullscreen mode
+  if (showImmersive) {
+    return (
+      <ImmersiveCardSelection
+        cards={cards}
+        selectedCardIds={selectedCardIds}
+        maxCards={maxCards}
+        currentPositionLabel={currentPositionLabel}
+        onCardSelect={onCardSelect}
+      />
+    );
+  }
+
   return (
     <div className="relative w-full flex flex-col items-center">
       {/* Deck visualization */}
-      {!showGrid && (
-        <StackedDeck 
-          cards={stackedCards}
-          isShuffling={isShuffling}
-          isCutting={isCutting}
-        />
-      )}
-      
-      {/* Premium grid view for selection */}
-      {showGrid && (
-        <PremiumCardGrid
-          cards={cards}
-          selectedCardIds={selectedCardIds}
-          maxCards={maxCards}
-          currentPositionLabel={currentPositionLabel}
-          onCardSelect={onCardSelect}
-        />
-      )}
+      <StackedDeck 
+        cards={stackedCards}
+        isShuffling={isShuffling}
+        isCutting={isCutting}
+      />
     </div>
   );
 }

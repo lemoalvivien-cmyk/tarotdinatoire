@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -741,4 +741,411 @@ div[style*="fixed"] a[href*="lovable.dev"] {
 .text-gradient-premium {
   @apply bg-clip-text text-transparent;
   background-image: linear-gradient(135deg, hsl(var(--mp-brand-violet)), hsl(var(--mp-brand-gold)));
+}
+
+/* ========================================
+   IMMERSIVE CARD SELECTION - Zero Scroll
+   ======================================== */
+
+/* Main container - full viewport, no scroll */
+.immersive-selection-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    hsl(260 35% 4%) 0%,
+    hsl(265 32% 8%) 30%,
+    hsl(270 28% 12%) 70%,
+    hsl(265 25% 16%) 100%
+  );
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Ambient stars background */
+.immersive-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(1px 1px at 5% 10%, hsl(42 75% 55% / 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 12% 35%, hsl(265 60% 65% / 0.5), transparent),
+    radial-gradient(1px 1px at 20% 60%, hsl(42 70% 50% / 0.6), transparent),
+    radial-gradient(2px 2px at 28% 15%, hsl(275 55% 60% / 0.4), transparent),
+    radial-gradient(1px 1px at 35% 80%, hsl(42 75% 55% / 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 42% 45%, hsl(265 60% 65% / 0.6), transparent),
+    radial-gradient(1px 1px at 50% 25%, hsl(42 70% 50% / 0.5), transparent),
+    radial-gradient(2px 2px at 58% 70%, hsl(275 55% 60% / 0.5), transparent),
+    radial-gradient(1px 1px at 65% 5%, hsl(42 75% 55% / 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 72% 55%, hsl(265 60% 65% / 0.4), transparent),
+    radial-gradient(1px 1px at 80% 30%, hsl(42 70% 50% / 0.6), transparent),
+    radial-gradient(2px 2px at 88% 85%, hsl(275 55% 60% / 0.5), transparent),
+    radial-gradient(1px 1px at 95% 50%, hsl(42 75% 55% / 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 15% 90%, hsl(265 60% 65% / 0.6), transparent),
+    radial-gradient(1px 1px at 75% 95%, hsl(42 70% 50% / 0.4), transparent);
+  animation: immersive-stars-twinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes immersive-stars-twinkle {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Fixed header */
+.immersive-header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px 8px;
+  position: relative;
+  z-index: 10;
+  gap: 4px;
+}
+
+.immersive-title {
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  font-weight: 600;
+  color: white;
+  text-shadow: 
+    0 0 20px hsl(265 60% 55% / 0.5),
+    0 2px 10px hsl(260 50% 5% / 0.8);
+  margin: 0;
+  text-align: center;
+}
+
+.immersive-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
+}
+
+.counter-current {
+  font-weight: 700;
+  background: linear-gradient(135deg, hsl(42 75% 55%), hsl(265 60% 65%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.counter-separator {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+}
+
+.counter-max {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.counter-label {
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 2px;
+}
+
+.immersive-position-label {
+  font-size: 0.75rem;
+  color: hsl(42 75% 55%);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+/* Grid wrapper - fills remaining space */
+.immersive-grid-wrapper {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  position: relative;
+}
+
+/* Card grid - dense responsive layout */
+.immersive-grid {
+  display: grid;
+  /* Mobile first: 8 columns for 78 cards (10 rows) */
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  /* Calculate height to fit viewport */
+  max-height: 100%;
+}
+
+/* Tablet: 9 columns */
+@media (min-width: 400px) {
+  .immersive-grid {
+    grid-template-columns: repeat(9, 1fr);
+    gap: 5px;
+  }
+}
+
+/* Large mobile / small tablet: 10 columns */
+@media (min-width: 500px) {
+  .immersive-grid {
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+  }
+}
+
+/* Tablet landscape: 13 columns */
+@media (min-width: 768px) {
+  .immersive-grid {
+    grid-template-columns: repeat(13, 1fr);
+    gap: 6px;
+  }
+}
+
+/* Desktop: 13 columns with max width */
+@media (min-width: 1024px) {
+  .immersive-grid {
+    grid-template-columns: repeat(13, 1fr);
+    gap: 8px;
+    max-width: 900px;
+  }
+}
+
+/* Individual card */
+.immersive-card {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  background: transparent;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.immersive-card:focus {
+  outline: none;
+}
+
+.immersive-card:focus-visible {
+  outline: 2px solid hsl(42 75% 55%);
+  outline-offset: 2px;
+}
+
+/* Card back design container */
+.card-back-design {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1.5px solid hsl(42 75% 55% / 0.5);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.immersive-card:not(.immersive-card--disabled):hover .card-back-design,
+.immersive-card--pressed:not(.immersive-card--disabled) .card-back-design {
+  border-color: hsl(42 75% 55% / 0.9);
+  box-shadow: 
+    0 4px 12px -2px hsl(265 60% 55% / 0.4),
+    0 0 20px hsl(42 75% 55% / 0.3);
+}
+
+/* Card background gradient */
+.card-bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    hsl(270 35% 18%) 0%,
+    hsl(265 40% 12%) 50%,
+    hsl(260 35% 8%) 100%
+  );
+}
+
+/* Diamond pattern in center */
+.card-diamond {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(42 75% 55% / 0.6);
+}
+
+.diamond-svg {
+  width: 60%;
+  height: 70%;
+}
+
+/* Corner stars */
+.card-star {
+  position: absolute;
+  font-size: 5px;
+  color: hsl(42 75% 55% / 0.7);
+  animation: card-star-pulse 2.5s ease-in-out infinite;
+}
+
+.card-star--tl {
+  top: 3px;
+  left: 3px;
+  animation-delay: 0s;
+}
+
+.card-star--br {
+  bottom: 3px;
+  right: 3px;
+  animation-delay: 1.25s;
+}
+
+@keyframes card-star-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Border breathing animation */
+.card-border-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  animation: border-breathe 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes border-breathe {
+  0%, 100% { border-color: hsl(42 75% 55% / 0.2); }
+  50% { border-color: hsl(42 75% 55% / 0.5); }
+}
+
+/* Disabled state */
+.immersive-card--disabled {
+  pointer-events: none;
+}
+
+.immersive-card--disabled .card-back-design {
+  opacity: 0.3;
+}
+
+/* Flying state (handled by framer-motion) */
+.immersive-card--flying {
+  pointer-events: none;
+  z-index: 100 !important;
+}
+
+/* Pulse effect on selection */
+.card-pulse-effect {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(42 75% 55% / 0.6) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Fixed bottom slots bar */
+.immersive-slots-bar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px 16px;
+  background: linear-gradient(to top, hsl(260 35% 4% / 0.95), transparent);
+  position: relative;
+  z-index: 10;
+}
+
+/* Individual slot */
+.immersive-slot {
+  width: 36px;
+  height: 54px;
+  border-radius: 4px;
+  border: 2px dashed hsl(42 75% 55% / 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+@media (min-width: 400px) {
+  .immersive-slot {
+    width: 40px;
+    height: 60px;
+  }
+}
+
+@media (min-width: 500px) {
+  .immersive-slot {
+    width: 45px;
+    height: 68px;
+  }
+}
+
+.slot-index {
+  font-size: 10px;
+  color: hsl(42 75% 55% / 0.4);
+  font-weight: 500;
+}
+
+.immersive-slot--filled {
+  border-style: solid;
+  border-color: hsl(42 75% 55% / 0.8);
+  box-shadow: 0 0 12px hsl(42 75% 55% / 0.3);
+}
+
+.slot-card-preview {
+  position: absolute;
+  inset: 2px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* Completion overlay */
+.immersive-complete-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(260 35% 4% / 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+}
+
+.complete-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 32px;
+  background: hsl(265 30% 12% / 0.9);
+  border: 1px solid hsl(42 75% 55% / 0.5);
+  border-radius: 16px;
+  box-shadow: 0 0 40px hsl(42 75% 55% / 0.3);
+}
+
+.complete-icon {
+  font-size: 32px;
+  color: hsl(42 75% 55%);
+  animation: complete-icon-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes complete-icon-glow {
+  0%, 100% { text-shadow: 0 0 10px hsl(42 75% 55% / 0.5); }
+  50% { text-shadow: 0 0 30px hsl(42 75% 55% / 0.8); }
+}
+
+.complete-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  color: white;
+  font-weight: 500;
 }
