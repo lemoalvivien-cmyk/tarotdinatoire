@@ -225,31 +225,71 @@ const ImmersiveCard = memo(function ImmersiveCard({
       }}
       aria-label={`Sélectionner une carte`}
     >
-      {/* Card back design */}
+      {/* Card back design - matching reference with concentric pattern */}
       <div className="card-back-design">
         {/* Background gradient */}
         <div className="card-bg-gradient" />
         
-        {/* Diamond pattern */}
+        {/* Central ornament with concentric circles + diamond */}
         <div className="card-diamond">
-          <svg viewBox="0 0 24 36" fill="none" className="diamond-svg">
-            <path 
-              d="M12 2L22 18L12 34L2 18L12 2Z" 
-              stroke="currentColor" 
-              strokeWidth="1"
-              fill="none"
-            />
-            <path 
-              d="M12 6L18 18L12 30L6 18L12 6Z" 
+          <svg viewBox="0 0 40 60" fill="none" className="diamond-svg">
+            {/* Outer circle */}
+            <circle 
+              cx="20" cy="30" r="18" 
               stroke="currentColor" 
               strokeWidth="0.5"
               fill="none"
+              opacity="0.4"
             />
+            {/* Middle circle */}
+            <circle 
+              cx="20" cy="30" r="12" 
+              stroke="currentColor" 
+              strokeWidth="0.5"
+              fill="none"
+              opacity="0.6"
+            />
+            {/* Inner circle */}
+            <circle 
+              cx="20" cy="30" r="6" 
+              stroke="currentColor" 
+              strokeWidth="0.5"
+              fill="none"
+              opacity="0.8"
+            />
+            {/* Outer diamond */}
+            <path 
+              d="M20 8L34 30L20 52L6 30L20 8Z" 
+              stroke="currentColor" 
+              strokeWidth="0.8"
+              fill="none"
+            />
+            {/* Inner diamond */}
+            <path 
+              d="M20 16L28 30L20 44L12 30L20 16Z" 
+              stroke="currentColor" 
+              strokeWidth="0.5"
+              fill="none"
+              opacity="0.7"
+            />
+            {/* Center dot */}
+            <circle 
+              cx="20" cy="30" r="1.5" 
+              fill="currentColor"
+              opacity="0.9"
+            />
+            {/* Cardinal points */}
+            <circle cx="20" cy="12" r="1" fill="currentColor" opacity="0.6"/>
+            <circle cx="20" cy="48" r="1" fill="currentColor" opacity="0.6"/>
+            <circle cx="8" cy="30" r="1" fill="currentColor" opacity="0.6"/>
+            <circle cx="32" cy="30" r="1" fill="currentColor" opacity="0.6"/>
           </svg>
         </div>
 
         {/* Corner stars */}
         <div className="card-star card-star--tl">✦</div>
+        <div className="card-star card-star--tr">✦</div>
+        <div className="card-star card-star--bl">✦</div>
         <div className="card-star card-star--br">✦</div>
         
         {/* Border glow */}
