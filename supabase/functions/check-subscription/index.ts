@@ -56,7 +56,7 @@ serve(async (req) => {
         .upsert({
           user_id: user.id,
           plan: "free",
-          credits_remaining: 1,
+          credits_remaining: 0, // Paywall strict: 0 crédits gratuits
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" });
 
@@ -71,7 +71,7 @@ serve(async (req) => {
         JSON.stringify({
           subscribed: false,
           plan: "free",
-          credits_remaining: subData?.credits_remaining ?? 1,
+          credits_remaining: subData?.credits_remaining ?? 0, // Paywall strict
           subscription_end: null,
           cancel_at_period_end: false
         }),
@@ -146,7 +146,7 @@ serve(async (req) => {
         stripe_customer_id: customerId,
         plan: "free",
         subscription_status: null,
-        credits_remaining: subData?.credits_remaining ?? 1,
+        credits_remaining: subData?.credits_remaining ?? 0, // Paywall strict
         updated_at: new Date().toISOString()
       }, { onConflict: "user_id" });
 
@@ -154,7 +154,7 @@ serve(async (req) => {
       JSON.stringify({
         subscribed: false,
         plan: "free",
-        credits_remaining: subData?.credits_remaining ?? 1,
+        credits_remaining: subData?.credits_remaining ?? 0, // Paywall strict
         subscription_end: null,
         cancel_at_period_end: false
       }),
