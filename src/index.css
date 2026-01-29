@@ -1169,3 +1169,69 @@ div[style*="fixed"] a[href*="lovable.dev"] {
   color: white;
   font-weight: 500;
 }
+
+/* ========================================
+   PWA Mobile Optimizations
+   ======================================== */
+
+/* Support safe area (encoche iPhone X+) */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Améliorer le tap sur mobile (retrait du delay) */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: rgba(147, 51, 234, 0.1);
+}
+
+/* Empêcher le zoom accidentel sur mobile */
+@media (hover: none) {
+  html {
+    touch-action: manipulation;
+  }
+  
+  input, textarea, select {
+    touch-action: auto;
+  }
+}
+
+/* Fixer le header en haut avec safe area */
+header.sticky {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* PWA Install Banner Animation */
+@keyframes pwa-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.pwa-install-banner {
+  animation: pwa-slide-up 0.4s ease-out;
+}
+
+/* Standalone mode adjustments */
+@media (display-mode: standalone) {
+  /* Remove unnecessary elements in standalone mode */
+  .hide-in-standalone {
+    display: none !important;
+  }
+  
+  /* Adjust bottom nav padding for home indicator */
+  .bottom-nav {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
