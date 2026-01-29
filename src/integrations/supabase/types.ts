@@ -336,6 +336,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          credits_remaining: number | null
+          current_period_end: string | null
+          id: string
+          plan: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          credits_remaining?: number | null
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          credits_remaining?: number | null
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarot_cards: {
         Row: {
           created_at: string
@@ -561,6 +603,9 @@ export type Database = {
         Args: { allowed_email: string }
         Returns: boolean
       }
+      decrement_reading_credit: { Args: { uid: string }; Returns: undefined }
+      get_subscription_status: { Args: { uid: string }; Returns: Json }
+      has_reading_credits: { Args: { uid: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
