@@ -1,13 +1,56 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home } from 'lucide-react';
-import { useState } from 'react';
+import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setIsInstalled(true);
+    }
+    setDeferredPrompt(null);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,6 +122,17 @@ export function Header() {
                   <User className="h-4 w-4" />
                   Profil
                 </Link>
+                {deferredPrompt && !isInstalled && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleInstallClick}
+                    className="text-primary border-primary/30 hover:bg-primary/10"
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Installer
+                  </Button>
+                )}
                 <Button 
                   variant="ghost" 
                   size="sm" 

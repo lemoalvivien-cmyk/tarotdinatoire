@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt';
 
 interface LayoutProps {
   children: ReactNode;
@@ -23,6 +24,9 @@ export function Layout({ children, showFooter = true }: LayoutProps) {
       </main>
       
       {showFooter && <Footer />}
+      
+      {/* PWA Install Banner */}
+      <PWAInstallPrompt />
     </div>
   );
 }
