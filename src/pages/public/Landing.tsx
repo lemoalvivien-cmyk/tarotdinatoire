@@ -1,9 +1,9 @@
 import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowRight, Stars, Moon, Sparkles } from 'lucide-react';
+import { ArrowRight, Stars, Moon, Sparkles, Check, Shield, Lock } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
-import { MysticBackground, BetaBadge, MysticButton, SiteHeader, SiteFooter } from '@/components/mystic';
+import { MysticBackground, MysticButton, SiteHeader, SiteFooter } from '@/components/mystic';
 import { motion, useReducedMotion } from 'framer-motion';
 
 const Landing = forwardRef<HTMLDivElement>((_, ref) => {
@@ -28,13 +28,21 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
     }
   };
 
+  const features = [
+    'Tirages illimités 24/7',
+    'Interprétations approfondies par IA',
+    'Tous les spreads (3 cartes, croix, relationnel...)',
+    'Historique sauvegardé',
+    'Favoris et export PDF'
+  ];
+
   return (
     <MysticBackground ref={ref} withFiligree className="min-h-screen flex flex-col">
       <SEOHead
-        title="Tarot Divinatoire - VERSION BÊTA GRATUITE | Guidance & Introspection"
-        description="Découvrez votre avenir avec le Tarot Divinatoire. VERSION BÊTA GRATUITE. Interprétations créées par 30 tarologues professionnels. Guidance, introspection et développement personnel."
-        ogTitle="Tarot Divinatoire - VERSION BÊTA GRATUITE"
-        ogDescription="Guidance mystique et introspection personnelle. Fait avec le savoir-faire de 30 tarologues professionnels. Essayez gratuitement."
+        title="Tarot Divinatoire | 3,90€/mois - Guidance & Introspection"
+        description="Découvrez votre avenir avec le Tarot Divinatoire. Abonnement 3,90€/mois. Interprétations créées par 30 tarologues professionnels. Guidance, introspection et développement personnel."
+        ogTitle="Tarot Divinatoire - 3,90€/mois"
+        ogDescription="Guidance mystique et introspection personnelle. Fait avec le savoir-faire de 30 tarologues professionnels. Tirages illimités."
       />
       
       <SiteHeader />
@@ -74,11 +82,6 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               initial="hidden"
               animate="visible"
             >
-              {/* Beta Badge */}
-              <motion.div variants={fadeInUp} className="flex justify-center">
-                <BetaBadge />
-              </motion.div>
-
               {/* Main Heading */}
               <motion.h1 
                 variants={fadeInUp}
@@ -101,32 +104,84 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 et le savoir-faire d'une trentaine de tarologues professionnels.
               </motion.p>
 
-              {/* CTA Buttons */}
+              {/* Pricing Card */}
               <motion.div 
                 variants={fadeInUp}
-                className="flex flex-col sm:flex-row gap-4 justify-center pt-6"
+                className="max-w-md mx-auto p-6 rounded-2xl mp-glass border border-mp-surface-border"
               >
-                {user ? (
-                  <Link to="/app">
-                    <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
-                      Accéder à mon espace
+                <div className="text-center space-y-4">
+                  <div 
+                    className="inline-block px-3 py-1 rounded-full text-xs font-medium"
+                    style={{ 
+                      backgroundColor: 'hsl(var(--mp-brand-gold) / 0.15)',
+                      color: 'hsl(var(--mp-brand-gold))'
+                    }}
+                  >
+                    Abonnement Mensuel
+                  </div>
+                  
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-5xl font-serif font-bold text-white">3,90€</span>
+                    <span className="text-white/70">/mois</span>
+                  </div>
+                  
+                  <p className="text-sm text-white/70">
+                    TTC · Sans engagement · Annulation en 1 clic
+                  </p>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  {features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div 
+                        className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: 'hsl(var(--mp-brand-gold) / 0.2)' }}
+                      >
+                        <Check className="h-3 w-3" style={{ color: 'hsl(var(--mp-brand-gold))' }} />
+                      </div>
+                      <span className="text-sm text-white/90">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6">
+                  {user ? (
+                    <Link to="/app" className="block">
+                      <MysticButton size="lg" className="w-full" rightIcon={<ArrowRight className="h-5 w-5" />}>
+                        Accéder à mon espace
+                      </MysticButton>
+                    </Link>
+                  ) : (
+                    <Link to="/auth" className="block">
+                      <MysticButton size="lg" className="w-full" rightIcon={<ArrowRight className="h-5 w-5" />}>
+                        Commencer maintenant
+                      </MysticButton>
+                    </Link>
+                  )}
+                </div>
+
+                <div className="mt-4 flex items-center justify-center gap-4 text-xs text-white/60">
+                  <div className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    <span>Paiement sécurisé</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    <span>Données chiffrées</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Secondary CTA */}
+              {!user && (
+                <motion.div variants={fadeInUp}>
+                  <Link to="/tirages">
+                    <MysticButton variant="outline" size="lg">
+                      Voir les tirages disponibles
                     </MysticButton>
                   </Link>
-                ) : (
-                  <>
-                    <Link to="/auth">
-                      <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />}>
-                        Commencer votre voyage
-                      </MysticButton>
-                    </Link>
-                    <Link to="/tirages">
-                      <MysticButton variant="outline" size="lg">
-                        Voir les tirages
-                      </MysticButton>
-                    </Link>
-                  </>
-                )}
-              </motion.div>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         </section>

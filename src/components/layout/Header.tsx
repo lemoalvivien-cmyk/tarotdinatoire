@@ -31,10 +31,10 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Beta Badge - Desktop */}
-          <div className="hidden md:block beta-badge">
-            <Sparkles className="h-3 w-3" />
-            VERSION BÊTA GRATUITE
+          {/* Pricing Badge - Desktop */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+            <Sparkles className="h-3 w-3 text-primary" />
+            <span className="text-xs font-medium text-primary">3,90€/mois</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -119,9 +119,9 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/50 animate-fade-in-up">
             <div className="flex flex-col gap-4">
-              <div className="beta-badge self-start">
-                <Sparkles className="h-3 w-3" />
-                VERSION BÊTA GRATUITE
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 self-start">
+                <Sparkles className="h-3 w-3 text-primary" />
+                <span className="text-xs font-medium text-primary">3,90€/mois · Illimité</span>
               </div>
               
               {user ? (

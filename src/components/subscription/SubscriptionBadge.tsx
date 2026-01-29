@@ -1,4 +1,4 @@
-import { Crown, Sparkles } from 'lucide-react';
+import { Crown, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/hooks/useSubscription';
 import { cn } from '@/lib/utils';
@@ -28,27 +28,14 @@ export function SubscriptionBadge({ className, showCredits = false }: Subscripti
     );
   }
 
-  if (showCredits) {
-    return (
-      <Badge 
-        variant="outline" 
-        className={cn(
-          status.credits_remaining === 0 ? "border-destructive text-destructive" : "",
-          className
-        )}
-      >
-        <Sparkles className="h-3 w-3 mr-1" />
-        {status.credits_remaining === 0 
-          ? "Aucun crédit" 
-          : `${status.credits_remaining} tirage${status.credits_remaining > 1 ? 's' : ''} gratuit${status.credits_remaining > 1 ? 's' : ''}`
-        }
-      </Badge>
-    );
-  }
-
+  // Non-premium users
   return (
-    <Badge variant="secondary" className={className}>
-      Gratuit
+    <Badge 
+      variant="outline" 
+      className={cn("border-destructive text-destructive", className)}
+    >
+      <Lock className="h-3 w-3 mr-1" />
+      Abonnement requis
     </Badge>
   );
 }
