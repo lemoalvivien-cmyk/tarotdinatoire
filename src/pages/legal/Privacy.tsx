@@ -52,10 +52,9 @@ export default function Privacy() {
                     <p><strong>Adresse :</strong> 59170 Croix, France</p>
                     <p>
                       <strong>Contact RGPD :</strong>{' '}
-                      <a href="mailto:contact@ton-domaine.fr" className="text-primary hover:underline">
-                        contact@ton-domaine.fr
+                      <a href="mailto:contact@vlmconsulting.fr" className="text-primary hover:underline">
+                        contact@vlmconsulting.fr
                       </a>
-                      {' '}[À COMPLÉTER]
                     </p>
                   </div>
                 </div>
@@ -118,6 +117,20 @@ export default function Privacy() {
                         <li>Événements d'utilisation (navigation, clics)</li>
                       </ul>
                     </div>
+
+                    <div>
+                      <h3 className="font-medium text-foreground mb-2">Données de paiement (via Stripe)</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Nom sur la carte bancaire</li>
+                        <li>4 derniers chiffres de la carte (pour référence)</li>
+                        <li>Identifiant client Stripe</li>
+                        <li>Statut et dates d'abonnement</li>
+                      </ul>
+                      <p className="text-sm mt-2 italic">
+                        Note : Les données bancaires complètes (numéro de carte, CVV) sont traitées 
+                        exclusivement par Stripe et ne sont jamais stockées sur nos serveurs.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -141,6 +154,10 @@ export default function Privacy() {
                     </tr>
                     <tr className="border-b border-border/50">
                       <td className="py-3">Fourniture du service de tirage</td>
+                      <td className="py-3">Exécution du contrat</td>
+                    </tr>
+                    <tr className="border-b border-border/50">
+                      <td className="py-3">Gestion des abonnements et paiements</td>
                       <td className="py-3">Exécution du contrat</td>
                     </tr>
                     <tr className="border-b border-border/50">
@@ -197,8 +214,22 @@ export default function Privacy() {
                     authentification, stockage fichiers. Localisation : UE/US avec clauses contractuelles types.
                   </li>
                   <li>
-                    <strong>Fournisseur d'envoi d'emails :</strong> [À COMPLÉTER] - Pour les 
-                    communications transactionnelles et marketing consenties.
+                    <strong>Stripe Inc. :</strong> Traitement des paiements et gestion des abonnements. 
+                    Certification PCI-DSS Level 1. Nous ne stockons jamais vos données bancaires complètes. 
+                    Seuls les 4 derniers chiffres de votre carte sont conservés pour référence.{' '}
+                    <a 
+                      href="https://stripe.com/fr/privacy" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Politique de confidentialité Stripe
+                    </a>
+                  </li>
+                  <li>
+                    <strong>Lovable AI :</strong> Génération des interprétations de tirage. 
+                    Les données sont traitées de manière sécurisée et ne sont pas utilisées pour 
+                    entraîner des modèles tiers.
                   </li>
                   <li>
                     <strong>Outils d'analyse :</strong> Uniquement avec votre consentement cookies.
