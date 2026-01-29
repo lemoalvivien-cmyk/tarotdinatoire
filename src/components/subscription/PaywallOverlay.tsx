@@ -15,10 +15,14 @@ const features = [
 interface PaywallOverlayProps {
   onClose?: () => void;
   variant?: 'modal' | 'inline';
+  mandatory?: boolean;
 }
 
-export function PaywallOverlay({ onClose, variant = 'modal' }: PaywallOverlayProps) {
+export function PaywallOverlay({ onClose, variant = 'modal', mandatory = true }: PaywallOverlayProps) {
   const { startCheckout, checkoutLoading } = useSubscription();
+  
+  // En mode mandatory, pas de bouton "Plus tard"
+  const showCloseButton = !mandatory && onClose;
 
   const handleSubscribe = async () => {
     await startCheckout();
@@ -86,7 +90,7 @@ export function PaywallOverlay({ onClose, variant = 'modal' }: PaywallOverlayPro
           </div>
         </div>
 
-        {onClose && (
+        {showCloseButton && (
           <Button variant="ghost" onClick={onClose} className="w-full">
             Plus tard
           </Button>

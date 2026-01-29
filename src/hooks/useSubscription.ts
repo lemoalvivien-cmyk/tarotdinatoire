@@ -49,7 +49,7 @@ export function useSubscription() {
           setStatus({
             subscribed: false,
             plan: 'free',
-            credits_remaining: 1,
+            credits_remaining: 0,
             subscription_end: null,
             cancel_at_period_end: false
           });

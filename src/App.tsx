@@ -101,7 +101,7 @@ const App = () => (
                 {/* ========== PROTECTED APP ROUTES (ASCII only) ========== */}
                 <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/app/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false}><Onboarding /></ProtectedRoute>} />
+                <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false} requirePremium={false}><Onboarding /></ProtectedRoute>} />
                 <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/result/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
