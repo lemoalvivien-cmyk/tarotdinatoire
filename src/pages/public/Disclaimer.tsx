@@ -6,7 +6,7 @@ export default function Disclaimer() {
   return (
     <Layout>
       <SEOHead
-        title="À propos du service | Tarot Divinatoire - VERSION BÊTA GRATUITE"
+        title="À propos du service | Tarot Divinatoire"
         description="Comprendre ce que le tarot peut et ne peut pas faire. Service de guidance et introspection créé par 30 tarologues professionnels. Pas d'avis médical, juridique ou financier."
         ogTitle="À propos - Tarot Divinatoire"
         ogDescription="Guidance et introspection uniquement. Le tarot ne remplace pas un avis médical, juridique ou financier."

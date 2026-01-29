@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, Heart } from 'lucide-react';
+import { Sparkles, Heart, Shield, CreditCard } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -15,9 +15,9 @@ export function Footer() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Fait et développé avec le savoir-faire d'une trentaine de Tarologues professionnels.
             </p>
-            <div className="beta-badge">
-              <Sparkles className="h-3 w-3" />
-              VERSION BÊTA GRATUITE
+            <div className="flex items-center gap-2 text-xs text-primary">
+              <CreditCard className="h-4 w-4" />
+              <span className="font-medium">3,90€/mois · Sans engagement</span>
             </div>
           </div>
 
@@ -85,10 +85,11 @@ export function Footer() {
         <div className="mt-8 pt-6 border-t border-border/50">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Tarot Divinatoire. Tous droits réservés.
+              © {new Date().getFullYear()} VLM Consulting · Tarot Divinatoire. Tous droits réservés.
             </p>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
-              Créé avec <Heart className="h-3 w-3 text-primary" /> pour votre guidance spirituelle
+              <Shield className="h-3 w-3 text-primary" />
+              Paiement sécurisé par Stripe
             </p>
           </div>
         </div>

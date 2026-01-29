@@ -2,7 +2,6 @@ import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { BetaBadge } from './BetaBadge';
 
 interface SiteHeaderProps {
   className?: string;
@@ -10,7 +9,7 @@ interface SiteHeaderProps {
 }
 
 /**
- * Header du site avec logo, BetaBadge et bouton menu
+ * Header du site avec logo et bouton menu
  */
 export const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(
   ({ className, onMenuClick }, ref) => {
@@ -49,9 +48,14 @@ export const SiteHeader = forwardRef<HTMLElement, SiteHeaderProps>(
               </span>
             </Link>
 
-            {/* Centre - Beta Badge (desktop) */}
-            <div className="hidden md:block">
-              <BetaBadge variant="compact" />
+            {/* Centre - Pricing Badge (desktop) */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full mp-glass border border-mp-surface-border">
+              <span 
+                className="text-xs font-medium"
+                style={{ color: 'hsl(var(--mp-brand-gold))' }}
+              >
+                3,90€/mois · Illimité
+              </span>
             </div>
 
             {/* Menu button */}

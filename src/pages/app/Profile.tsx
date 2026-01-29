@@ -268,12 +268,9 @@ export default function Profile() {
                     <Sparkles className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold">Compte Gratuit</p>
+                    <p className="font-semibold">Abonnement requis</p>
                     <p className="text-sm text-muted-foreground">
-                      {subscription?.credits_remaining === 0 
-                        ? "Vous avez utilisé votre tirage gratuit"
-                        : `${subscription?.credits_remaining ?? 1} tirage${(subscription?.credits_remaining ?? 1) > 1 ? 's' : ''} gratuit${(subscription?.credits_remaining ?? 1) > 1 ? 's' : ''} restant${(subscription?.credits_remaining ?? 1) > 1 ? 's' : ''}`
-                      }
+                      Souscrivez à l'offre Premium pour accéder aux tirages
                     </p>
                   </div>
                 </div>

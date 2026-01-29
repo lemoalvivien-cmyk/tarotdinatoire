@@ -142,12 +142,10 @@ export default function Auth() {
               {isLogin ? 'Bon retour' : 'Bienvenue'}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin ? 'Connectez-vous pour accéder à vos tirages' : 'Créez votre compte pour commencer'}
+              {isLogin 
+                ? 'Connectez-vous pour accéder à vos tirages' 
+                : 'Abonnement mensuel à 3,90€ TTC · Accès immédiat après paiement'}
             </p>
-            <div className="beta-badge mx-auto">
-              <Sparkles className="h-3 w-3" />
-              VERSION BÊTA GRATUITE
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 p-8 rounded-2xl glass-mystic shadow-soft">
@@ -217,11 +215,11 @@ export default function Auth() {
               {loading ? (
                 <span className="flex items-center gap-2">
                   <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  {isLogin ? 'Connexion...' : 'Inscription...'}
+                  {isLogin ? 'Connexion...' : 'Redirection vers Stripe...'}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  {isLogin ? 'Se connecter' : "S'inscrire"}
+                  {isLogin ? 'Se connecter' : "S'inscrire · 3,90€/mois"}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               )}
@@ -242,10 +240,13 @@ export default function Auth() {
           </form>
 
           <p className="text-center text-xs text-muted-foreground">
-            En continuant, vous acceptez nos{' '}
-            <a href="/legal/terms" className="text-primary hover:underline">CGU</a>
+            En vous inscrivant, vous acceptez nos{' '}
+            <a href="/legal/terms" className="text-primary hover:underline">CGV</a>
             {' '}et notre{' '}
             <a href="/legal/privacy" className="text-primary hover:underline">politique de confidentialité</a>.
+            {!isLogin && (
+              <span className="block mt-2">Vous serez redirigé vers Stripe pour le paiement sécurisé.</span>
+            )}
           </p>
         </div>
       </div>

@@ -109,12 +109,15 @@ export default function Imprint() {
                   <h2 className="font-serif text-xl font-semibold">5. Accès au Site</h2>
                   <div className="space-y-3 text-muted-foreground">
                     <p>
-                      Le Site est accessible gratuitement à tout utilisateur disposant d'un accès à Internet. 
+                      Le Site est accessible à tout utilisateur disposant d'un accès à Internet. 
+                      L'utilisation complète des services (tirages, historique, etc.) nécessite un abonnement 
+                      Premium à 3,90€ TTC par mois.
+                    </p>
+                    <p>
                       Tous les frais relatifs à l'accès au Site (matériel informatique, logiciels, connexion Internet, etc.) 
                       sont à la charge exclusive de l'utilisateur.
                     </p>
                     <p>
-                      L'utilisation complète des services (tirages, historique, etc.) nécessite la création d'un compte utilisateur. 
                       L'utilisateur est responsable de la confidentialité de ses identifiants de connexion.
                     </p>
                   </div>

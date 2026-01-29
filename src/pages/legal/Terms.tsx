@@ -1,14 +1,14 @@
 import { Layout } from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { SEOHead } from '@/components/seo/SEOHead';
-import { FileText, AlertTriangle, Scale, UserCheck, Ban, Shield } from 'lucide-react';
+import { FileText, AlertTriangle, Scale, UserCheck, Ban, Shield, CreditCard, Euro } from 'lucide-react';
 
 export default function Terms() {
   return (
     <Layout>
       <SEOHead
-        title="Conditions Générales d'Utilisation | Tarot Divinatoire"
-        description="CGU du service Tarot Divinatoire. VERSION BÊTA GRATUITE. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
+        title="Conditions Générales de Vente (CGV) | Tarot Divinatoire"
+        description="CGV du service Tarot Divinatoire. Abonnement mensuel à 3,90€ TTC. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
         noindex={true}
       />
       <div className="container mx-auto px-4 py-16">
@@ -19,7 +19,7 @@ export default function Terms() {
               <FileText className="h-8 w-8" />
             </div>
             <h1 className="font-serif text-3xl md:text-4xl font-semibold mb-4">
-              Conditions Générales d'Utilisation
+              Conditions Générales de Vente
             </h1>
             <p className="text-muted-foreground">
               Dernière mise à jour : {new Date().toLocaleDateString('fr-FR')}
@@ -27,48 +27,123 @@ export default function Terms() {
           </div>
 
           <div className="space-y-8">
-            {/* Version bêta */}
+            {/* Tarification */}
             <section className="p-6 rounded-xl bg-primary/5 border border-primary/20">
               <div className="flex items-start gap-4">
-                <Shield className="h-5 w-5 text-primary mt-1" />
+                <Euro className="h-5 w-5 text-primary mt-1" />
                 <div>
-                  <h2 className="font-serif text-xl font-semibold mb-2">Version Bêta Gratuite</h2>
-                  <p className="text-muted-foreground">
-                    Tarot Divinatoire est actuellement proposé en version bêta gratuite. 
-                    Le service peut être modifié, interrompu ou rendu payant à tout moment. 
-                    En utilisant ce service, vous acceptez ces conditions.
-                  </p>
+                  <h2 className="font-serif text-xl font-semibold mb-2">Abonnement Premium</h2>
+                  <div className="space-y-3 text-muted-foreground">
+                    <p className="text-2xl font-bold text-foreground">
+                      3,90€ <span className="text-sm font-normal">TTC / mois</span>
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Tirages illimités 24/7</li>
+                      <li>Interprétations approfondies par IA</li>
+                      <li>Accès à tous les spreads</li>
+                      <li>Historique complet sauvegardé</li>
+                      <li>Favoris et export PDF</li>
+                    </ul>
+                    <p className="text-sm">
+                      Sans engagement · Annulation en 1 clic à tout moment
+                    </p>
+                  </div>
                 </div>
+              </div>
+            </section>
+
+            {/* Paiement */}
+            <section className="p-6 rounded-xl bg-card border border-border/50">
+              <div className="flex items-start gap-4">
+                <CreditCard className="h-5 w-5 text-primary mt-1" />
+                <div className="flex-1">
+                  <h2 className="font-serif text-xl font-semibold mb-4">1. Modalités de paiement</h2>
+                  <div className="space-y-4 text-muted-foreground">
+                    <p>
+                      Le paiement s'effectue par carte bancaire via notre prestataire sécurisé 
+                      <strong> Stripe</strong> (certifié PCI-DSS).
+                    </p>
+                    <p>
+                      Le premier paiement est effectué lors de la souscription, puis 
+                      automatiquement renouvelé chaque mois à date anniversaire.
+                    </p>
+                    <p>
+                      <strong>VLM Consulting ne stocke JAMAIS vos données bancaires complètes.</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Droit de rétractation */}
+            <section className="p-6 rounded-xl bg-card border border-border/50">
+              <div className="flex items-start gap-4">
+                <Shield className="h-5 w-5 text-primary mt-1" />
+                <div className="flex-1">
+                  <h2 className="font-serif text-xl font-semibold mb-4">2. Droit de rétractation</h2>
+                  <div className="space-y-4 text-muted-foreground">
+                    <p>
+                      Conformément à l'article L221-28 du Code de la consommation, vous disposez 
+                      d'un délai de <strong>14 jours</strong> à compter de la souscription pour 
+                      exercer votre droit de rétractation sans avoir à justifier de motif.
+                    </p>
+                    <p>Pour exercer ce droit :</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Email : contact@vlmconsulting.fr</li>
+                      <li>Ou depuis votre profil → "Gérer mon abonnement" → "Annuler"</li>
+                    </ul>
+                    <p className="font-medium">
+                      En cas de rétractation dans les 14 jours, le montant sera intégralement 
+                      remboursé sous 14 jours ouvrés.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Résiliation */}
+            <section className="p-6 rounded-xl bg-card border border-border/50">
+              <h2 className="font-serif text-xl font-semibold mb-4">3. Résiliation</h2>
+              <div className="space-y-4 text-muted-foreground">
+                <p>
+                  L'abonné peut résilier son abonnement à tout moment depuis son profil 
+                  utilisateur ou en contactant le support.
+                </p>
+                <p>
+                  La résiliation prend effet à la fin de la période d'abonnement en cours 
+                  (pas de remboursement au prorata, sauf droit de rétractation de 14 jours).
+                </p>
               </div>
             </section>
 
             {/* Objet */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
-              <h2 className="font-serif text-xl font-semibold mb-4">1. Objet</h2>
+              <h2 className="font-serif text-xl font-semibold mb-4">4. Objet du service</h2>
               <p className="text-muted-foreground">
-                Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et 
-                l'utilisation de la plateforme Tarot Divinatoire, accessible via le web. 
+                Les présentes Conditions Générales de Vente (CGV) régissent l'abonnement au 
+                service de Tarot Divinatoire en ligne proposé par VLM Consulting. 
                 L'inscription et l'utilisation du service impliquent l'acceptation pleine 
-                et entière de ces CGU.
+                et entière de ces CGV.
               </p>
             </section>
 
             {/* Description du service */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
-              <h2 className="font-serif text-xl font-semibold mb-4">2. Description du service</h2>
+              <h2 className="font-serif text-xl font-semibold mb-4">5. Description du service</h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
                   Tarot Divinatoire est une plateforme de tirage de tarot assistée par 
                   intelligence artificielle, conçue exclusivement pour l'introspection 
                   personnelle et la guidance spirituelle.
                 </p>
-                <p>Le service comprend :</p>
+                <p>Le service Premium comprend :</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Différents types de tirages de tarot (1 à plusieurs cartes)</li>
                   <li>Interprétations générées par IA, validées par un collectif de tarologues</li>
                   <li>Historique personnel des tirages</li>
                   <li>Possibilité de sauvegarder des tirages en favoris</li>
                   <li>Notes personnelles sur les tirages</li>
+                  <li>Export PDF des interprétations</li>
                 </ul>
               </div>
             </section>
@@ -79,7 +154,7 @@ export default function Terms() {
                 <AlertTriangle className="h-5 w-5 text-destructive mt-1 flex-shrink-0" />
                 <div>
                   <h2 className="font-serif text-xl font-semibold mb-4 text-destructive">
-                    3. Limitation de responsabilité - IMPORTANT
+                    6. Limitation de responsabilité - IMPORTANT
                   </h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p className="font-medium text-foreground">
@@ -107,11 +182,11 @@ export default function Terms() {
               <div className="flex items-start gap-4">
                 <UserCheck className="h-5 w-5 text-primary mt-1" />
                 <div className="flex-1">
-                  <h2 className="font-serif text-xl font-semibold mb-4">4. Inscription et compte</h2>
+                  <h2 className="font-serif text-xl font-semibold mb-4">7. Inscription et compte</h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p>
                       L'utilisation du service nécessite la création d'un compte avec une 
-                      adresse email valide. L'utilisateur s'engage à :
+                      adresse email valide et un abonnement actif. L'utilisateur s'engage à :
                     </p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Fournir des informations exactes et à jour</li>
@@ -133,7 +208,7 @@ export default function Terms() {
               <div className="flex items-start gap-4">
                 <Ban className="h-5 w-5 text-destructive mt-1" />
                 <div className="flex-1">
-                  <h2 className="font-serif text-xl font-semibold mb-4">5. Comportements interdits</h2>
+                  <h2 className="font-serif text-xl font-semibold mb-4">8. Comportements interdits</h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p>Il est interdit de :</p>
                     <ul className="list-disc list-inside space-y-1">
@@ -155,12 +230,12 @@ export default function Terms() {
 
             {/* Propriété intellectuelle */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
-              <h2 className="font-serif text-xl font-semibold mb-4">6. Propriété intellectuelle</h2>
+              <h2 className="font-serif text-xl font-semibold mb-4">9. Propriété intellectuelle</h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
                   L'ensemble du contenu du site (textes, images, illustrations, logiciels, 
                   interprétations) est protégé par le droit d'auteur et appartient à 
-                  Tarot Divinatoire ou à ses partenaires.
+                  VLM Consulting ou à ses partenaires.
                 </p>
                 <p>
                   L'utilisateur dispose d'un droit d'usage personnel et non commercial 
@@ -171,19 +246,25 @@ export default function Terms() {
 
             {/* Disponibilité */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
-              <h2 className="font-serif text-xl font-semibold mb-4">7. Disponibilité du service</h2>
-              <p className="text-muted-foreground">
-                Nous nous efforçons de maintenir le service accessible 24h/24, mais nous 
-                ne garantissons pas une disponibilité ininterrompue. Des maintenances, 
-                mises à jour ou incidents techniques peuvent occasionner des interruptions. 
-                En cas d'interruption prolongée, nous vous informerons via la page{' '}
-                <Link to="/status" className="text-primary hover:underline">État du service</Link>.
-              </p>
+              <h2 className="font-serif text-xl font-semibold mb-4">10. Disponibilité du service</h2>
+              <div className="space-y-4 text-muted-foreground">
+                <p>
+                  VLM Consulting s'engage à fournir un service accessible 24/7. Toutefois, 
+                  des interruptions temporaires peuvent survenir pour maintenance 
+                  (planifiée ou d'urgence).
+                </p>
+                <p>
+                  Aucun remboursement ne sera effectué pour des interruptions de moins 
+                  de 24h consécutives. En cas d'interruption prolongée, nous vous 
+                  informerons via la page{' '}
+                  <Link to="/status" className="text-primary hover:underline">État du service</Link>.
+                </p>
+              </div>
             </section>
 
             {/* Données personnelles */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
-              <h2 className="font-serif text-xl font-semibold mb-4">8. Données personnelles</h2>
+              <h2 className="font-serif text-xl font-semibold mb-4">11. Données personnelles</h2>
               <p className="text-muted-foreground">
                 Le traitement de vos données personnelles est régi par notre{' '}
                 <Link to="/legal/privacy" className="text-primary hover:underline">
@@ -195,13 +276,12 @@ export default function Terms() {
 
             {/* Modification */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
-              <h2 className="font-serif text-xl font-semibold mb-4">9. Modification des CGU</h2>
+              <h2 className="font-serif text-xl font-semibold mb-4">12. Modification des CGV</h2>
               <p className="text-muted-foreground">
-                Nous nous réservons le droit de modifier ces CGU à tout moment. 
-                Les modifications entrent en vigueur dès leur publication. En cas de 
-                changement substantiel, nous vous informerons par email ou notification 
-                sur le site. La poursuite de l'utilisation du service vaut acceptation 
-                des nouvelles CGU.
+                VLM Consulting se réserve le droit de modifier les présentes CGV. 
+                Les utilisateurs seront informés par email 30 jours avant toute 
+                modification substantielle (notamment tarifaire). La poursuite de 
+                l'utilisation du service vaut acceptation des nouvelles CGV.
               </p>
             </section>
 
@@ -210,19 +290,19 @@ export default function Terms() {
               <div className="flex items-start gap-4">
                 <Scale className="h-5 w-5 text-primary mt-1" />
                 <div className="flex-1">
-                  <h2 className="font-serif text-xl font-semibold mb-4">10. Droit applicable et litiges</h2>
+                  <h2 className="font-serif text-xl font-semibold mb-4">13. Droit applicable et litiges</h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p>
-                      Les présentes CGU sont régies par le droit français. En cas de litige, 
+                      Les présentes CGV sont régies par le droit français. En cas de litige, 
                       une solution amiable sera recherchée avant toute action judiciaire.
                     </p>
                     <p>
                       Conformément à l'article L. 612-1 du Code de la consommation, vous pouvez 
-                      recourir gratuitement à un médiateur de la consommation en vue de la 
+                      recourir à un médiateur de la consommation en vue de la 
                       résolution amiable d'un litige.
                     </p>
                     <p>
-                      À défaut d'accord amiable, les tribunaux français seront seuls compétents.
+                      À défaut d'accord amiable, les tribunaux de Lille, France seront seuls compétents.
                     </p>
                   </div>
                 </div>
@@ -233,8 +313,9 @@ export default function Terms() {
             <section className="p-6 rounded-xl bg-muted/50 border border-border/30">
               <h2 className="font-serif text-lg font-semibold mb-3">Contact</h2>
               <p className="text-sm text-muted-foreground">
-                Pour toute question concernant ces CGU, contactez-nous via les coordonnées 
-                indiquées dans nos{' '}
+                Pour toute question concernant ces CGV : <strong>contact@vlmconsulting.fr</strong>
+                <br />
+                Voir également nos{' '}
                 <Link to="/legal/imprint" className="text-primary hover:underline">
                   mentions légales
                 </Link>.

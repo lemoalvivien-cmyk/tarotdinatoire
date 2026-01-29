@@ -152,7 +152,7 @@ export default function SpreadDetail() {
   return (
     <Layout>
       <SEOHead
-        title={`${spread.name_fr} - Tirage de Tarot Gratuit | Interprétation Personnalisée`}
+        title={`${spread.name_fr} - Tirage de Tarot | Interprétation Personnalisée`}
         description={`Découvrez le ${spread.name_fr} : ${spread.description_fr || `tirage de ${spread.card_count} cartes`}. Obtenez une interprétation personnalisée et des conseils pour votre lecture.`}
       />
 

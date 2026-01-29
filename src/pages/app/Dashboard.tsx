@@ -140,9 +140,9 @@ export default function Dashboard() {
             <div className="p-6 rounded-xl bg-card border border-border/50 text-center col-span-2 md:col-span-1">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium text-primary">BÊTA GRATUITE</span>
+                <span className="text-sm font-medium text-primary">PREMIUM</span>
               </div>
-              <p className="text-sm text-foreground/75 mt-1">Accès illimité</p>
+              <p className="text-sm text-foreground/75 mt-1">3,90€/mois</p>
             </div>
           </div>
 
