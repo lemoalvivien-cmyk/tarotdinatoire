@@ -2,13 +2,16 @@ import { useEffect, ReactNode, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 import { LoadingScreen } from '@/components/ui/loading-screen';
+import { PaywallOverlay } from '@/components/subscription/PaywallOverlay';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, LogOut, RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
   requireOnboarding?: boolean;
+  requirePremium?: boolean;
 }
 
 /**
@@ -17,9 +20,10 @@ interface ProtectedRouteProps {
  * 2. unauthenticated - redirect to /auth
  * 3. authenticated - check profile, then render children
  */
-export function ProtectedRoute({ children, requireOnboarding = true }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requireOnboarding = true, requirePremium = true }: ProtectedRouteProps) {
   const { user, session, status } = useAuth();
   const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
   const navigate = useNavigate();
   const location = useLocation();
   const [retryCount, setRetryCount] = useState(0);
@@ -32,14 +36,17 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
         path: location.pathname,
         status,
         profileLoading,
+        subscriptionLoading,
+        isPremium,
         userId: user?.id,
         profileId: profile?.id,
         onboardingCompleted: profile?.onboarding_completed,
         requireOnboarding,
+        requirePremium,
         retryCount,
       });
     }
-  }, [location.pathname, status, profileLoading, user?.id, profile, requireOnboarding, retryCount]);
+  }, [location.pathname, status, profileLoading, subscriptionLoading, isPremium, user?.id, profile, requireOnboarding, requirePremium, retryCount]);
 
   // Redirect unauthenticated users ONLY after auth check is complete
   useEffect(() => {
@@ -135,8 +142,8 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
     );
   }
 
-  // STATE 4: Authenticated, loading profile
-  if (profileLoading) {
+  // STATE 4: Authenticated, loading profile or subscription
+  if (profileLoading || subscriptionLoading) {
     return <LoadingScreen />;
   }
 
@@ -150,6 +157,12 @@ export function ProtectedRoute({ children, requireOnboarding = true }: Protected
     return <LoadingScreen />;
   }
 
-  // STATE 7: All checks passed - render children
+  // STATE 7: Check premium subscription (PAYWALL STRICT)
+  // Users without active premium subscription see mandatory paywall
+  if (requirePremium && !isPremium) {
+    return <PaywallOverlay variant="modal" />;
+  }
+
+  // STATE 8: All checks passed - render children
   return <>{children}</>;
 }
