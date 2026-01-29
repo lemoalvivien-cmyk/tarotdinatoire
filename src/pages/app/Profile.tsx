@@ -7,8 +7,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePublicConfig } from '@/hooks/usePublicConfig';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
-import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle } from 'lucide-react';
+import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles } from 'lucide-react';
+import { SubscriptionBadge } from '@/components/subscription';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +29,7 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: publicConfig, refetch: refetchConfig } = usePublicConfig();
+  const { status: subscription, loading: subLoading, isPremium, startCheckout, checkoutLoading, openCustomerPortal } = useSubscription();
   
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -164,10 +167,13 @@ export default function Profile() {
       // 7. Delete AI usage stats
       await supabase.from('ai_usage_daily').delete().eq('user_id', user.id);
       
-      // 8. Delete user roles
+      // 8. Delete subscriptions
+      await supabase.from('subscriptions').delete().eq('user_id', user.id);
+      
+      // 9. Delete user roles
       await supabase.from('user_roles').delete().eq('user_id', user.id);
       
-      // 9. Delete profile (should cascade from auth.users, but being explicit)
+      // 10. Delete profile (should cascade from auth.users, but being explicit)
       await supabase.from('profiles').delete().eq('id', user.id);
       
       // Sign out
@@ -206,10 +212,92 @@ export default function Profile() {
 
           {/* User Info */}
           <div className="p-6 rounded-2xl glass-mystic shadow-soft space-y-4 animate-scale-in">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{user?.email}</p>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium">{user?.email}</p>
+              </div>
+              <SubscriptionBadge showCredits />
             </div>
+          </div>
+
+          {/* Subscription Section */}
+          <div className="p-6 rounded-2xl glass-mystic shadow-soft space-y-4 animate-scale-in">
+            <div className="flex items-center gap-3">
+              <Crown className="h-5 w-5 text-primary" />
+              <h2 className="font-serif text-xl font-semibold">Mon Abonnement</h2>
+            </div>
+
+            {subLoading ? (
+              <div className="animate-pulse h-20 bg-muted/30 rounded-lg" />
+            ) : isPremium ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20">
+                    <Crown className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-600 dark:text-amber-400">Abonnement Premium</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tirages illimités • Interprétations approfondies
+                    </p>
+                  </div>
+                </div>
+
+                {subscription?.subscription_end && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      {subscription.cancel_at_period_end 
+                        ? `Se termine le ${new Date(subscription.subscription_end).toLocaleDateString('fr-FR')}`
+                        : `Prochain renouvellement : ${new Date(subscription.subscription_end).toLocaleDateString('fr-FR')}`
+                      }
+                    </span>
+                  </div>
+                )}
+
+                <Button variant="outline" onClick={openCustomerPortal} className="w-full">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Gérer mon abonnement
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Sparkles className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">Compte Gratuit</p>
+                    <p className="text-sm text-muted-foreground">
+                      {subscription?.credits_remaining === 0 
+                        ? "Vous avez utilisé votre tirage gratuit"
+                        : `${subscription?.credits_remaining ?? 1} tirage${(subscription?.credits_remaining ?? 1) > 1 ? 's' : ''} gratuit${(subscription?.credits_remaining ?? 1) > 1 ? 's' : ''} restant${(subscription?.credits_remaining ?? 1) > 1 ? 's' : ''}`
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                  <p className="text-sm mb-3">
+                    Passez à <strong>Premium</strong> pour débloquer les tirages illimités et les interprétations approfondies.
+                  </p>
+                  <Button onClick={startCheckout} disabled={checkoutLoading} className="w-full">
+                    {checkoutLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                        Chargement...
+                      </>
+                    ) : (
+                      <>
+                        <Crown className="mr-2 h-4 w-4" />
+                        S'abonner – 3,90€/mois
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Admin Bootstrap Section - Only visible before first admin is activated */}

@@ -1,0 +1,171 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    logStep("Function started");
+
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    logStep("Stripe key verified");
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
+    logStep("Authorization header found");
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    
+    const user = userData.user;
+    if (!user?.email) throw new Error("User not authenticated or email not available");
+    logStep("User authenticated", { userId: user.id, email: user.email });
+
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+    // Chercher le customer Stripe
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+
+    if (customers.data.length === 0) {
+      logStep("No Stripe customer found, creating subscription record");
+      
+      // S'assurer qu'une entrée subscription existe
+      await supabaseAdmin
+        .from("subscriptions")
+        .upsert({
+          user_id: user.id,
+          plan: "free",
+          credits_remaining: 1,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+
+      // Récupérer les crédits restants
+      const { data: subData } = await supabaseAdmin
+        .from("subscriptions")
+        .select("credits_remaining")
+        .eq("user_id", user.id)
+        .single();
+
+      return new Response(
+        JSON.stringify({
+          subscribed: false,
+          plan: "free",
+          credits_remaining: subData?.credits_remaining ?? 1,
+          subscription_end: null,
+          cancel_at_period_end: false
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    const customerId = customers.data[0].id;
+    logStep("Found Stripe customer", { customerId });
+
+    // Vérifier les abonnements actifs
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 1,
+    });
+
+    const hasActiveSub = subscriptions.data.length > 0;
+    let subscriptionEnd: string | null = null;
+    let cancelAtPeriodEnd = false;
+
+    if (hasActiveSub) {
+      const subscription = subscriptions.data[0];
+      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      cancelAtPeriodEnd = subscription.cancel_at_period_end;
+      logStep("Active subscription found", { 
+        subscriptionId: subscription.id, 
+        endDate: subscriptionEnd,
+        cancelAtPeriodEnd 
+      });
+
+      // Mettre à jour la table subscriptions
+      await supabaseAdmin
+        .from("subscriptions")
+        .upsert({
+          user_id: user.id,
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subscription.id,
+          plan: "premium",
+          subscription_status: "active",
+          current_period_end: subscriptionEnd,
+          cancel_at_period_end: cancelAtPeriodEnd,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+
+      return new Response(
+        JSON.stringify({
+          subscribed: true,
+          plan: "premium",
+          credits_remaining: null, // Illimité
+          subscription_end: subscriptionEnd,
+          cancel_at_period_end: cancelAtPeriodEnd
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
+    logStep("No active subscription found");
+
+    // Récupérer les crédits restants depuis la DB
+    const { data: subData } = await supabaseAdmin
+      .from("subscriptions")
+      .select("credits_remaining")
+      .eq("user_id", user.id)
+      .single();
+
+    // Mettre à jour avec le customer ID
+    await supabaseAdmin
+      .from("subscriptions")
+      .upsert({
+        user_id: user.id,
+        stripe_customer_id: customerId,
+        plan: "free",
+        subscription_status: null,
+        credits_remaining: subData?.credits_remaining ?? 1,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+
+    return new Response(
+      JSON.stringify({
+        subscribed: false,
+        plan: "free",
+        credits_remaining: subData?.credits_remaining ?? 1,
+        subscription_end: null,
+        cancel_at_period_end: false
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in check-subscription", { message: errorMessage });
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  }
+});

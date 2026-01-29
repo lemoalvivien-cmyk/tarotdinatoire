@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { useRitualMachine } from '@/hooks/useRitualMachine';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -38,6 +39,7 @@ import { RitualStepper } from '@/components/tarot/RitualStepper';
 import { AnimatedDeck } from '@/components/tarot/AnimatedDeck';
 import { SelectedCardsDisplay } from '@/components/tarot/SelectedCardsDisplay';
 import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
+import { PaywallOverlay } from '@/components/subscription/PaywallOverlay';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 
@@ -86,13 +88,30 @@ interface SpreadOption {
 export default function NewReading() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { data: cards, isLoading: cardsLoading, error: cardsError } = useTarotCards();
   const { track } = useAnalytics();
+  const { status: subscription, loading: subLoading, hasCredits, isPremium, refresh: refreshSubscription } = useSubscription();
+
+  // Check for subscription success redirect
+  useEffect(() => {
+    if (searchParams.get('subscription') === 'success') {
+      toast.success('Abonnement activé !', {
+        description: 'Vous avez maintenant accès aux tirages illimités.'
+      });
+      refreshSubscription();
+      // Remove query param
+      navigate('/app/new', { replace: true });
+    }
+  }, [searchParams, navigate, refreshSubscription]);
 
   // Current step
   const [currentStep, setCurrentStep] = useState<StepId>(slug ? 'ritual' : 'intention');
   const stepIndex = STEPS.findIndex(s => s.id === currentStep);
+
+  // Paywall state
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // User choices
   const [intention, setIntention] = useState<string | null>(null);
@@ -263,6 +282,12 @@ export default function NewReading() {
   const handleValidate = async () => {
     if (!ritual.canValidate || !user) return;
 
+    // Check credits before proceeding
+    if (!hasCredits) {
+      setShowPaywall(true);
+      return;
+    }
+
     track('validate', { spread_id: selectedSpreadId, cards_count: ritual.state.selectedCards.length });
     ritual.startInterpretation();
     setIsInterpreting(true);
@@ -334,6 +359,12 @@ export default function NewReading() {
         return;
       }
 
+      // Decrement credit for free users after successful save
+      if (!isPremium) {
+        await supabase.rpc('decrement_reading_credit', { uid: user.id });
+        refreshSubscription();
+      }
+
       navigate(`/app/reading/${newReading.id}`);
     } catch (error) {
       console.error('Validate error:', error);
@@ -356,7 +387,7 @@ export default function NewReading() {
   }, [positions, ritual.state.selectedCards]);
 
   // Loading
-  if (cardsLoading || spreadsLoading || (!imagesPreloaded && !cardsError)) {
+  if (cardsLoading || spreadsLoading || subLoading || (!imagesPreloaded && !cardsError)) {
     return (
       <MysticBackground className="min-h-screen flex items-center justify-center">
         <OracleLoader 
@@ -392,6 +423,21 @@ export default function NewReading() {
   // Interpreting
   if (isInterpreting) {
     return <InterpretationLoader question={question || undefined} />;
+  }
+
+  // Paywall
+  if (showPaywall) {
+    return (
+      <MysticBackground className="min-h-screen flex items-center justify-center p-4">
+        <PaywallOverlay 
+          variant="inline" 
+          onClose={() => {
+            setShowPaywall(false);
+            navigate('/app');
+          }} 
+        />
+      </MysticBackground>
+    );
   }
 
   return (
