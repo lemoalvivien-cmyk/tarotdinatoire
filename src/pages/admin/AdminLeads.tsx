@@ -43,16 +43,12 @@ export default function AdminLeads() {
   const { data: leads, isLoading } = useQuery({
     queryKey: ['admin-leads'],
     queryFn: async (): Promise<EmailLead[]> => {
-      // Use the safe view that excludes sensitive tokens (verification_token, unsubscribe_token)
-      // Type assertion needed because view is not in generated types
-      const { data, error } = await (supabase
-        .from('email_leads_admin_safe') as any)
-        .select('id, email, first_name, consent, email_verified, unsubscribed_at, created_at, spread_id')
-        .order('created_at', { ascending: false })
-        .limit(500);
+      // Use secure RPC function that checks admin role before returning data
+      // The function excludes sensitive tokens (verification_token, unsubscribe_token)
+      const { data, error } = await supabase.rpc('get_email_leads_admin_safe');
 
       if (error) throw error;
-      return data as EmailLead[];
+      return (data as EmailLead[]) ?? [];
     },
   });
 
