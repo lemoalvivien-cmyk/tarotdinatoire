@@ -85,23 +85,18 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               {/* Main Heading */}
               <motion.h1 
                 variants={fadeInUp}
-                className="font-serif text-4xl md:text-6xl lg:text-7xl font-semibold leading-tight text-white heading-glow"
+                className="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold leading-tight text-white heading-glow"
               >
-                Découvrez les messages
-                <span 
-                  className="block bg-gradient-to-r from-mp-brand-violet to-mp-brand-violet2 bg-clip-text text-transparent drop-shadow-lg"
-                >
-                  de l'univers
-                </span>
+                L'Oeil du Tarot
               </motion.h1>
 
               {/* Subtitle */}
               <motion.p 
                 variants={fadeInUp}
-                className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed"
+                className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed text-center"
               >
-                Une expérience de tarot divinatoire unique, guidée par l'intelligence artificielle 
-                et le savoir-faire d'une trentaine de tarologues professionnels.
+                Quand 30 tarologues professionnels s'unissent à la technologie pour vous offrir 
+                une guidance puissante, comme si vous étiez en face d'eux.
               </motion.p>
 
               {/* Pricing Card */}
