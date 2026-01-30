@@ -565,6 +565,20 @@ export type Database = {
           verification_sent_at: string
         }[]
       }
+      get_my_subscription: {
+        Args: never
+        Returns: {
+          cancel_at_period_end: boolean
+          created_at: string
+          credits_remaining: number
+          current_period_end: string
+          id: string
+          plan: string
+          subscription_status: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_subscription_status: { Args: { uid: string }; Returns: Json }
       has_reading_credits: { Args: { uid: string }; Returns: boolean }
       has_role: {
