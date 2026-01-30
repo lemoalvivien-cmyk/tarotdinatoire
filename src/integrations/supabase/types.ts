@@ -538,65 +538,7 @@ export type Database = {
       }
     }
     Views: {
-      email_leads_admin_safe: {
-        Row: {
-          consent: boolean | null
-          consent_text: string | null
-          consent_timestamp: string | null
-          created_at: string | null
-          email: string | null
-          email_verified: boolean | null
-          first_name: string | null
-          id: string | null
-          session_id: string | null
-          spread_id: string | null
-          unsubscribed_at: string | null
-          updated_at: string | null
-          user_id: string | null
-          verification_sent_at: string | null
-        }
-        Insert: {
-          consent?: boolean | null
-          consent_text?: string | null
-          consent_timestamp?: string | null
-          created_at?: string | null
-          email?: string | null
-          email_verified?: boolean | null
-          first_name?: string | null
-          id?: string | null
-          session_id?: string | null
-          spread_id?: string | null
-          unsubscribed_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          verification_sent_at?: string | null
-        }
-        Update: {
-          consent?: boolean | null
-          consent_text?: string | null
-          consent_timestamp?: string | null
-          created_at?: string | null
-          email?: string | null
-          email_verified?: boolean | null
-          first_name?: string | null
-          id?: string | null
-          session_id?: string | null
-          spread_id?: string | null
-          unsubscribed_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          verification_sent_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_leads_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "reading_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       bootstrap_first_admin: {
@@ -604,6 +546,25 @@ export type Database = {
         Returns: boolean
       }
       decrement_reading_credit: { Args: { uid: string }; Returns: undefined }
+      get_email_leads_admin_safe: {
+        Args: never
+        Returns: {
+          consent: boolean
+          consent_text: string
+          consent_timestamp: string
+          created_at: string
+          email: string
+          email_verified: boolean
+          first_name: string
+          id: string
+          session_id: string
+          spread_id: string
+          unsubscribed_at: string
+          updated_at: string
+          user_id: string
+          verification_sent_at: string
+        }[]
+      }
       get_subscription_status: { Args: { uid: string }; Returns: Json }
       has_reading_credits: { Args: { uid: string }; Returns: boolean }
       has_role: {
