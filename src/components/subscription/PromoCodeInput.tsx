@@ -4,6 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Ticket, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { z } from 'zod';
+
+// Strict alphanumeric + hyphens only, 3-30 chars
+const promoCodeSchema = z.string()
+  .min(3, 'Code trop court')
+  .max(30, 'Code trop long')
+  .regex(/^[A-Z0-9\-]+$/, 'Code invalide (lettres, chiffres et tirets uniquement)');
 
 interface PromoCodeInputProps {
   className?: string;
@@ -17,16 +24,29 @@ export function PromoCodeInput({ className }: PromoCodeInputProps) {
   const [result, setResult] = useState<{ success: boolean; error?: string } | null>(null);
 
   const handleRedeem = async () => {
-    if (!code.trim()) return;
+    const trimmed = code.trim();
+    if (!trimmed) return;
+    
+    // Validate input strictly before sending to backend
+    const validation = promoCodeSchema.safeParse(trimmed);
+    if (!validation.success) {
+      setResult({ success: false, error: validation.error.errors[0].message });
+      return;
+    }
+    
     setLoading(true);
     setResult(null);
-    const res = await redeemPromo(code.trim());
-    setResult(res);
-    setLoading(false);
-    if (res.success) {
-      setCode('');
-      // Force navigation to /app after 1.5s
-      setTimeout(() => navigate('/app', { replace: true }), 1500);
+    try {
+      const res = await redeemPromo(trimmed);
+      setResult(res);
+      if (res.success) {
+        setCode('');
+        setTimeout(() => navigate('/app', { replace: true }), 1500);
+      }
+    } catch {
+      setResult({ success: false, error: 'Les énergies sont troubles, réessayez...' });
+    } finally {
+      setLoading(false);
     }
   };
 
