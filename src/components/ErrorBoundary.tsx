@@ -39,23 +39,18 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleReload = () => {
-    console.log('[ErrorBoundary] User clicked Reload');
     window.location.reload();
   };
 
   private handleReset = () => {
-    console.log('[ErrorBoundary] User clicked Retry');
     this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   private handleGoHome = () => {
-    console.log('[ErrorBoundary] User clicked Home');
-    // Use assignment for full app reset in error recovery scenario
     window.location.href = '/';
   };
 
   private handleReconnect = () => {
-    console.log('[ErrorBoundary] User clicked Reconnect');
     window.location.href = '/auth';
   };
 
@@ -69,11 +64,11 @@ export class ErrorBoundary extends Component<Props, State> {
                              errorMessage.toLowerCase().includes('fetch');
 
       // Determine user-friendly message
-      let userMessage = "Quelque chose s'est mal passé. Veuillez réessayer.";
+      let userMessage = "Les énergies sont temporairement perturbées. Réessayez dans un instant.";
       if (isAuthError) {
-        userMessage = "Un problème de session s'est produit. Essayez de recharger la page ou de vous reconnecter.";
+        userMessage = "Votre connexion spirituelle a été interrompue. Rechargez la page ou reconnectez-vous.";
       } else if (isNetworkError) {
-        userMessage = "Problème de connexion. Vérifiez votre connexion internet et réessayez.";
+        userMessage = "La connexion aux astres est instable. Vérifiez votre connexion internet.";
       }
 
       return (
@@ -84,8 +79,8 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
             
             <div className="space-y-2">
-              <h1 className="font-serif text-2xl font-semibold text-foreground">
-                Une erreur est survenue
+             <h1 className="font-serif text-2xl font-semibold text-foreground">
+                L'Oracle médite
               </h1>
               <p className="text-muted-foreground">
                 {userMessage}

@@ -8,7 +8,9 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error("404 Error: Route inexistante:", location.pathname);
+    if (import.meta.env.DEV) {
+      console.error("404 Error: Route inexistante:", location.pathname);
+    }
   }, [location.pathname]);
 
   return (
@@ -27,10 +29,10 @@ const NotFound = () => {
 
           <div className="space-y-4">
             <h1 className="font-serif text-3xl font-semibold text-foreground">
-              Page introuvable
+              Cette voie est fermée
             </h1>
             <p className="text-muted-foreground">
-              La page que vous recherchez n'existe pas ou a été déplacée.
+              Les astres ne reconnaissent pas ce chemin. Laissez-nous vous guider.
             </p>
             <p className="text-sm text-muted-foreground font-mono bg-muted/50 px-3 py-2 rounded-lg">
               {location.pathname}

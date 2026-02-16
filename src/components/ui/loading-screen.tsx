@@ -4,7 +4,7 @@ interface LoadingScreenProps {
   message?: string;
 }
 
-export function LoadingScreen({ message = "Chargement..." }: LoadingScreenProps) {
+export function LoadingScreen({ message = "Connexion aux astres..." }: LoadingScreenProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
       <div className="relative">

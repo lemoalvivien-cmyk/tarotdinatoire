@@ -74,5 +74,9 @@ export default defineConfig(({ mode }) => ({
       },
     },
     target: "es2015",
+    minify: "esbuild",
+  },
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
 }));
