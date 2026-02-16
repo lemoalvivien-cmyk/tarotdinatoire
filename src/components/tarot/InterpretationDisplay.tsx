@@ -44,7 +44,7 @@ export function InterpretationDisplay({
             Interprétation indisponible
           </h3>
           <p className="text-muted-foreground max-w-md">
-            {data.errorMessage || 'L\'interprétation n\'a pas pu être générée. Veuillez réessayer.'}
+            {data.errorMessage || 'L\'interprétation n\'a pas pu être réalisée. Veuillez réessayer.'}
           </p>
         </div>
         {onRetry && (

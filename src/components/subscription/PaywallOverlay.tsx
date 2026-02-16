@@ -6,7 +6,7 @@ import { PromoCodeInput } from '@/components/subscription/PromoCodeInput';
 
 const features = [
   'Tirages illimités',
-  'Interprétations approfondies par IA',
+  'Interprétations approfondies par nos tarologues',
   'Sauvegarde dans les favoris',
   'Export PDF de vos tirages',
   'Historique complet',
@@ -22,7 +22,6 @@ interface PaywallOverlayProps {
 export function PaywallOverlay({ onClose, variant = 'modal', mandatory = true }: PaywallOverlayProps) {
   const { startCheckout, checkoutLoading } = useSubscription();
   
-  // En mode mandatory, pas de bouton "Plus tard"
   const showCloseButton = !mandatory && onClose;
 
   const handleSubscribe = async () => {
@@ -42,6 +41,11 @@ export function PaywallOverlay({ onClose, variant = 'modal', mandatory = true }:
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Promo Code Input - ABOVE the offers */}
+        <div className="border border-primary/20 rounded-xl p-4 bg-primary/5">
+          <PromoCodeInput />
+        </div>
+
         <div className="text-center">
           <div className="flex items-baseline justify-center gap-1">
             <span className="text-4xl font-bold text-primary">3,90€</span>
@@ -89,10 +93,6 @@ export function PaywallOverlay({ onClose, variant = 'modal', mandatory = true }:
             <Star className="h-3 w-3" />
             Satisfaction garantie
           </div>
-        </div>
-
-        <div className="border-t border-border pt-4">
-          <PromoCodeInput />
         </div>
 
         {showCloseButton && (

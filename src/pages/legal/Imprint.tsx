@@ -165,20 +165,20 @@ export default function Imprint() {
               </div>
             </section>
 
-            {/* Intelligence artificielle */}
+            {/* Technologie et expertise */}
             <section className="p-6 rounded-xl bg-card border border-border/50">
               <div className="flex items-start gap-4">
                 <Brain className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
-                  <h2 className="font-serif text-xl font-semibold">8. Intelligence artificielle</h2>
+                  <h2 className="font-serif text-xl font-semibold">8. Technologie et expertise</h2>
                   <div className="space-y-3 text-muted-foreground">
                     <p>
-                      Les interprétations des tirages sont générées à l'aide de technologies d'intelligence artificielle (IA), 
-                      combinées à une base de connaissances élaborée par des tarologues professionnels.
+                      Les interprétations des tirages sont réalisées grâce à une synthèse du savoir-faire 
+                      de plus de 30 tarologues professionnels, assistée par des outils technologiques avancés.
                     </p>
                     <p>
                       Ces interprétations sont fournies à titre indicatif et peuvent contenir des inexactitudes. 
-                      L'éditeur ne saurait être tenu responsable des erreurs ou omissions dans les contenus générés par l'IA.
+                      L'éditeur ne saurait être tenu responsable des erreurs ou omissions dans les contenus produits.
                     </p>
                   </div>
                 </div>

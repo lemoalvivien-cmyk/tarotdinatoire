@@ -30,7 +30,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
 
   const features = [
     'Tirages illimités 24/7',
-    'Interprétations approfondies par IA',
+    'Interprétations approfondies par nos tarologues',
     'Tous les spreads (3 cartes, croix, relationnel...)',
     'Historique sauvegardé',
     'Favoris et export PDF'
@@ -217,8 +217,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 },
                 {
                   icon: Sparkles,
-                  title: "Interprétation IA",
-                  description: "Une IA formée par 30 tarologues experts pour des interprétations profondes.",
+                  title: "Guidance experte",
+                  description: "Une synthèse réalisée par 30 tarologues experts pour des interprétations profondes.",
                   color: "mp-brand-gold"
                 },
                 {

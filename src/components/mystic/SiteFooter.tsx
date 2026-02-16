@@ -65,10 +65,10 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(
             {/* Copyright */}
             <div className="text-center">
               <p className="text-xs text-white/75">
-                © {currentYear} VLM Consulting · Tarot Divinatoire. Tous droits réservés.
+                © {currentYear} VLM Consulting · L'Oeil du Tarot. Tous droits réservés.
               </p>
               <p className="mt-1 text-xs text-white/60">
-                Service de guidance spirituelle — ne remplace pas un avis professionnel
+                Plateforme de guidance réalisée par une synthèse de tarologues certifiés
               </p>
             </div>
           </div>

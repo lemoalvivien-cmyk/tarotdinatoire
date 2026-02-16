@@ -8,7 +8,7 @@ interface InterpretationLoaderProps {
 
 /**
  * Full-page cosmic loader for interpretation phase
- * Shows while AI generates the reading interpretation
+ * Shows while our tarologists synthesize the reading interpretation
  */
 export function InterpretationLoader({ className, question }: InterpretationLoaderProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -212,7 +212,7 @@ export function InterpretationLoader({ className, question }: InterpretationLoad
             animate={shouldReduceMotion ? {} : { opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            Veuillez patienter
+            Nos tarologues interprètent...
           </motion.h2>
           
           <motion.p
@@ -221,7 +221,7 @@ export function InterpretationLoader({ className, question }: InterpretationLoad
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Votre tirage est en cours d'interprétation...
+            Synthèse spirituelle de votre tirage en cours...
           </motion.p>
 
           {question && (
