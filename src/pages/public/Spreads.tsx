@@ -66,7 +66,7 @@ export default function Spreads() {
     <Layout>
       <SEOHead
         title="Tirages de Tarot | Tarot Divinatoire"
-        description="Découvrez notre catalogue de tirages de tarot : Marseille, Amour, Oui-Non, Persan, Lenormand, Anges, Belline. Interprétations personnalisées par IA."
+        description="Découvrez notre catalogue de tirages de tarot : Marseille, Amour, Oui-Non, Persan, Lenormand, Anges, Belline. Interprétations personnalisées par nos tarologues."
       />
 
       <div className="min-h-[calc(100vh-4rem)] py-12 px-4">

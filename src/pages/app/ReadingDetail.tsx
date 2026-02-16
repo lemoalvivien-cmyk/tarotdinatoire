@@ -342,10 +342,10 @@ export default function ReadingDetail() {
             <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               <AlertDescription className="text-amber-700 dark:text-amber-300">
-                <strong>Interprétation simplifiée</strong> – Ce tirage a été réalisé alors que l'IA était indisponible
+                <strong>Interprétation simplifiée</strong> – Ce tirage a été réalisé alors que nos tarologues n'étaient pas disponibles
                 {(reading.ai_interpretation as unknown as FallbackInterpretationData)._meta?.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
                 {(reading.ai_interpretation as unknown as FallbackInterpretationData)._meta?.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
-                . L'interprétation a été générée à partir des données de la carte.
+                . L'interprétation a été réalisée à partir des arcanes traditionnels.
               </AlertDescription>
             </Alert>
           )}

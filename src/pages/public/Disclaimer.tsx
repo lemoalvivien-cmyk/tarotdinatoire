@@ -46,8 +46,8 @@ export default function Disclaimer() {
               <div className="space-y-2">
                 <h2 className="font-serif text-xl font-semibold">Notre approche</h2>
                 <p className="text-muted-foreground">
-                  Chaque interprétation est générée avec le savoir-faire de plus de 30 tarologues professionnels, 
-                  combiné à l'intelligence artificielle. Notre objectif est de vous offrir des perspectives 
+                  Chaque interprétation est réalisée grâce au savoir-faire de plus de 30 tarologues professionnels, 
+                  combiné à des outils technologiques avancés. Notre objectif est de vous offrir des perspectives 
                   bienveillantes et constructives pour accompagner votre cheminement personnel.
                 </p>
               </div>

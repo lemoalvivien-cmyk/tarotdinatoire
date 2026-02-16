@@ -127,7 +127,7 @@ function isErrorResponse(data: unknown): data is ErrorResponse {
 const DEFAULTS = {
   title: 'Votre Tirage',
   summary: 'Les cartes ont été tirées pour vous.',
-  general: 'L\'interprétation n\'a pas pu être générée. Veuillez réessayer.',
+  general: 'L\'interprétation n\'a pas pu être réalisée. Veuillez réessayer.',
   love: 'Interprétation non disponible.',
   work: 'Interprétation non disponible.',
   money: 'Interprétation non disponible.',

@@ -121,9 +121,9 @@ export const ReadingResult = memo(function ReadingResult({
         >
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-6">
-              <OracleLoader size="md" message="Interprétation en cours…" />
+              <OracleLoader size="md" message="Nos tarologues interprètent vos cartes…" />
               <p className="text-muted-foreground text-center">
-                L'oracle analyse les énergies de vos cartes...
+                Synthèse spirituelle en cours...
               </p>
             </div>
           ) : (
