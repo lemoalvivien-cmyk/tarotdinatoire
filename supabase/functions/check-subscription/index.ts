@@ -48,32 +48,50 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found, creating subscription record");
+      logStep("No Stripe customer found, checking trial status");
       
+      // Check for active trial
+      const { data: subData } = await supabaseAdmin
+        .from("subscriptions")
+        .select("plan, credits_remaining, subscription_status, trial_ends_at")
+        .eq("user_id", user.id)
+        .single();
+
+      const isTrial = subData?.plan === 'trial' && subData?.subscription_status === 'active' && subData?.trial_ends_at && new Date(subData.trial_ends_at) > new Date();
+
+      if (isTrial) {
+        logStep("Active trial found", { trial_ends_at: subData.trial_ends_at });
+        return new Response(
+          JSON.stringify({
+            subscribed: true,
+            plan: "trial",
+            credits_remaining: null,
+            subscription_end: null,
+            cancel_at_period_end: false,
+            trial_ends_at: subData.trial_ends_at
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        );
+      }
+
       // S'assurer qu'une entrée subscription existe
       await supabaseAdmin
         .from("subscriptions")
         .upsert({
           user_id: user.id,
           plan: "free",
-          credits_remaining: 0, // Paywall strict: 0 crédits gratuits
+          credits_remaining: 0,
           updated_at: new Date().toISOString()
         }, { onConflict: "user_id" });
-
-      // Récupérer les crédits restants
-      const { data: subData } = await supabaseAdmin
-        .from("subscriptions")
-        .select("credits_remaining")
-        .eq("user_id", user.id)
-        .single();
 
       return new Response(
         JSON.stringify({
           subscribed: false,
           plan: "free",
-          credits_remaining: subData?.credits_remaining ?? 0, // Paywall strict
+          credits_remaining: subData?.credits_remaining ?? 0,
           subscription_end: null,
-          cancel_at_period_end: false
+          cancel_at_period_end: false,
+          trial_ends_at: null
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
@@ -129,14 +147,31 @@ serve(async (req) => {
       );
     }
 
-    logStep("No active subscription found");
+    logStep("No active Stripe subscription found, checking trial");
 
-    // Récupérer les crédits restants depuis la DB
+    // Check for active trial
     const { data: subData } = await supabaseAdmin
       .from("subscriptions")
-      .select("credits_remaining")
+      .select("credits_remaining, plan, subscription_status, trial_ends_at")
       .eq("user_id", user.id)
       .single();
+
+    const isTrial = subData?.plan === 'trial' && subData?.subscription_status === 'active' && subData?.trial_ends_at && new Date(subData.trial_ends_at) > new Date();
+
+    if (isTrial) {
+      logStep("Active trial found", { trial_ends_at: subData.trial_ends_at });
+      return new Response(
+        JSON.stringify({
+          subscribed: true,
+          plan: "trial",
+          credits_remaining: null,
+          subscription_end: null,
+          cancel_at_period_end: false,
+          trial_ends_at: subData.trial_ends_at
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     // Mettre à jour avec le customer ID
     await supabaseAdmin
@@ -146,7 +181,7 @@ serve(async (req) => {
         stripe_customer_id: customerId,
         plan: "free",
         subscription_status: null,
-        credits_remaining: subData?.credits_remaining ?? 0, // Paywall strict
+        credits_remaining: subData?.credits_remaining ?? 0,
         updated_at: new Date().toISOString()
       }, { onConflict: "user_id" });
 
@@ -154,9 +189,10 @@ serve(async (req) => {
       JSON.stringify({
         subscribed: false,
         plan: "free",
-        credits_remaining: subData?.credits_remaining ?? 0, // Paywall strict
+        credits_remaining: subData?.credits_remaining ?? 0,
         subscription_end: null,
-        cancel_at_period_end: false
+        cancel_at_period_end: false,
+        trial_ends_at: null
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );

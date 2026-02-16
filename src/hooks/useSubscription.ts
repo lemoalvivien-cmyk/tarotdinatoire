@@ -5,10 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface SubscriptionStatus {
   subscribed: boolean;
-  plan: 'free' | 'premium';
+  plan: 'free' | 'premium' | 'trial';
   credits_remaining: number | null;
   subscription_end: string | null;
   cancel_at_period_end: boolean;
+  trial_ends_at: string | null;
 }
 
 export function useSubscription() {
@@ -38,12 +39,15 @@ export function useSubscription() {
           .single();
 
         if (subData) {
+          const isTrial = subData.plan === 'trial' && subData.subscription_status === 'active';
+          const isTrialValid = isTrial && subData.current_period_end && new Date(subData.current_period_end) > new Date();
           setStatus({
-            subscribed: subData.plan === 'premium' && subData.subscription_status === 'active',
-            plan: subData.plan as 'free' | 'premium',
+            subscribed: (subData.plan === 'premium' && subData.subscription_status === 'active') || !!isTrialValid,
+            plan: subData.plan as 'free' | 'premium' | 'trial',
             credits_remaining: subData.credits_remaining,
             subscription_end: subData.current_period_end,
-            cancel_at_period_end: subData.cancel_at_period_end ?? false
+            cancel_at_period_end: subData.cancel_at_period_end ?? false,
+            trial_ends_at: null
           });
         } else {
           setStatus({
@@ -51,7 +55,8 @@ export function useSubscription() {
             plan: 'free',
             credits_remaining: 0,
             subscription_end: null,
-            cancel_at_period_end: false
+            cancel_at_period_end: false,
+            trial_ends_at: null
           });
         }
         return;
@@ -129,7 +134,24 @@ export function useSubscription() {
   };
 
   const hasCredits = status?.subscribed || (status?.credits_remaining ?? 0) > 0;
-  const isPremium = status?.plan === 'premium' && status?.subscribed;
+  const isPremium = (status?.plan === 'premium' && status?.subscribed) || (status?.plan === 'trial' && status?.subscribed);
+  const isTrial = status?.plan === 'trial' && status?.subscribed;
+
+  const redeemPromo = async (code: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.rpc('redeem_promo_code', { p_code: code });
+      if (error) throw error;
+      const result = data as unknown as { success: boolean; error?: string };
+      if (result.success) {
+        await checkSubscription();
+        toast({ title: 'Code activé !', description: 'Votre essai gratuit de 24h est activé.' });
+      }
+      return result;
+    } catch (err) {
+      console.error('[useSubscription] Redeem error:', err);
+      return { success: false, error: 'Erreur lors de l\'activation du code' };
+    }
+  };
 
   return {
     status,
@@ -137,8 +159,10 @@ export function useSubscription() {
     checkoutLoading,
     hasCredits,
     isPremium,
+    isTrial,
     startCheckout,
     openCustomerPortal,
+    redeemPromo,
     refresh: checkSubscription
   };
 }

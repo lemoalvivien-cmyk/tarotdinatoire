@@ -2,6 +2,7 @@ import { Sparkles, Check, CreditCard, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSubscription } from '@/hooks/useSubscription';
+import { PromoCodeInput } from '@/components/subscription/PromoCodeInput';
 
 const features = [
   'Tirages illimités',
@@ -88,6 +89,10 @@ export function PaywallOverlay({ onClose, variant = 'modal', mandatory = true }:
             <Star className="h-3 w-3" />
             Satisfaction garantie
           </div>
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <PromoCodeInput />
         </div>
 
         {showCloseButton && (
