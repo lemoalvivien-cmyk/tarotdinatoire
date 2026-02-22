@@ -74,12 +74,28 @@ export function useSubscription() {
     checkSubscription();
   }, [checkSubscription]);
 
-  // Rafraîchir périodiquement (toutes les 60 secondes)
+  // Rafraîchir intelligemment (toutes les 5 minutes, uniquement si visible)
   useEffect(() => {
     if (!user) return;
 
-    const interval = setInterval(checkSubscription, 60000);
-    return () => clearInterval(interval);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSubscription();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        checkSubscription();
+      }
+    }, 300000);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user, checkSubscription]);
 
   const startCheckout = async () => {
