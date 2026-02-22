@@ -291,18 +291,16 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("CRITICAL ERROR", { error: errorMessage });
-    
-    // Return 200 to prevent Stripe retries on application errors
-    // Log for manual investigation
+
     return new Response(
       JSON.stringify({ 
-        received: true, 
+        received: false, 
         error: errorMessage,
         requires_review: true 
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" }, 
-        status: 200 
+        status: 500 
       }
     );
   }
