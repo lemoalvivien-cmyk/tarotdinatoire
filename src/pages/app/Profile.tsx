@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,7 +26,7 @@ import {
 export default function Profile() {
   const { user, session } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const queryClient = useQueryClient();
   const { data: publicConfig, refetch: refetchConfig } = usePublicConfig();
   const { status: subscription, loading: subLoading, isPremium, startCheckout, checkoutLoading, openCustomerPortal } = useSubscription();
@@ -65,18 +65,11 @@ export default function Profile() {
       // Invalidate any admin-related queries
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
       
-      toast({
-        title: "Admin activé",
-        description: "Votre compte a été promu administrateur.",
-      });
+      toast.success("Votre compte a été promu administrateur.");
     } catch (error: any) {
       console.error('Bootstrap error:', error);
       setBootstrapToken('');
-      toast({
-        title: "Erreur d'activation",
-        description: error.message || "Impossible d'activer le compte admin.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Impossible d'activer le compte admin.");
     } finally {
       setActivating(false);
     }
@@ -114,17 +107,10 @@ export default function Profile() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast({
-        title: "Export réussi",
-        description: "Vos données ont été téléchargées.",
-      });
+      toast.success("Vos données ont été téléchargées.");
     } catch (error) {
       console.error('Export error:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'exporter vos données.",
-        variant: "destructive",
-      });
+      toast.error("Impossible d'exporter vos données.");
     } finally {
       setExporting(false);
     }
@@ -179,18 +165,11 @@ export default function Profile() {
       // Sign out
       await supabase.auth.signOut();
       
-      toast({
-        title: "Compte supprimé",
-        description: "Votre compte et toutes vos données ont été supprimés.",
-      });
+      toast.success("Votre compte et toutes vos données ont été supprimés.");
       navigate('/');
     } catch (error) {
       console.error('Delete error:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer votre compte. Veuillez réessayer.",
-        variant: "destructive",
-      });
+      toast.error("Impossible de supprimer votre compte. Veuillez réessayer.");
     } finally {
       setDeleting(false);
     }

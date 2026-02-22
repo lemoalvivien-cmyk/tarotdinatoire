@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { z } from 'zod';
 
@@ -24,7 +24,7 @@ export default function Auth() {
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
+  
 
   const from = (location.state as { from?: string })?.from || '/app/onboarding';
 
@@ -70,59 +70,29 @@ export default function Auth() {
         if (error) {
           // Handle leaked password error
           if (error.message.includes('leaked') || error.message.includes('compromised') || error.message.includes('pwned')) {
-            toast({
-              title: "Mot de passe compromis",
-              description: "Ce mot de passe a été exposé dans une fuite de données. Veuillez en choisir un autre plus sécurisé.",
-              variant: "destructive",
-            });
+            toast.error("Ce mot de passe a été exposé dans une fuite de données. Veuillez en choisir un autre plus sécurisé.");
           } else if (error.message.includes('Invalid login credentials')) {
-            toast({
-              title: "Erreur de connexion",
-              description: "Email ou mot de passe incorrect.",
-              variant: "destructive",
-            });
+            toast.error("Email ou mot de passe incorrect.");
           } else {
-            toast({
-              title: "Erreur",
-              description: error.message,
-              variant: "destructive",
-            });
+            toast.error(error.message);
           }
         } else {
-          toast({
-            title: "Bienvenue !",
-            description: "Connexion réussie.",
-          });
+          toast.success("Connexion réussie.");
         }
       } else {
         const { error } = await signUp(email, password);
         if (error) {
           // Handle leaked password error on signup
           if (error.message.includes('leaked') || error.message.includes('compromised') || error.message.includes('pwned')) {
-            toast({
-              title: "Mot de passe compromis",
-              description: "Ce mot de passe a été exposé dans une fuite de données. Veuillez en choisir un autre plus sécurisé.",
-              variant: "destructive",
-            });
+            toast.error("Ce mot de passe a été exposé dans une fuite de données. Veuillez en choisir un autre plus sécurisé.");
           } else if (error.message.includes('User already registered')) {
-            toast({
-              title: "Compte existant",
-              description: "Un compte existe déjà avec cet email.",
-              variant: "destructive",
-            });
+            toast.error("Un compte existe déjà avec cet email.");
             setIsLogin(true);
           } else {
-            toast({
-              title: "Erreur",
-              description: error.message,
-              variant: "destructive",
-            });
+            toast.error(error.message);
           }
         } else {
-          toast({
-            title: "Inscription réussie !",
-            description: "Bienvenue dans votre espace mystique.",
-          });
+          toast.success("Inscription réussie ! Bienvenue dans votre espace mystique.");
         }
       }
     } finally {

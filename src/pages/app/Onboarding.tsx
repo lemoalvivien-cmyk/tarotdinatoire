@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { PROFILE_QUERY_KEY } from '@/hooks/useProfile';
 import { Sparkles, Shield, User, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 
@@ -36,7 +36,7 @@ export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  
 
   // Ensure user is ready before allowing interactions
   useEffect(() => {
@@ -94,11 +94,7 @@ export default function Onboarding() {
 
   const handleComplete = async () => {
     if (!user) {
-      toast({
-        title: "Erreur",
-        description: "Session expirée. Veuillez vous reconnecter.",
-        variant: "destructive",
-      });
+      toast.error("Session expirée. Veuillez vous reconnecter.");
       navigate('/auth', { replace: true });
       return;
     }
@@ -135,10 +131,7 @@ export default function Onboarding() {
         console.log('[Onboarding] Profile updated successfully, navigating to dashboard');
       }
 
-      toast({
-        title: "Bienvenue !",
-        description: "Votre voyage mystique peut commencer.",
-      });
+      toast.success("Bienvenue ! Votre voyage mystique peut commencer.");
       
       // Navigate to dashboard
       navigate('/app/dashboard', { replace: true });
@@ -157,11 +150,7 @@ export default function Onboarding() {
         errorMessage = error.message;
       }
       
-      toast({
-        title: "Erreur",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -169,11 +158,7 @@ export default function Onboarding() {
 
   const handleNext = () => {
     if (step === 0 && !disclaimerAccepted) {
-      toast({
-        title: "Acceptation requise",
-        description: "Veuillez accepter les conditions pour continuer.",
-        variant: "destructive",
-      });
+      toast.error("Veuillez accepter les conditions pour continuer.");
       return;
     }
     
