@@ -65,10 +65,13 @@ export default function RemoveLovableBadge() {
 
     // Observer pour les injections lazy
     const obs = new MutationObserver(() => remove());
-    obs.observe(document.documentElement, { childList: true, subtree: true });
+    obs.observe(document.body, { childList: true, subtree: false });
+
+    const timeout = setTimeout(() => obs.disconnect(), 10000);
 
     return () => {
       clearInterval(interval);
+      clearTimeout(timeout);
       obs.disconnect();
     };
   }, []);
