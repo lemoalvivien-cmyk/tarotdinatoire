@@ -21,7 +21,7 @@ interface ProtectedRouteProps {
  * 3. authenticated - check profile, then render children
  */
 export function ProtectedRoute({ children, requireOnboarding = true, requirePremium = true }: ProtectedRouteProps) {
-  const { user, session, status } = useAuth();
+  const { user, session, status, signOut } = useAuth();
   const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
   const { isPremium, loading: subscriptionLoading } = useSubscription();
   const navigate = useNavigate();
@@ -91,14 +91,8 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
 
   // Handle logout
   const handleLogout = async () => {
-    const { signOut } = await import('@/contexts/AuthContext').then(() => ({ 
-      signOut: async () => {
-        const { supabase } = await import('@/integrations/supabase/client');
-        await supabase.auth.signOut();
-        navigate('/auth', { replace: true });
-      }
-    }));
     await signOut();
+    navigate('/auth', { replace: true });
   };
 
   // STATE 1: Auth is loading
