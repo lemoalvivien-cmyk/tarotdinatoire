@@ -247,7 +247,7 @@ serve(async (req) => {
     }
 
     // Validate question length (server-side enforcement)
-    const MAX_QUESTION_LENGTH = 500;
+    const MAX_QUESTION_LENGTH = 240;
     if (payload.question && payload.question.length > MAX_QUESTION_LENGTH) {
       return new Response(
         JSON.stringify({ error: `Question trop longue (max ${MAX_QUESTION_LENGTH} caractères)` }),
