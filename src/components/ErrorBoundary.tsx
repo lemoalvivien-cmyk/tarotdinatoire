@@ -87,17 +87,18 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            {/* Show sanitized error hint in dev or minimal in prod */}
-            <div className="p-4 rounded-lg bg-muted/50 text-left">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Bug className="h-4 w-4" />
-                <span className="text-xs font-medium">Détails techniques</span>
+            {import.meta.env.DEV && (
+              <div className="p-4 rounded-lg bg-muted/50 text-left">
+                <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                  <Bug className="h-4 w-4" />
+                  <span className="text-xs font-medium">Détails techniques</span>
+                </div>
+                <p className="text-xs font-mono text-muted-foreground break-all">
+                  {errorMessage.substring(0, 200)}
+                  {errorMessage.length > 200 && '...'}
+                </p>
               </div>
-              <p className="text-xs font-mono text-muted-foreground break-all">
-                {errorMessage.substring(0, 200)}
-                {errorMessage.length > 200 && '...'}
-              </p>
-            </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button onClick={this.handleReset} variant="outline">
