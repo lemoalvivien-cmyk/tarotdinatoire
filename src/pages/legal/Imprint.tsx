@@ -73,10 +73,9 @@ export default function Imprint() {
                     <p><strong>Directeur de la publication :</strong> Vivien Le Moal</p>
                     <p>
                       <strong>Contact :</strong>{' '}
-                      <a href="mailto:contact@tarot-divinatoire.fr" className="text-primary hover:underline">
-                        contact@tarot-divinatoire.fr
+                      <a href="mailto:contact@vlmconsulting.fr" className="text-primary hover:underline">
+                        contact@vlmconsulting.fr
                       </a>
-                      {' '}[À COMPLÉTER]
                     </p>
                   </div>
                 </div>
@@ -89,10 +88,12 @@ export default function Imprint() {
                 <Server className="h-5 w-5 text-primary mt-1 shrink-0" />
                 <div className="flex-1 space-y-3">
                   <h2 className="font-serif text-xl font-semibold">4. Hébergeur</h2>
-                  <div className="space-y-2 text-muted-foreground">
-                    <p><strong>Hébergeur :</strong> Lovable Cloud (infrastructure Supabase)</p>
-                    <p><strong>Adresse :</strong> [À COMPLÉTER : adresse complète de l'hébergeur]</p>
-                    <p><strong>Contact :</strong> [À COMPLÉTER : coordonnées de l'hébergeur]</p>
+                   <div className="space-y-2 text-muted-foreground">
+                    <p><strong>Hébergeur :</strong> Supabase Inc.</p>
+                    <p><strong>Adresse :</strong> 970 Toa Payoh North #07-04, Singapore 318992</p>
+                    <p><strong>Site web :</strong>{' '}
+                      <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">supabase.com</a>
+                    </p>
                     <p className="text-sm italic">
                       L'infrastructure technique assure un chiffrement en transit (TLS) et au repos des données.
                     </p>
