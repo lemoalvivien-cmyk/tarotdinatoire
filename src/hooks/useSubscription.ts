@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface SubscriptionStatus {
   subscribed: boolean;
@@ -14,7 +14,6 @@ export interface SubscriptionStatus {
 
 export function useSubscription() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -100,11 +99,7 @@ export function useSubscription() {
 
   const startCheckout = async () => {
     if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Connexion requise',
-        description: 'Veuillez vous connecter pour souscrire à un abonnement.'
-      });
+      toast.error('Veuillez vous connecter pour souscrire à un abonnement.');
       return;
     }
 
@@ -119,11 +114,7 @@ export function useSubscription() {
       window.open(data.url, '_blank');
     } catch (err) {
       console.error('[useSubscription] Checkout error:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: err instanceof Error ? err.message : 'Impossible de démarrer le paiement'
-      });
+      toast.error(err instanceof Error ? err.message : 'Impossible de démarrer le paiement');
     } finally {
       setCheckoutLoading(false);
     }
@@ -141,11 +132,7 @@ export function useSubscription() {
       window.open(data.url, '_blank');
     } catch (err) {
       console.error('[useSubscription] Portal error:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: err instanceof Error ? err.message : 'Impossible d\'ouvrir le portail de gestion'
-      });
+      toast.error(err instanceof Error ? err.message : 'Impossible d\'ouvrir le portail de gestion');
     }
   };
 
@@ -160,7 +147,7 @@ export function useSubscription() {
       const result = data as unknown as { success: boolean; error?: string };
       if (result.success) {
         await checkSubscription();
-        toast({ title: 'Code activé !', description: 'Votre essai gratuit de 24h est activé.' });
+        toast.success('Code activé ! Votre essai gratuit de 24h est activé.');
       }
       return result;
     } catch (err) {
