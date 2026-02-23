@@ -162,10 +162,10 @@ export default function ExerciseRights() {
                     <p>
                       <strong className="text-foreground">Option 2 - Par email :</strong><br />
                       Envoyez votre demande à{' '}
-                      <a href="mailto:contact@ton-domaine.fr" className="text-primary hover:underline">
-                        contact@ton-domaine.fr
+                      <a href="mailto:contact@tarotdivinatoire.app" className="text-primary hover:underline">
+                        contact@tarotdivinatoire.app
                       </a>{' '}
-                      [À COMPLÉTER] en précisant :
+                      en précisant :
                     </p>
                     <ul className="list-disc list-inside space-y-1 ml-4">
                       <li>Votre nom et prénom</li>
