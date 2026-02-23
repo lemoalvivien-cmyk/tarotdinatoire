@@ -35,7 +35,7 @@ export default function Imprint() {
                 <div className="flex-1 space-y-3">
                   <h2 className="font-serif text-xl font-semibold">1. Préambule</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Les présentes mentions légales régissent l'utilisation du site <strong>tarot-divinatoire.lovable.app</strong> (ci-après « le Site ») 
+                    Les présentes mentions légales régissent l'utilisation du site <strong>tarotdivinatoire.app</strong> (ci-après « le Site ») 
                     édité par Vivien Le Moal. En accédant au Site, l'utilisateur reconnaît avoir pris connaissance des présentes mentions 
                     et s'engage à les respecter.
                   </p>
