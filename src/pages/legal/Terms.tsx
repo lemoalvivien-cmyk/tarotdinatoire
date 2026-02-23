@@ -89,7 +89,7 @@ export default function Terms() {
                     </p>
                     <p>Pour exercer ce droit :</p>
                     <ul className="list-disc list-inside space-y-1">
-                      <li>Email : contact@vlmconsulting.fr</li>
+                      <li>Email : contact@tarotdivinatoire.app</li>
                       <li>Ou depuis votre profil → "Gérer mon abonnement" → "Annuler"</li>
                     </ul>
                     <p className="font-medium">
@@ -313,7 +313,7 @@ export default function Terms() {
             <section className="p-6 rounded-xl bg-muted/50 border border-border/30">
               <h2 className="font-serif text-lg font-semibold mb-3">Contact</h2>
               <p className="text-sm text-muted-foreground">
-                Pour toute question concernant ces CGV : <strong>contact@vlmconsulting.fr</strong>
+                Pour toute question concernant ces CGV : <strong>contact@tarotdivinatoire.app</strong>
                 <br />
                 Voir également nos{' '}
                 <Link to="/legal/imprint" className="text-primary hover:underline">

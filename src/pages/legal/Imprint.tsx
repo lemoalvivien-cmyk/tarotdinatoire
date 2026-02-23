@@ -73,8 +73,8 @@ export default function Imprint() {
                     <p><strong>Directeur de la publication :</strong> Vivien Le Moal</p>
                     <p>
                       <strong>Contact :</strong>{' '}
-                      <a href="mailto:contact@vlmconsulting.fr" className="text-primary hover:underline">
-                        contact@vlmconsulting.fr
+                      <a href="mailto:contact@tarotdivinatoire.app" className="text-primary hover:underline">
+                        contact@tarotdivinatoire.app
                       </a>
                     </p>
                   </div>
