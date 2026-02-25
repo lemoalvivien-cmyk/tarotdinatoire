@@ -24,6 +24,9 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
   const { user, session, status, signOut } = useAuth();
   const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
   const { isPremium, loading: subscriptionLoading } = useSubscription();
+
+  // Bloquer l'affichage du paywall pendant un retour de paiement Stripe
+  const isPaymentReturn = new URLSearchParams(window.location.search).get('subscription') === 'success';
   const navigate = useNavigate();
   const location = useLocation();
   const [retryCount, setRetryCount] = useState(0);
@@ -136,9 +139,9 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
     );
   }
 
-  // STATE 4: Authenticated, loading profile or subscription
-  if (profileLoading || subscriptionLoading) {
-    return <LoadingScreen />;
+  // STATE 4: Authenticated, loading profile or subscription (or post-payment sync)
+  if (profileLoading || subscriptionLoading || isPaymentReturn) {
+    return <LoadingScreen message="Vérification de votre abonnement..." />;
   }
 
   // STATE 5: Allow access to onboarding page regardless of onboarding status

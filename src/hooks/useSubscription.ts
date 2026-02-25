@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ export function useSubscription() {
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const hasHandledSuccess = useRef(false);
 
   const checkSubscription = useCallback(async () => {
     if (!user) {
@@ -72,6 +73,25 @@ export function useSubscription() {
   useEffect(() => {
     checkSubscription();
   }, [checkSubscription]);
+
+  // Détection du retour Stripe (subscription=success) → force refresh
+  useEffect(() => {
+    if (!user || hasHandledSuccess.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscription') === 'success') {
+      hasHandledSuccess.current = true;
+      // Nettoyer l'URL immédiatement
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      // Forcer plusieurs refreshs avec délais pour attendre la synchro webhook
+      setLoading(true);
+      checkSubscription();
+      const t1 = setTimeout(() => checkSubscription(), 2000);
+      const t2 = setTimeout(() => checkSubscription(), 5000);
+      const t3 = setTimeout(() => checkSubscription(), 10000);
+      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    }
+  }, [user, checkSubscription]);
 
   // Rafraîchir intelligemment (toutes les 5 minutes, uniquement si visible)
   useEffect(() => {
