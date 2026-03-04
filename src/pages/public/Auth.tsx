@@ -26,15 +26,17 @@ export default function Auth() {
   const location = useLocation();
   
 
-  const from = (location.state as { from?: string })?.from || '/app/onboarding';
+  const from = (location.state as { from?: string })?.from;
 
   // Redirect authenticated users - after signup/login, session triggers this
+  // Respect the 'from' redirect (e.g. returning user going back to dashboard)
+  // but always route through onboarding first so ProtectedRoute can gate correctly
   useEffect(() => {
     if (user) {
-      // Always go to onboarding first - ProtectedRoute will handle if already completed
-      navigate('/app/onboarding', { replace: true });
+      const destination = from && from !== '/auth' ? from : '/app/onboarding';
+      navigate(destination, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -124,7 +126,7 @@ export default function Auth() {
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
+                   <Input
                     id="email"
                     type="email"
                     placeholder="votre@email.com"
@@ -132,6 +134,7 @@ export default function Auth() {
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
                     disabled={loading}
+                    autoComplete="email"
                   />
                 </div>
                 {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
@@ -141,7 +144,7 @@ export default function Auth() {
                 <Label htmlFor="password">Mot de passe</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
+                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
@@ -149,6 +152,7 @@ export default function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10"
                     disabled={loading}
+                    autoComplete={isLogin ? 'current-password' : 'new-password'}
                   />
                   <button
                     type="button"

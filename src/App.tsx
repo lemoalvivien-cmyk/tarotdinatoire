@@ -2,7 +2,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, setQueryClientRef } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
@@ -55,6 +55,10 @@ import AdminProdChecklist from "./pages/admin/AdminProdChecklist";
 import AdminImportDeck from "./pages/admin/AdminImportDeck";
 
 const queryClient = new QueryClient();
+
+// FIX #1/#7 (SEC-12/SEC-13): Register queryClient so AuthContext.signOut() can
+// call queryClient.clear() — prevents stale data after logout on shared devices
+setQueryClientRef(queryClient);
 
 // Validate all routes at startup (dev AND build - throws if invalid)
 const allPaths = [
@@ -123,7 +127,8 @@ const App = () => (
                 <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
                 
                 {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
-                <Route path="/statut" element={<Navigate to="/status" replace />} />
+                 <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                 <Route path="/statut" element={<Navigate to="/status" replace />} />
                 <Route path="/clause-non-responsabilite" element={<Navigate to="/disclaimer" replace />} />
                 <Route path="/juridique/confidentialite" element={<Navigate to="/legal/privacy" replace />} />
                 <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
