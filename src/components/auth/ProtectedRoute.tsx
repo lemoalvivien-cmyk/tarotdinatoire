@@ -1,4 +1,4 @@
-import { useEffect, ReactNode, useState, useRef } from 'react';
+import { useEffect, ReactNode, useState, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
@@ -15,18 +15,32 @@ interface ProtectedRouteProps {
 }
 
 /**
- * AuthGate - Robust protected route with clear states:
- * 1. loading - waiting for auth check
- * 2. unauthenticated - redirect to /auth
- * 3. authenticated - check profile, then render children
+ * AuthGate — robust protected route.
+ * FIX #5 (PAY-5): isPaymentReturn persisted in sessionStorage so it survives
+ *   React re-renders during the subscription polling phase.
+ * FIX #20 (PERF-1): useMemo to avoid recreating URLSearchParams on every render.
  */
 export function ProtectedRoute({ children, requireOnboarding = true, requirePremium = true }: ProtectedRouteProps) {
   const { user, session, status, signOut } = useAuth();
   const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
   const { isPremium, loading: subscriptionLoading } = useSubscription();
 
-  // Bloquer l'affichage du paywall pendant un retour de paiement Stripe
-  const isPaymentReturn = new URLSearchParams(window.location.search).get('subscription') === 'success';
+  // FIX #5 / #20: persist payment-return flag in sessionStorage; memoize param check
+  const isPaymentReturn = useMemo(() => {
+    const param = new URLSearchParams(window.location.search).get('subscription') === 'success';
+    if (param) {
+      sessionStorage.setItem('payment_return', '1');
+    }
+    return param || sessionStorage.getItem('payment_return') === '1';
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear the flag once subscription is confirmed premium
+  useEffect(() => {
+    if (isPremium && !subscriptionLoading) {
+      sessionStorage.removeItem('payment_return');
+    }
+  }, [isPremium, subscriptionLoading]);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [retryCount, setRetryCount] = useState(0);
