@@ -127,7 +127,8 @@ const App = () => (
                 <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
                 
                 {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
-                <Route path="/statut" element={<Navigate to="/status" replace />} />
+                 <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                 <Route path="/statut" element={<Navigate to="/status" replace />} />
                 <Route path="/clause-non-responsabilite" element={<Navigate to="/disclaimer" replace />} />
                 <Route path="/juridique/confidentialite" element={<Navigate to="/legal/privacy" replace />} />
                 <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
