@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { QueryClient } from '@tanstack/react-query';
 
 type AuthStatus = 'loading' | 'unauthenticated' | 'authenticated';
 
@@ -19,6 +18,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Receives a queryClient ref so we can clear the cache on logout
+// without creating a circular dependency
+export let _queryClientRef: { clear: () => void } | null = null;
+export function setQueryClientRef(ref: { clear: () => void }) {
+  _queryClientRef = ref;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -26,17 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const initialCheckDone = useRef(false);
   const mountedRef = useRef(true);
 
-  // Centralized session update function with logging
-  const updateSession = useCallback((newSession: Session | null, source: string) => {
+  const updateSession = useCallback((newSession: Session | null) => {
     if (!mountedRef.current) return;
-    
-    if (import.meta.env.DEV) {
-      console.log('[Auth] updateSession from', source, {
-        userId: newSession?.user?.id ?? 'null',
-        hasSession: !!newSession,
-      });
-    }
-    
     setSession(newSession);
     setUser(newSession?.user ?? null);
     setStatus(newSession ? 'authenticated' : 'unauthenticated');
@@ -44,34 +41,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    
-    // Set up auth state listener FIRST (synchronous callback only!)
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, newSession) => {
         if (!mountedRef.current) return;
-        
-        if (import.meta.env.DEV) {
-          console.log('[Auth] onAuthStateChange:', event, session?.user?.id);
-        }
-        updateSession(session, `onAuthStateChange:${event}`);
+        updateSession(newSession);
       }
     );
 
-    // THEN check for existing session (only once)
     if (!initialCheckDone.current) {
       initialCheckDone.current = true;
-      supabase.auth.getSession().then(({ data: { session }, error }) => {
+      supabase.auth.getSession().then(({ data: { session: initialSession }, error }) => {
         if (!mountedRef.current) return;
-        
         if (error) {
-          console.error('[Auth] getSession error:', error);
           setStatus('unauthenticated');
           return;
         }
-        if (import.meta.env.DEV) {
-          console.log('[Auth] Initial getSession:', session?.user?.id ?? 'no session');
-        }
-        updateSession(session, 'getSession');
+        updateSession(initialSession);
       });
     }
 
@@ -83,91 +69,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('[Auth] refreshSession error:', error);
-        return;
-      }
-      updateSession(session, 'refreshSession');
-    } catch (error) {
-      console.error('[Auth] Error refreshing session:', error);
+      const { data: { session: refreshed }, error } = await supabase.auth.getSession();
+      if (error) return;
+      updateSession(refreshed);
+    } catch {
+      // silent
     }
   }, [updateSession]);
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    if (import.meta.env.DEV) {
-      console.log('[Auth] signUp attempt for:', email);
-    }
-    
+    // FIX #2 (N-1): emailRedirectTo now points to /app/onboarding so users
+    // land in the app after confirming their email
+    const redirectUrl = `${window.location.origin}/app/onboarding`;
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectUrl
-      }
+      options: { emailRedirectTo: redirectUrl },
     });
-    
-    // If signup successful and we have a session, update state immediately
+
     if (!error && data.session) {
-      if (import.meta.env.DEV) {
-        console.log('[Auth] signUp success, session received immediately');
-      }
-      updateSession(data.session, 'signUp');
+      updateSession(data.session);
     } else if (!error && !data.session) {
-      // Email confirmation required
-      if (import.meta.env.DEV) {
-        console.log('[Auth] signUp success, awaiting email confirmation');
-      }
       toast.info('Vérifiez votre email pour confirmer votre inscription.');
     }
-    
+
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    if (import.meta.env.DEV) {
-      console.log('[Auth] signIn attempt for:', email);
-    }
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    // If signin successful, update state immediately
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error && data.session) {
-      if (import.meta.env.DEV) {
-        console.log('[Auth] signIn success');
-      }
-      updateSession(data.session, 'signIn');
+      updateSession(data.session);
     }
-    
     return { error };
   };
 
+  // FIX #1 (SEC-12) + FIX #7 (SEC-13):
+  // Logout clears React Query cache and replaces history so back button
+  // cannot navigate to a protected page
   const signOut = async () => {
-    if (import.meta.env.DEV) {
-      console.log('[Auth] signOut');
-    }
     await supabase.auth.signOut();
-    updateSession(null, 'signOut');
+    updateSession(null);
+    // Clear ALL React Query cache so no stale data is visible on shared devices
+    _queryClientRef?.clear();
+    // Replace the current history entry so back button goes to landing, not app
+    window.history.replaceState(null, '', '/');
   };
 
-  // Derive loading from status
   const loading = status === 'loading';
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
+    <AuthContext.Provider value={{
+      user,
+      session,
       loading,
       status,
-      signUp, 
-      signIn, 
-      signOut, 
-      refreshSession 
+      signUp,
+      signIn,
+      signOut,
+      refreshSession,
     }}>
       {children}
     </AuthContext.Provider>
