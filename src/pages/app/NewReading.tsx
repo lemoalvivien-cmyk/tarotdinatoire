@@ -283,6 +283,9 @@ export default function NewReading() {
 
   const handleValidate = async () => {
     if (!ritual.canValidate || !user) return;
+    // FIX double-clic: block concurrent submits
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
 
     // Check credits before proceeding
     if (!hasCredits) {
@@ -369,9 +372,10 @@ export default function NewReading() {
 
       navigate(`/app/reading/${newReading.id}`);
     } catch (error) {
-      console.error('Validate error:', error);
-      toast.error('Une erreur est survenue');
+      toast.error('Une erreur est survenue. Veuillez réessayer.');
       setIsInterpreting(false);
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 

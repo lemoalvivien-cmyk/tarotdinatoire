@@ -83,7 +83,8 @@ export default function Profile() {
       // Fetch all user data
       const [profileRes, readingsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.from('tarot_readings').select('*').eq('user_id', user.id),
+        // FIX CODE-7: bounded query — RGPD export limited to 500 most recent readings
+        supabase.from('tarot_readings').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(500),
       ]);
 
       const exportData = {
