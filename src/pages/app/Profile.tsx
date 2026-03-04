@@ -66,10 +66,10 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['user-roles'] });
       
       toast.success("Votre compte a été promu administrateur.");
-    } catch (error: any) {
-      console.error('Bootstrap error:', error);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Impossible d'activer le compte admin.";
       setBootstrapToken('');
-      toast.error(error.message || "Impossible d'activer le compte admin.");
+      toast.error(msg);
     } finally {
       setActivating(false);
     }
@@ -109,8 +109,7 @@ export default function Profile() {
       URL.revokeObjectURL(url);
 
       toast.success("Vos données ont été téléchargées.");
-    } catch (error) {
-      console.error('Export error:', error);
+    } catch {
       toast.error("Impossible d'exporter vos données.");
     } finally {
       setExporting(false);
@@ -168,8 +167,7 @@ export default function Profile() {
       
       toast.success("Votre compte et toutes vos données ont été supprimés.");
       navigate('/');
-    } catch (error) {
-      console.error('Delete error:', error);
+    } catch {
       toast.error("Impossible de supprimer votre compte. Veuillez réessayer.");
     } finally {
       setDeleting(false);
