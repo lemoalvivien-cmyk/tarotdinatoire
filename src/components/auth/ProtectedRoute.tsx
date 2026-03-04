@@ -47,43 +47,22 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
   const hasRedirected = useRef(false);
 
   // Log navigation for debugging
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('[ProtectedRoute]', {
-        path: location.pathname,
-        status,
-        profileLoading,
-        subscriptionLoading,
-        isPremium,
-        userId: user?.id,
-        profileId: profile?.id,
-        onboardingCompleted: profile?.onboarding_completed,
-        requireOnboarding,
-        requirePremium,
-        retryCount,
-      });
-    }
-  }, [location.pathname, status, profileLoading, subscriptionLoading, isPremium, user?.id, profile, requireOnboarding, requirePremium, retryCount]);
-
   // Redirect unauthenticated users ONLY after auth check is complete
   useEffect(() => {
     if (status === 'unauthenticated' && !hasRedirected.current) {
       hasRedirected.current = true;
-      if (import.meta.env.DEV) {
-        console.log('[ProtectedRoute] Not authenticated, redirecting to /auth');
-      }
       navigate('/auth', { state: { from: location.pathname }, replace: true });
     }
   }, [status, navigate, location.pathname]);
 
-  // Reset redirect flag when user changes
+  // Reset redirect flag when user authenticates
   useEffect(() => {
     if (status === 'authenticated') {
       hasRedirected.current = false;
     }
   }, [status]);
 
-  // Redirect to onboarding if not completed (but not if already on onboarding)
+  // Redirect to onboarding if not completed
   useEffect(() => {
     if (
       status === 'authenticated' &&
@@ -93,9 +72,6 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
       profile?.onboarding_completed !== true &&
       location.pathname !== '/app/onboarding'
     ) {
-      if (import.meta.env.DEV) {
-        console.log('[ProtectedRoute] Onboarding not completed, redirecting to /app/onboarding');
-      }
       navigate('/app/onboarding', { replace: true });
     }
   }, [status, profileLoading, profile, requireOnboarding, navigate, location.pathname]);
