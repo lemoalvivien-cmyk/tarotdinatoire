@@ -56,6 +56,10 @@ import AdminImportDeck from "./pages/admin/AdminImportDeck";
 
 const queryClient = new QueryClient();
 
+// FIX #1/#7 (SEC-12/SEC-13): Register queryClient so AuthContext.signOut() can
+// call queryClient.clear() — prevents stale data after logout on shared devices
+setQueryClientRef(queryClient);
+
 // Validate all routes at startup (dev AND build - throws if invalid)
 const allPaths = [
   ...Object.values(CANONICAL_ROUTES),
