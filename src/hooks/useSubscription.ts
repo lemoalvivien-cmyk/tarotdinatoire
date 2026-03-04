@@ -130,8 +130,9 @@ export function useSubscription() {
       if (error) throw error;
       if (!data?.url) throw new Error('URL de paiement non reçue');
 
-      // Ouvrir Stripe Checkout dans un nouvel onglet
-      window.open(data.url, '_blank');
+      // FIX #3 (N-2): Use location.href instead of window.open to avoid iOS Safari popup blocker
+      // window.open after await is blocked by Safari — direct navigation is safe here
+      window.location.href = data.url;
     } catch (err) {
       console.error('[useSubscription] Checkout error:', err);
       toast.error(err instanceof Error ? err.message : 'Impossible de démarrer le paiement');

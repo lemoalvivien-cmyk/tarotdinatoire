@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -122,6 +122,8 @@ export default function NewReading() {
   // State
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [imagesPreloaded, setImagesPreloaded] = useState(false);
+  // FIX double-clic: guard against concurrent submissions
+  const isSubmittingRef = useRef(false);
 
   // Load spreads list
   const { data: spreads, isLoading: spreadsLoading } = useQuery({
@@ -281,6 +283,9 @@ export default function NewReading() {
 
   const handleValidate = async () => {
     if (!ritual.canValidate || !user) return;
+    // FIX double-clic: block concurrent submits
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
 
     // Check credits before proceeding
     if (!hasCredits) {
@@ -367,9 +372,10 @@ export default function NewReading() {
 
       navigate(`/app/reading/${newReading.id}`);
     } catch (error) {
-      console.error('Validate error:', error);
-      toast.error('Une erreur est survenue');
+      toast.error('Une erreur est survenue. Veuillez réessayer.');
       setIsInterpreting(false);
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
