@@ -122,6 +122,8 @@ export default function NewReading() {
   // State
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [imagesPreloaded, setImagesPreloaded] = useState(false);
+  // FIX double-clic: guard against concurrent submissions
+  const isSubmittingRef = useRef(false);
 
   // Load spreads list
   const { data: spreads, isLoading: spreadsLoading } = useQuery({
