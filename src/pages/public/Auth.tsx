@@ -26,15 +26,17 @@ export default function Auth() {
   const location = useLocation();
   
 
-  const from = (location.state as { from?: string })?.from || '/app/onboarding';
+  const from = (location.state as { from?: string })?.from;
 
   // Redirect authenticated users - after signup/login, session triggers this
+  // Respect the 'from' redirect (e.g. returning user going back to dashboard)
+  // but always route through onboarding first so ProtectedRoute can gate correctly
   useEffect(() => {
     if (user) {
-      // Always go to onboarding first - ProtectedRoute will handle if already completed
-      navigate('/app/onboarding', { replace: true });
+      const destination = from && from !== '/auth' ? from : '/app/onboarding';
+      navigate(destination, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
