@@ -121,8 +121,32 @@ serve(async (req) => {
           .single();
 
         if (findError || !existingSub) {
-          logStep("Customer not found in DB, checking by subscription metadata");
-          // Fallback: check metadata if set during checkout
+          logStep("Customer not found by stripe_customer_id, trying metadata.user_id fallback");
+          // FIX #4 (N-3): fallback to user_id stored in Checkout session metadata
+          const metadataUserId = session.metadata?.user_id;
+          if (!metadataUserId) {
+            logStep("WARN: No user_id in metadata, cannot activate subscription");
+            break;
+          }
+          // Upsert by user_id directly
+          const { error: upsertError } = await supabaseAdmin
+            .from("subscriptions")
+            .upsert({
+              user_id: metadataUserId,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              subscription_status: subscription.status,
+              plan: "premium",
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              cancel_at_period_end: subscription.cancel_at_period_end,
+              credits_remaining: null,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: "user_id" });
+          if (upsertError) {
+            logStep("ERROR upserting via metadata fallback", { error: upsertError.message });
+            throw new Error(`Metadata fallback upsert failed: ${upsertError.message}`);
+          }
+          logStep("Subscription activated via metadata fallback", { userId: metadataUserId });
           break;
         }
 
