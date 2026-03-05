@@ -443,7 +443,7 @@ export default function ReadingSession() {
 
             {/* Voice narration — plays the synthesis/summary */}
             {interpretation && (() => {
-              const interp = interpretation as Record<string, unknown>;
+              const interp = interpretation as unknown as Record<string, unknown>;
               const summary = (interp.synthesis as string)
                 || (interp.summary as string)
                 || (interp.general_interpretation as string)
