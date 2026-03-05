@@ -441,6 +441,24 @@ export default function ReadingSession() {
               </div>
             )}
 
+            {/* Voice narration — plays the synthesis/summary */}
+            {interpretation && (() => {
+              const interp = interpretation as Record<string, unknown>;
+              const summary = (interp.synthesis as string)
+                || (interp.summary as string)
+                || (interp.general_interpretation as string)
+                || '';
+              const title = (interp.title as string) || spread?.name_fr || '';
+              const narrationText = [title, summary].filter(Boolean).join('. ');
+              return narrationText ? (
+                <TarotVoicePlayer
+                  text={narrationText}
+                  context="reading"
+                  autoPlay={true}
+                />
+              ) : null;
+            })()}
+
             {/* Email Opt-In Form - Post-Result */}
             {interpretation && session && (
               <EmailOptInForm 
