@@ -272,10 +272,10 @@ serve(async (req) => {
       );
     }
 
-    // Get user profile
+    // Get user profile (including astrology)
     const { data: profile } = await supabase
       .from("profiles")
-      .select("display_name, intention, preferred_domain")
+      .select("display_name, intention, preferred_domain, birth_date, zodiac_sign")
       .eq("id", user.id)
       .single();
 
