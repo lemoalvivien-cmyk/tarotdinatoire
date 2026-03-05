@@ -394,6 +394,11 @@ export default function ReadingSession() {
               </div>
             )}
 
+            {/* Astro Influence (if user has zodiac set) */}
+            {zodiacSign && (
+              <AstroInsightPanel zodiacSign={zodiacSign} context="reading" />
+            )}
+
             {/* Template/Fallback Info Banner - Discreet */}
             {isFallbackInterpretation && (
               <Alert variant="default" className="border-muted bg-muted/30">
