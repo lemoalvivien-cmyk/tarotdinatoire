@@ -11,7 +11,7 @@ import { SynchronicityEngine } from '@/components/synchronicity/SynchronicityEng
 import { useNarrativeEngine } from '@/hooks/useNarrativeEngine';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, BarChart2, BookOpen, Clock, Zap, Activity } from 'lucide-react';
+import { Sparkles, BarChart2, BookOpen, Clock, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Journey() {
@@ -24,8 +24,6 @@ export default function Journey() {
 
   const {
     streak,
-    energyProfile,
-    profileLoading,
     recentDraws,
     historyLoading,
   } = useDailyDraw();
