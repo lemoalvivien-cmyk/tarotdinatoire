@@ -123,6 +123,13 @@ export function Header() {
                   </>
                 )}
                 <Link 
+                  to="/app/journey" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <Map className="h-4 w-4" />
+                  Voyage
+                </Link>
+                <Link 
                   to="/app/profile" 
                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
                 >
