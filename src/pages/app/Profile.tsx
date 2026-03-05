@@ -11,7 +11,8 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
 import { KarmaWidget } from '@/components/gamification/KarmaWidget';
 import { AchievementsPanel } from '@/components/gamification/AchievementsPanel';
-import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles, Trophy } from 'lucide-react';
+import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles, Trophy, Star } from 'lucide-react';
+import { ZodiacWidget } from '@/components/astrology';
 import { SubscriptionBadge } from '@/components/subscription';
 import {
   AlertDialog,
@@ -327,6 +328,15 @@ export default function Profile() {
               </div>
             </div>
           )}
+
+          {/* ─── Astrology Profile ──────────────────────────────────────────── */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Star className="h-5 w-5 text-primary" />
+              <h2 className="font-serif text-xl font-semibold">Profil Astral</h2>
+            </div>
+            <ZodiacWidget />
+          </div>
 
           {/* ─── Karma & Achievements ───────────────────────────────────────── */}
           <KarmaWidget />

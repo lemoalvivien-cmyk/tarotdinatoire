@@ -11,7 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PROFILE_QUERY_KEY } from '@/hooks/useProfile';
-import { Sparkles, Shield, User, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Sparkles, Shield, User, ArrowRight, ArrowLeft, AlertTriangle, Star } from 'lucide-react';
+import { ZODIAC_SIGNS, getZodiacSignFromDate } from '@/utils/astrologyData';
 
 const DOMAINS = [
   { value: 'amour', label: 'Amour & Relations' },
