@@ -120,6 +120,19 @@ function RevealPhase({
   const card = allCards?.find(c => c.id === draw.card_id);
   const interp = draw.interpretation as Record<string, string> | null;
 
+  // Build narration text from interpretation
+  const narrationText = interp
+    ? [
+        card?.nom_fr ? `${card.nom_fr}.` : '',
+        draw.orientation === 'upright' ? 'À l\'endroit.' : 'Renversée.',
+        interp.title ? interp.title + '.' : '',
+        interp.summary ?? '',
+        interp.advice ? `Conseil du jour : ${interp.advice}` : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    : '';
+
   return (
     <motion.div
       key="reveal"
