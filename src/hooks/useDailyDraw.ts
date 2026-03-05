@@ -63,7 +63,7 @@ export function useDailyDraw() {
         .eq('draw_date', todayStr)
         .maybeSingle();
       if (error) throw error;
-      return data as DailyDraw | null;
+      return data as unknown as DailyDraw | null;
     },
     enabled: !!user && !!session,
     staleTime: 60_000,
