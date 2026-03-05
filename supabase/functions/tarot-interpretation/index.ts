@@ -369,8 +369,30 @@ IMPORTANT: Répondre UNIQUEMENT en JSON valide, sans texte avant/après, sans bl
 Pour les tirages complexes (>5 cartes), le message dans interpretation_par_position doit être de 4-6 phrases par carte.
 Le message_global doit tisser ensemble les fils de toutes les cartes en une narrative cohérente (6-10 phrases).`;
 
+    // ── Zodiac sign data for astrological context ───────────────────────────
+    const ZODIAC_DATA: Record<string, { name_fr: string; element: string; planet_fr: string; tarot_fr: string; keywords: string[]; gift: string; shadow: string }> = {
+      aries:       { name_fr: 'Bélier',    element: 'Feu',   planet_fr: 'Mars',    tarot_fr: "L'Empereur",    keywords: ['courage','initiative','passion'],          gift: 'leadership, élan vital',     shadow: 'impulsivité, impatience' },
+      taurus:      { name_fr: 'Taureau',   element: 'Terre', planet_fr: 'Vénus',   tarot_fr: "L'Hiérophante", keywords: ['stabilité','sensualité','persévérance'],    gift: 'patience, sens pratique',    shadow: 'entêtement, résistance au changement' },
+      gemini:      { name_fr: 'Gémeaux',   element: 'Air',   planet_fr: 'Mercure', tarot_fr: 'Les Amoureux',  keywords: ['curiosité','communication','dualité'],       gift: 'versatilité, connexions',    shadow: 'dispersion, inconstance' },
+      cancer:      { name_fr: 'Cancer',    element: 'Eau',   planet_fr: 'La Lune', tarot_fr: 'Le Chariot',    keywords: ['intuition','empathie','protection'],         gift: 'intuition, profondeur',      shadow: 'hypersensibilité, attachement' },
+      leo:         { name_fr: 'Lion',      element: 'Feu',   planet_fr: 'Le Soleil',tarot_fr: 'La Force',     keywords: ['créativité','générosité','rayonnement'],     gift: 'charisme, joie de vivre',    shadow: 'arrogance, besoin de reconnaissance' },
+      virgo:       { name_fr: 'Vierge',    element: 'Terre', planet_fr: 'Mercure', tarot_fr: "L'Ermite",      keywords: ['discernement','service','précision'],         gift: 'dévouement, analyse',        shadow: 'perfectionnisme, anxiété' },
+      libra:       { name_fr: 'Balance',   element: 'Air',   planet_fr: 'Vénus',   tarot_fr: 'La Justice',    keywords: ['harmonie','équilibre','diplomatie'],          gift: 'diplomatie, équanimité',     shadow: 'indécision, dépendance' },
+      scorpio:     { name_fr: 'Scorpion',  element: 'Eau',   planet_fr: 'Pluton',  tarot_fr: 'La Mort',       keywords: ['transformation','intensité','mystère'],       gift: 'perspicacité, résilience',   shadow: 'jalousie, obsession' },
+      sagittarius: { name_fr: 'Sagittaire',element: 'Feu',   planet_fr: 'Jupiter', tarot_fr: 'La Tempérance', keywords: ['liberté','philosophie','expansion'],           gift: 'optimisme, sagesse',         shadow: 'irresponsabilité, excès' },
+      capricorn:   { name_fr: 'Capricorne',element: 'Terre', planet_fr: 'Saturne', tarot_fr: 'Le Diable',     keywords: ['ambition','discipline','maîtrise'],            gift: 'persévérance, intégrité',    shadow: 'rigidité, pessimisme' },
+      aquarius:    { name_fr: 'Verseau',   element: 'Air',   planet_fr: 'Uranus',  tarot_fr: "L'Étoile",      keywords: ['innovation','liberté','originalité'],          gift: 'humanisme, vision large',    shadow: 'détachement, utopisme' },
+      pisces:      { name_fr: 'Poissons',  element: 'Eau',   planet_fr: 'Neptune', tarot_fr: 'La Lune',       keywords: ['compassion','intuition','spiritualité'],       gift: 'empathie, créativité',       shadow: 'fuite, confusion' },
+    };
+
+    const zodiacInfo = profile?.zodiac_sign ? ZODIAC_DATA[profile.zodiac_sign] : null;
+
+    const astroContext = zodiacInfo
+      ? `\nPROFIL ASTROLOGIQUE DE L'UTILISATEUR:\nSigne: ${zodiacInfo.name_fr} (Élément ${zodiacInfo.element}, gouverné par ${zodiacInfo.planet_fr})\nCarte associée: ${zodiacInfo.tarot_fr}\nDons: ${zodiacInfo.gift}\nOmbres à intégrer: ${zodiacInfo.shadow}\nMots-clés vibratoires: ${zodiacInfo.keywords.join(', ')}\n→ Enrichis ton interprétation en tissant la nature ${zodiacInfo.element.toLowerCase()} de ce ${zodiacInfo.name_fr} dans le message. Relie la carte de Tarot associée (${zodiacInfo.tarot_fr}) si elle apparaît dans le tirage.`
+      : "";
+
     const userContext = profile ? 
-      `Contexte: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention de vie: ${profile.intention}. ` : ""}${profile.preferred_domain ? `Domaine de prédilection: ${profile.preferred_domain}. ` : ""}` : "";
+      `Contexte: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention de vie: ${profile.intention}. ` : ""}${profile.preferred_domain ? `Domaine de prédilection: ${profile.preferred_domain}. ` : ""}${astroContext}` : "";
 
     const userPrompt = `${userContext}
 
