@@ -20,6 +20,7 @@ import { SpreadInterpretationDisplay } from '@/components/tarot/SpreadInterpreta
 import { EmailOptInForm } from '@/components/email/EmailOptInForm';
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
+import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
 
 interface SpreadPosition {
   key: string;
