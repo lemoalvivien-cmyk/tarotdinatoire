@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +14,7 @@ import {
   Sparkles, BookOpen, Moon, Sun, ArrowLeft
 } from 'lucide-react';
 import type { TarotCard } from '@/types/tarot';
+
 
 const SITE_URL = 'https://tarotdivinatoire.app';
 
