@@ -591,6 +591,36 @@ export type Database = {
         }
         Relationships: []
       }
+      synchronicity_insights: {
+        Row: {
+          expires_at: string
+          generated_at: string
+          id: string
+          insights: Json
+          patterns: Json
+          total_readings: number
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          insights?: Json
+          patterns?: Json
+          total_readings?: number
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          insights?: Json
+          patterns?: Json
+          total_readings?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarot_cards: {
         Row: {
           created_at: string
@@ -798,6 +828,10 @@ export type Database = {
         }[]
       }
       get_subscription_status: { Args: { uid: string }; Returns: Json }
+      get_synchronicity_patterns: {
+        Args: { limit_days?: number; uid: string }
+        Returns: Json
+      }
       get_theme_patterns: {
         Args: { limit_days?: number; uid: string }
         Returns: Json
