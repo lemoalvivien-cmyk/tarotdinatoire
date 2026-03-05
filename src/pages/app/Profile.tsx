@@ -179,7 +179,7 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8 md:py-14">
         <div className="max-w-2xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-4 animate-fade-in-up">
