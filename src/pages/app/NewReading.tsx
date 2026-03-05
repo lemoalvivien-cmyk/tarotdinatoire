@@ -25,7 +25,7 @@ import { SelectedCardsDisplay } from '@/components/tarot/SelectedCardsDisplay';
 import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
 import { PaywallOverlay } from '@/components/subscription/PaywallOverlay';
 import { Textarea } from '@/components/ui/textarea';
-import { StepContainer, StepTitle, IntentionGrid, RitualPhase } from '@/components/tarot/RitualStepUI';
+import { StepContainer, StepTitle, IntentionGrid, RitualPhase, INTENTIONS } from '@/components/tarot/RitualStepUI';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
