@@ -92,18 +92,18 @@ export function AstroInsightPanel({ zodiacSign, context = 'reading', className }
         </p>
 
         {/* Gift / Shadow */}
-        <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-background/20 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <Sparkles className="h-3 w-3 text-amber-400" />
-              <span className="text-xs font-medium text-amber-400">Dons</span>
+              <Sparkles className="h-3 w-3 text-primary" />
+              <span className="text-xs font-medium text-primary">Dons</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">{zodiacSign.gift_fr}</p>
           </div>
           <div className="rounded-lg bg-background/20 p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
-              <Zap className="h-3 w-3 text-purple-400" />
-              <span className="text-xs font-medium text-purple-400">À intégrer</span>
+              <Zap className="h-3 w-3 text-accent-foreground" />
+              <span className="text-xs font-medium text-accent-foreground">À intégrer</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">{zodiacSign.shadow_fr}</p>
           </div>
