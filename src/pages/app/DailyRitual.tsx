@@ -7,9 +7,10 @@ import { StreakCounter } from '@/components/daily/StreakCounter';
 import { EnergyChart } from '@/components/daily/EnergyChart';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
 import { ReflectionJournal } from '@/components/daily/ReflectionJournal';
+import { ShareModal } from '@/components/share/ShareModal';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { useTarotCards } from '@/hooks/useTarotCards';
-import { Sparkles, ChevronDown, TrendingUp, BookOpen } from 'lucide-react';
+import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DailyDraw } from '@/hooks/useDailyDraw';
 
@@ -107,9 +108,11 @@ function AnticipationPhase({
 function RevealPhase({
   draw,
   onContinue,
+  onShare,
 }: {
   draw: DailyDraw;
   onContinue: () => void;
+  onShare: () => void;
 }) {
   const { data: allCards } = useTarotCards();
   const card = allCards?.find(c => c.id === draw.card_id);
