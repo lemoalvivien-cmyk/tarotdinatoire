@@ -161,6 +161,7 @@ export function useDailyDraw() {
       return null;
     } finally {
       setIsDrawing(false);
+      isDrawingRef.current = false;
     }
   }, [session, queryClient]);
 

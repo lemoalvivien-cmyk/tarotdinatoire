@@ -310,6 +310,7 @@ export default function NewReading() {
       if (!accessToken) {
         toast.error('Session expirée. Veuillez vous reconnecter.');
         navigate('/auth');
+        isSubmittingRef.current = false;
         return;
       }
 
