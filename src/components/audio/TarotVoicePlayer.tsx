@@ -247,4 +247,11 @@ export function TarotVoicePlayer({
       </div>
     </motion.div>
   );
+
+  // Gate the entire player behind the audio_readings feature flag
+  return (
+    <PremiumGate feature="audio_readings" hasAccess={hasAccess} loading={accessLoading} variant="inline" className={className}>
+      {playerUI}
+    </PremiumGate>
+  );
 }
