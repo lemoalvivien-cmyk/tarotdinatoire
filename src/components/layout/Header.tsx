@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame } from 'lucide-react';
+import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame, Map } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -122,6 +122,13 @@ export function Header() {
                     </Link>
                   </>
                 )}
+                <Link 
+                  to="/app/journey" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <Map className="h-4 w-4" />
+                  Voyage
+                </Link>
                 <Link 
                   to="/app/profile" 
                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"

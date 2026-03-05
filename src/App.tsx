@@ -32,6 +32,7 @@ import NotFound from "./pages/NotFound";
 // Protected App Pages
 import Dashboard from "./pages/app/Dashboard";
 import DailyRitual from "./pages/app/DailyRitual";
+import Journey from "./pages/app/Journey";
 import Onboarding from "./pages/app/Onboarding";
 import NewReading from "./pages/app/NewReading";
 import History from "./pages/app/History";
@@ -107,6 +108,7 @@ const App = () => (
                 <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false} requirePremium={false}><Onboarding /></ProtectedRoute>} />
                 <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/daily" element={<ProtectedRoute><DailyRitual /></ProtectedRoute>} />
+                <Route path="/app/journey" element={<ProtectedRoute><Journey /></ProtectedRoute>} />
                 <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
                 <Route path="/app/result/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
                 <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />

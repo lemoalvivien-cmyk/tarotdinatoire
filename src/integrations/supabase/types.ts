@@ -154,6 +154,7 @@ export type Database = {
           card_id: string
           created_at: string
           draw_date: string
+          embedding_json: Json | null
           energy_score: number | null
           id: string
           interpretation: Json | null
@@ -169,6 +170,7 @@ export type Database = {
           card_id: string
           created_at?: string
           draw_date?: string
+          embedding_json?: Json | null
           energy_score?: number | null
           id?: string
           interpretation?: Json | null
@@ -184,6 +186,7 @@ export type Database = {
           card_id?: string
           created_at?: string
           draw_date?: string
+          embedding_json?: Json | null
           energy_score?: number | null
           id?: string
           interpretation?: Json | null
@@ -295,6 +298,54 @@ export type Database = {
         }
         Relationships: []
       }
+      narrative_memories: {
+        Row: {
+          created_at: string
+          embedding_json: Json | null
+          emotional_arc: string | null
+          emotional_direction: string | null
+          id: string
+          key_cards: Json | null
+          pattern_data: Json | null
+          reading_count: number | null
+          summary: string
+          themes: string[] | null
+          time_range_end: string | null
+          time_range_start: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          embedding_json?: Json | null
+          emotional_arc?: string | null
+          emotional_direction?: string | null
+          id?: string
+          key_cards?: Json | null
+          pattern_data?: Json | null
+          reading_count?: number | null
+          summary: string
+          themes?: string[] | null
+          time_range_end?: string | null
+          time_range_start?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          embedding_json?: Json | null
+          emotional_arc?: string | null
+          emotional_direction?: string | null
+          id?: string
+          key_cards?: Json | null
+          pattern_data?: Json | null
+          reading_count?: number | null
+          summary?: string
+          themes?: string[] | null
+          time_range_end?: string | null
+          time_range_start?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -358,18 +409,21 @@ export type Database = {
       reading_results: {
         Row: {
           created_at: string
+          embedding_json: Json | null
           id: string
           interpretation: Json | null
           session_id: string
         }
         Insert: {
           created_at?: string
+          embedding_json?: Json | null
           id?: string
           interpretation?: Json | null
           session_id: string
         }
         Update: {
           created_at?: string
+          embedding_json?: Json | null
           id?: string
           interpretation?: Json | null
           session_id?: string
@@ -627,6 +681,10 @@ export type Database = {
         Returns: boolean
       }
       decrement_reading_credit: { Args: { uid: string }; Returns: undefined }
+      get_card_patterns: {
+        Args: { limit_days?: number; uid: string }
+        Returns: Json
+      }
       get_email_leads_admin_safe: {
         Args: never
         Returns: {
@@ -662,6 +720,10 @@ export type Database = {
         }[]
       }
       get_subscription_status: { Args: { uid: string }; Returns: Json }
+      get_theme_patterns: {
+        Args: { limit_days?: number; uid: string }
+        Returns: Json
+      }
       get_user_streak: { Args: { uid: string }; Returns: number }
       has_reading_credits: { Args: { uid: string }; Returns: boolean }
       has_role: {
