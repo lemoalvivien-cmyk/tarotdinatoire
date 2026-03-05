@@ -9,23 +9,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { 
-  RefreshCw, 
-  Wand2, 
-  AlertTriangle, 
-  Home, 
-  Sparkles, 
-  Shuffle, 
-  Scissors,
-  Heart,
-  HelpCircle,
-  ArrowRight,
-  ArrowLeft,
-  Star,
-  Target,
-  Compass,
-  Check
-} from 'lucide-react';
+import { RefreshCw, AlertTriangle, Home, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import type { TarotCard as TarotCardType } from '@/types/tarot';
@@ -41,7 +25,7 @@ import { SelectedCardsDisplay } from '@/components/tarot/SelectedCardsDisplay';
 import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
 import { PaywallOverlay } from '@/components/subscription/PaywallOverlay';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import { StepContainer, StepTitle, IntentionGrid, RitualPhase } from '@/components/tarot/RitualStepUI';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
