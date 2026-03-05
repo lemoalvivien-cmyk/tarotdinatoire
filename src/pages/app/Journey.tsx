@@ -4,7 +4,7 @@ import { MysticBackground } from '@/components/mystic';
 import { StepHeader, OracleLoader } from '@/components/tarot-ui';
 import { NarrativeMemoryCard } from '@/components/narrative/NarrativeMemoryCard';
 import { PatternInsights } from '@/components/narrative/PatternInsights';
-import { EnergyChart } from '@/components/daily/EnergyChart';
+import { EnergyProfileDashboard } from '@/components/daily/EnergyProfileDashboard';
 import { StreakCounter } from '@/components/daily/StreakCounter';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
 import { SynchronicityEngine } from '@/components/synchronicity/SynchronicityEngine';
@@ -24,8 +24,6 @@ export default function Journey() {
 
   const {
     streak,
-    energyProfile,
-    profileLoading,
     recentDraws,
     historyLoading,
   } = useDailyDraw();
@@ -162,15 +160,7 @@ export default function Journey() {
                     border: '1px solid hsl(var(--border))',
                   }}
                 >
-                  {profileLoading ? (
-                    <OracleLoader size="sm" message="Calcul de votre profil…" />
-                  ) : (
-                    <EnergyChart
-                      history={(energyProfile?.energy_history ?? []) as import('@/hooks/useDailyDraw').EnergyHistory[]}
-                      topThemes={(energyProfile?.top_themes ?? []) as import('@/hooks/useDailyDraw').TopTheme[]}
-                      avgEnergy={energyProfile?.avg_energy ?? 5}
-                    />
-                  )}
+                  <EnergyProfileDashboard />
                 </div>
               </TabsContent>
 

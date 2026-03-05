@@ -155,6 +155,7 @@ export type Database = {
           created_at: string
           draw_date: string
           embedding_json: Json | null
+          energy_dimensions: Json | null
           energy_score: number | null
           id: string
           interpretation: Json | null
@@ -172,6 +173,7 @@ export type Database = {
           created_at?: string
           draw_date?: string
           embedding_json?: Json | null
+          energy_dimensions?: Json | null
           energy_score?: number | null
           id?: string
           interpretation?: Json | null
@@ -189,6 +191,7 @@ export type Database = {
           created_at?: string
           draw_date?: string
           embedding_json?: Json | null
+          energy_dimensions?: Json | null
           energy_score?: number | null
           id?: string
           interpretation?: Json | null
@@ -811,6 +814,10 @@ export type Database = {
           user_id: string
           verification_sent_at: string
         }[]
+      }
+      get_energy_dimensions_profile: {
+        Args: { limit_days?: number; uid: string }
+        Returns: Json
       }
       get_energy_profile: { Args: { uid: string }; Returns: Json }
       get_my_subscription: {
