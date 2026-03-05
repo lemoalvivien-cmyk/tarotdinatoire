@@ -2,10 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
+import { qk, STALE_MEDIUM, rlsSafeRetry } from '@/queries/queryConfig';
 
 type Profile = Tables<'profiles'>;
 
-const PROFILE_QUERY_KEY = 'profile';
+// Explicit columns — no select('*') bleed
+const PROFILE_COLUMNS =
+  'id, display_name, birth_date, zodiac_sign, intention, preferred_domain, onboarding_completed, referred_by, created_at, updated_at';
 
 export function useProfile() {
   const { user, session } = useAuth();
@@ -17,76 +20,38 @@ export function useProfile() {
     error,
     refetch,
   } = useQuery({
-    queryKey: [PROFILE_QUERY_KEY, user?.id],
+    queryKey: qk.profile(user?.id),
     queryFn: async (): Promise<Profile | null> => {
-      // Double-check user and session are valid before querying
-      if (!user || !session) {
-        if (import.meta.env.DEV) {
-          console.log('[useProfile] Skipping fetch - no user or session');
-        }
-        return null;
-      }
+      if (!user || !session) return null;
 
-      // Verify session hasn't expired
-      const expiresAt = session.expires_at;
-      if (expiresAt && expiresAt * 1000 < Date.now()) {
-        if (import.meta.env.DEV) {
-          console.log('[useProfile] Session expired, skipping fetch');
-        }
+      // Guard expired session
+      if (session.expires_at && session.expires_at * 1000 < Date.now()) {
         return null;
-      }
-
-      if (import.meta.env.DEV) {
-        console.log('[useProfile] Fetching profile for user:', user.id);
       }
 
       const { data, error: fetchError } = await supabase
         .from('profiles')
-        .select('*')
+        .select(PROFILE_COLUMNS)
         .eq('id', user.id)
         .maybeSingle();
 
-      // Handle permission errors gracefully (likely expired token)
       if (fetchError) {
-        // 403 or permission denied errors during transient auth states
         if (fetchError.code === '42501' || fetchError.message?.includes('permission denied')) {
-          console.warn('[useProfile] Permission denied - likely transient auth state, returning null');
-          return null;
+          return null; // transient auth state — not a hard error
         }
-        
-        console.error('[useProfile] Fetch error:', fetchError);
         throw fetchError;
-      }
-
-      if (import.meta.env.DEV) {
-        console.log('[useProfile] Profile loaded:', data?.id, 'onboarding_completed:', data?.onboarding_completed);
       }
 
       return data;
     },
-    // Only enable when both user AND session are present
     enabled: !!user && !!session,
-    staleTime: 30_000, // 30 seconds
-    retry: (failureCount, error) => {
-      // Don't retry permission errors - they indicate auth state issues
-      if (error && typeof error === 'object' && 'code' in error) {
-        if ((error as { code: string }).code === '42501') {
-          return false;
-        }
-      }
-      return failureCount < 3;
-    },
-    retryDelay: (attemptIndex) => Math.min(300 * 2 ** attemptIndex, 3000),
+    staleTime: STALE_MEDIUM,
+    retry: rlsSafeRetry,
+    retryDelay: (attempt) => Math.min(300 * 2 ** attempt, 3000),
   });
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user || !session) {
-      return { error: new Error('Not authenticated') };
-    }
-
-    if (import.meta.env.DEV) {
-      console.log('[useProfile] Updating profile:', updates);
-    }
+    if (!user || !session) return { error: new Error('Not authenticated') };
 
     const { error: updateError } = await supabase
       .from('profiles')
@@ -94,8 +59,8 @@ export function useProfile() {
       .eq('id', user.id);
 
     if (!updateError) {
-      // Optimistically update the cache
-      queryClient.setQueryData([PROFILE_QUERY_KEY, user.id], (old: Profile | null) => 
+      // Optimistic cache update — no refetch needed
+      queryClient.setQueryData(qk.profile(user.id), (old: Profile | null) =>
         old ? { ...old, ...updates } : null
       );
     }
@@ -104,20 +69,18 @@ export function useProfile() {
   };
 
   const invalidateProfile = () => {
-    if (user) {
-      queryClient.invalidateQueries({ queryKey: [PROFILE_QUERY_KEY, user.id] });
-    }
+    if (user) queryClient.invalidateQueries({ queryKey: qk.profile(user.id) });
   };
 
-  return { 
-    profile, 
-    loading, 
-    error: error as Error | null, 
-    updateProfile, 
-    refetch, 
-    invalidateProfile 
+  return {
+    profile,
+    loading,
+    error: error as Error | null,
+    updateProfile,
+    refetch,
+    invalidateProfile,
   };
 }
 
-// Export query key for external invalidation
-export { PROFILE_QUERY_KEY };
+// Re-export stable query key for external invalidation
+export const PROFILE_QUERY_KEY = 'profile';

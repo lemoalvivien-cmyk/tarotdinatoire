@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useTarotCards } from '@/hooks/useTarotCards';
+import { useTarotCards, useCardMap } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { STALE_DAILY, rlsSafeRetry } from '@/queries/queryConfig';
 import {
   Star,
   Loader2,
@@ -28,11 +29,8 @@ export default function Favorites() {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ─── O(1) card lookup ─────────────────────────────────────────────────────
-  const cardMap = useMemo<Map<string, NonNullable<typeof allCards>[number]>>(() => {
-    if (!allCards) return new Map();
-    return new Map(allCards.map(c => [c.id, c]));
-  }, [allCards]);
+  // O(1) card lookup via shared hook
+  const cardMap = useCardMap(allCards);
 
   // ─── Query ────────────────────────────────────────────────────────────────
   const { data, isLoading, error, refetch } = useQuery({
@@ -63,6 +61,9 @@ export default function Favorites() {
       }));
       return { readings, total: count || 0 };
     },
+    staleTime: STALE_DAILY,
+    retry: rlsSafeRetry,
+    placeholderData: (prev) => prev,
   });
 
   // ─── Remove favorite — optimistic ────────────────────────────────────────

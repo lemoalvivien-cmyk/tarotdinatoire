@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { qk, STALE_NARRATIVE, rlsSafeRetry } from '@/queries/queryConfig';
 
 export interface SynchronicityInsight {
   type: 'recurring_card' | 'monthly_return' | 'number_pattern' | 'combination' | 'general';
@@ -34,14 +35,13 @@ export function useSynchronicity() {
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Load cached result from DB (for quick re-render)
   const { data: cached, isLoading } = useQuery({
-    queryKey: ['synchronicity', user?.id],
+    queryKey: qk.synchronicity(user?.id),
     queryFn: async (): Promise<SynchronicityResult | null> => {
       if (!user) return null;
       const { data } = await supabase
         .from('synchronicity_insights')
-        .select('*')
+        .select('insights, patterns, total_readings, generated_at, expires_at')
         .eq('user_id', user.id)
         .gt('expires_at', new Date().toISOString())
         .order('generated_at', { ascending: false })
@@ -51,13 +51,14 @@ export function useSynchronicity() {
       if (!data) return null;
       return {
         insights: (data.insights as unknown as SynchronicityInsight[]) ?? [],
-        patterns: (data.patterns as unknown as SyncPatterns) ?? {} as SyncPatterns,
+        patterns: (data.patterns as unknown as SyncPatterns) ?? ({} as SyncPatterns),
         total_readings: data.total_readings ?? 0,
         cached: true,
       };
     },
     enabled: !!user && !!session,
-    staleTime: 60_000,
+    staleTime: STALE_NARRATIVE,
+    retry: rlsSafeRetry,
   });
 
   const generateInsights = useCallback(async (force = false): Promise<SynchronicityResult | null> => {
@@ -79,17 +80,14 @@ export function useSynchronicity() {
         }
       );
 
-      if (resp.status === 401) {
-        toast.error('Session expirée. Veuillez vous reconnecter.');
-        return null;
-      }
+      if (resp.status === 401) { toast.error('Session expirée. Veuillez vous reconnecter.'); return null; }
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
         throw new Error((err as { error?: string }).error ?? 'Erreur lors de la génération');
       }
 
       const result = await resp.json() as SynchronicityResult;
-      queryClient.invalidateQueries({ queryKey: ['synchronicity', user?.id] });
+      queryClient.invalidateQueries({ queryKey: qk.synchronicity(user?.id) });
       return result;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Impossible de générer les synchronicités.');

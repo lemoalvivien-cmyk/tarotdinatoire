@@ -1,9 +1,9 @@
+import { useMemo } from 'react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 /**
  * Premium feature keys — each maps to a feature_flags column.
- * Add new keys here as the product grows.
  */
 export type PremiumFeature =
   | 'unlimited_readings'
@@ -13,13 +13,9 @@ export type PremiumFeature =
   | 'relationship_analysis';
 
 export interface FeatureAccessResult {
-  /** User has an active premium/trial subscription */
   isPremium: boolean;
-  /** The feature flag is turned ON by admins */
   isEnabled: boolean;
-  /** User has subscription AND the feature flag is enabled */
   hasAccess: boolean;
-  /** Still loading subscription or flags */
   loading: boolean;
 }
 
@@ -31,53 +27,38 @@ const FLAG_MAP: Record<PremiumFeature, keyof import('@/hooks/useFeatureFlags').F
   relationship_analysis: 'enable_relationship_analysis',
 };
 
+const FEATURES = Object.keys(FLAG_MAP) as PremiumFeature[];
+
 /**
- * Hook that checks BOTH subscription status AND admin feature flag for a given feature.
- *
- * Usage:
- *   const { hasAccess, loading } = useFeatureAccess('advanced_spreads');
+ * Returns access for a single feature.
+ * Memoised — only re-computes when isPremium or flags change.
  */
 export function useFeatureAccess(feature: PremiumFeature): FeatureAccessResult {
   const { isPremium, loading: subLoading } = useSubscription();
   const { data: flags, isLoading: flagsLoading } = useFeatureFlags();
 
-  const loading = subLoading || flagsLoading;
-  const flagKey = FLAG_MAP[feature];
-  // Default to true if flags haven't loaded yet (fail-open for UX; actual auth happens server-side)
-  const isEnabled = flags ? (flags[flagKey] as boolean) ?? true : true;
-  const hasAccess = isPremium && isEnabled;
-
-  return { isPremium, isEnabled, hasAccess, loading };
+  return useMemo(() => {
+    const loading = subLoading || flagsLoading;
+    const isEnabled = flags ? (flags[FLAG_MAP[feature]] as boolean) ?? true : true;
+    return { isPremium, isEnabled, hasAccess: isPremium && isEnabled, loading };
+  }, [isPremium, subLoading, flags, flagsLoading, feature]);
 }
 
 /**
- * Returns access status for ALL premium features at once.
+ * Returns access for ALL premium features in a single memoised call.
+ * Avoids N separate subscriptions when multiple features are needed at once.
  */
 export function useAllFeatureAccess(): Record<PremiumFeature, FeatureAccessResult> {
   const { isPremium, loading: subLoading } = useSubscription();
   const { data: flags, isLoading: flagsLoading } = useFeatureFlags();
 
-  const loading = subLoading || flagsLoading;
-
-  const result = {} as Record<PremiumFeature, FeatureAccessResult>;
-  const features: PremiumFeature[] = [
-    'unlimited_readings',
-    'advanced_spreads',
-    'ai_deep_analysis',
-    'audio_readings',
-    'relationship_analysis',
-  ];
-
-  for (const feature of features) {
-    const flagKey = FLAG_MAP[feature];
-    const isEnabled = flags ? (flags[flagKey] as boolean) ?? true : true;
-    result[feature] = {
-      isPremium,
-      isEnabled,
-      hasAccess: isPremium && isEnabled,
-      loading,
-    };
-  }
-
-  return result;
+  return useMemo(() => {
+    const loading = subLoading || flagsLoading;
+    return Object.fromEntries(
+      FEATURES.map((feature) => {
+        const isEnabled = flags ? (flags[FLAG_MAP[feature]] as boolean) ?? true : true;
+        return [feature, { isPremium, isEnabled, hasAccess: isPremium && isEnabled, loading }];
+      })
+    ) as Record<PremiumFeature, FeatureAccessResult>;
+  }, [isPremium, subLoading, flags, flagsLoading]);
 }

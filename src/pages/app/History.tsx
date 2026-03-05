@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useTarotCards } from '@/hooks/useTarotCards';
+import { useTarotCards, useCardMap } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { STALE_DAILY, rlsSafeRetry } from '@/queries/queryConfig';
 import {
   BookOpen,
   Loader2,
@@ -58,6 +59,9 @@ export default function History() {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // O(1) card lookup via hook
+  const cardMap = useCardMap(allCards);
+
   // ─── Queries ───────────────────────────────────────────────────────────────
   const {
     data: sessionsData,
@@ -80,6 +84,9 @@ export default function History() {
       if (error) throw error;
       return { sessions: (data || []) as unknown as ReadingSession[], total: count || 0 };
     },
+    staleTime: STALE_DAILY,
+    retry: rlsSafeRetry,
+    placeholderData: (prev) => prev,
   });
 
   const {
@@ -114,16 +121,13 @@ export default function History() {
       }));
       return { readings, total: count || 0 };
     },
+    staleTime: STALE_DAILY,
+    retry: rlsSafeRetry,
+    placeholderData: (prev) => prev,
   });
 
   const isLoading = sessionsLoading || legacyLoading;
   const hasError = sessionsError || legacyError;
-
-  // ─── O(1) card lookup map — eliminates O(n²) in filter ────────────────────
-  const cardMap = useMemo<Map<string, (typeof allCards)[number]>>(() => {
-    if (!allCards) return new Map();
-    return new Map(allCards.map(c => [c.id, c]));
-  }, [allCards]);
 
   // ─── Combine + sort — O(n log n) ──────────────────────────────────────────
   const historyItems: HistoryItem[] = useMemo(() => {

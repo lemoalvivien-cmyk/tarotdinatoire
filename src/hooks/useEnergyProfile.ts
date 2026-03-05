@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { qk, STALE_ANALYTICS, rlsSafeRetry } from '@/queries/queryConfig';
 
 export interface EnergyDimensions {
   emotionnel: number;
@@ -18,18 +19,18 @@ export interface DimensionHistoryPoint extends EnergyDimensions {
 export interface EnergyDimensionsProfile {
   averages:           EnergyDimensions;
   history:            DimensionHistoryPoint[];
-  trend:              EnergyDimensions; // delta vs prior 7 days (+/-)
+  trend:              EnergyDimensions;
   total_scored_draws: number;
 }
 
-const DEFAULT_DIMENSIONS: EnergyDimensions = {
+const DEFAULT_DIMS: EnergyDimensions = {
   emotionnel: 5, relations: 5, carriere: 5, clarte: 5, vitalite: 5,
 };
 
 const DEFAULT_PROFILE: EnergyDimensionsProfile = {
-  averages:           DEFAULT_DIMENSIONS,
-  history:            [],
-  trend:              { emotionnel: 0, relations: 0, carriere: 0, clarte: 0, vitalite: 0 },
+  averages: DEFAULT_DIMS,
+  history: [],
+  trend: { emotionnel: 0, relations: 0, carriere: 0, clarte: 0, vitalite: 0 },
   total_scored_draws: 0,
 };
 
@@ -37,7 +38,7 @@ export function useEnergyProfile(limitDays = 30) {
   const { user, session } = useAuth();
 
   return useQuery({
-    queryKey: ['energy-dimensions-profile', user?.id, limitDays],
+    queryKey: qk.energyDimensions(user?.id, limitDays),
     queryFn: async (): Promise<EnergyDimensionsProfile> => {
       if (!user) return DEFAULT_PROFILE;
       const { data, error } = await supabase.rpc('get_energy_dimensions_profile', {
@@ -45,15 +46,16 @@ export function useEnergyProfile(limitDays = 30) {
         limit_days: limitDays,
       });
       if (error) throw error;
-      const result = data as unknown as EnergyDimensionsProfile;
+      const r = data as unknown as EnergyDimensionsProfile;
       return {
-        averages:           result?.averages           ?? DEFAULT_DIMENSIONS,
-        history:            result?.history            ?? [],
-        trend:              result?.trend              ?? DEFAULT_DIMENSIONS,
-        total_scored_draws: result?.total_scored_draws ?? 0,
+        averages:           r?.averages           ?? DEFAULT_DIMS,
+        history:            r?.history            ?? [],
+        trend:              r?.trend              ?? DEFAULT_DIMS,
+        total_scored_draws: r?.total_scored_draws ?? 0,
       };
     },
     enabled: !!user && !!session,
-    staleTime: 120_000,
+    staleTime: STALE_ANALYTICS,
+    retry: rlsSafeRetry,
   });
 }
