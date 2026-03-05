@@ -8,7 +8,7 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CookieBanner } from "@/components/cookies/CookieBanner";
-import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
+// PWAInstallPrompt is rendered inside Layout — removed duplicate here
 import RemoveLovableBadge from "@/components/RemoveLovableBadge";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 
