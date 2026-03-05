@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { slugToCard, nameToSlug } from '@/utils/cardSlugUtils';
-import { getTarotImagePath } from '@/utils/tarotImageHelpers';
+import { getCardFaceUrl } from '@/utils/tarotImageHelpers';
 import {
   ChevronLeft, ChevronRight, RefreshCw, Star, RotateCcw,
   Sparkles, BookOpen, Moon, Sun, ArrowLeft

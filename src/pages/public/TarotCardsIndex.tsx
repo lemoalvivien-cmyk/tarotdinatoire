@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { nameToSlug } from '@/utils/cardSlugUtils';
-import { getTarotImagePath } from '@/utils/tarotImageHelpers';
+import { getCardFaceUrl } from '@/utils/tarotImageHelpers';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
