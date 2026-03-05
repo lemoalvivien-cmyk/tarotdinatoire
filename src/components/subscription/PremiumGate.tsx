@@ -6,41 +6,43 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { type PremiumFeature } from '@/hooks/useFeatureAccess';
 import { cn } from '@/lib/utils';
 
-const FEATURE_META: Record<PremiumFeature, {
+interface FeatureMeta {
   label: string;
   description: string;
   icon: React.ElementType;
   benefit: string;
-}> = {
+}
+
+const FEATURE_META: Record<PremiumFeature, FeatureMeta> = {
   unlimited_readings: {
-    label: 'Tirages Illimités',
-    description: "Effectuez autant de tirages que vous le souhaitez, sans restriction.",
+    label: 'Tirages Illimites',
+    description: 'Effectuez autant de tirages que vous le souhaitez, sans restriction.',
     icon: BookOpen,
-    benefit: 'Accès illimité à tous vos tirages',
+    benefit: 'Acces illimite a tous vos tirages',
   },
   advanced_spreads: {
-    label: 'Spreads Avancés',
-    description: 'Accédez à la Croix Celtique, le Chemin de Vie et d'autres spreads puissants.',
+    label: 'Spreads Avances',
+    description: 'Acces a la Croix Celtique, le Chemin de Vie et autres spreads puissants.',
     icon: Zap,
-    benefit: 'Déverrouillez la Croix Celtique & le Chemin de Vie',
+    benefit: 'Deverrouillez la Croix Celtique & le Chemin de Vie',
   },
   ai_deep_analysis: {
     label: 'Analyse IA Profonde',
-    description: 'Interprétations enrichies générées par notre Oracle IA avancé.',
+    description: 'Interpretations enrichies generees par notre Oracle IA avance.',
     icon: Brain,
-    benefit: 'Interprétations psychologiques approfondies',
+    benefit: 'Interpretations psychologiques approfondies',
   },
   audio_readings: {
     label: 'Lectures Audio',
-    description: 'Voix mystique féminine qui narre vos tirages en temps réel.',
+    description: 'Voix mystique feminine qui narre vos tirages en temps reel.',
     icon: Headphones,
     benefit: 'Narration vocale mystique par ElevenLabs',
   },
   relationship_analysis: {
     label: 'Analyse Relationnelle',
-    description: 'Spreads dédiés aux relations, compatibilités et dynamiques de couple.',
+    description: 'Spreads dedies aux relations, compatibilites et dynamiques de couple.',
     icon: Users,
-    benefit: 'Tirages spéciaux amour & relations',
+    benefit: 'Tirages speciaux amour & relations',
   },
 };
 
@@ -130,7 +132,7 @@ export function PremiumGate({
         ) : (
           <>
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            Débloquer avec Premium — 3,90€/mois
+            Debloquer avec Premium - 3,90EUR/mois
           </>
         )}
       </Button>
@@ -163,6 +165,6 @@ export function PremiumGate({
     );
   }
 
-  // 'inline' — replace content entirely
+  // 'inline' - replace content entirely
   return content;
 }
