@@ -198,10 +198,10 @@ export default function Onboarding() {
         <div className="w-full max-w-lg space-y-8">
           {/* Progress */}
           <div className="flex justify-center gap-2">
-            {[0, 1].map((i) => (
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 w-16 rounded-full transition-colors ${
+                className={`h-1.5 w-12 rounded-full transition-colors ${
                   i <= step ? 'bg-primary' : 'bg-muted'
                 }`}
               />
