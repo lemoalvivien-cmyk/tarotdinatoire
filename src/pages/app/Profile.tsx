@@ -179,7 +179,7 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8 md:py-14">
         <div className="max-w-2xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-4 animate-fade-in-up">
@@ -213,12 +213,12 @@ export default function Profile() {
               <div className="animate-pulse h-20 bg-muted/30 rounded-lg" />
             ) : isPremium ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20">
-                    <Crown className="h-6 w-6 text-amber-500" />
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/10 border border-secondary/30">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary/20">
+                    <Crown className="h-6 w-6" style={{ color: 'hsl(var(--secondary-foreground))' }} />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-amber-600 dark:text-amber-400">Abonnement Premium</p>
+                    <p className="font-semibold" style={{ color: 'hsl(var(--mystic-gold))' }}>Abonnement Premium</p>
                     <p className="text-sm text-muted-foreground">
                       Tirages illimités • Interprétations approfondies
                     </p>
@@ -313,11 +313,11 @@ export default function Profile() {
 
           {/* Admin Activated Success */}
           {activated && (
-            <div className="p-6 rounded-xl bg-green-500/10 border border-green-500/30 space-y-4 animate-scale-in">
+            <div className="p-6 rounded-xl bg-primary/5 border border-primary/30 space-y-4 animate-scale-in">
               <div className="flex items-start gap-4">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
-                  <h3 className="font-medium text-green-600 dark:text-green-400">Admin activé</h3>
+                  <h3 className="font-medium text-primary">Admin activé</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     Votre compte administrateur est maintenant actif.
                   </p>

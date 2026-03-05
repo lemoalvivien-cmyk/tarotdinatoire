@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -8,63 +9,69 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CookieBanner } from "@/components/cookies/CookieBanner";
-// PWAInstallPrompt is rendered inside Layout — removed duplicate here
 import RemoveLovableBadge from "@/components/RemoveLovableBadge";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
-// Public Pages
+// ─── Public pages — eager (needed at first paint) ─────────────────────────────
 import Landing from "./pages/public/Landing";
 import Auth from "./pages/public/Auth";
-import Disclaimer from "./pages/public/Disclaimer";
-import Status from "./pages/public/Status";
-import Spreads from "./pages/public/Spreads";
-import SpreadDetail from "./pages/public/SpreadDetail";
-import CardsList from "./pages/public/CardsList";
-import CardDetail from "./pages/public/CardDetail";
-import Unsubscribe from "./pages/public/Unsubscribe";
-import SharePage from "./pages/public/SharePage";
-import Privacy from "./pages/legal/Privacy";
-import Terms from "./pages/legal/Terms";
-import Imprint from "./pages/legal/Imprint";
-import CookiesPolicy from "./pages/legal/CookiesPolicy";
-import ExerciseRights from "./pages/legal/ExerciseRights";
-import TarotCardsIndex from "./pages/public/TarotCardsIndex";
-import TarotCardMeaning from "./pages/public/TarotCardMeaning";
 import NotFound from "./pages/NotFound";
 
-// Protected App Pages
-import Dashboard from "./pages/app/Dashboard";
-import DailyRitual from "./pages/app/DailyRitual";
-import Journey from "./pages/app/Journey";
-import Onboarding from "./pages/app/Onboarding";
-import NewReading from "./pages/app/NewReading";
-import History from "./pages/app/History";
-import Favorites from "./pages/app/Favorites";
-import ReadingDetail from "./pages/app/ReadingDetail";
-import ReadingRedirect from "./pages/app/ReadingRedirect";
-import ReadingSession from "./pages/app/ReadingSession";
-import Profile from "./pages/app/Profile";
-import Diagnostic from "./pages/app/Diagnostic";
+// ─── Public pages — lazy ─────────────────────────────────────────────────────
+const Disclaimer       = lazy(() => import("./pages/public/Disclaimer"));
+const Status           = lazy(() => import("./pages/public/Status"));
+const Spreads          = lazy(() => import("./pages/public/Spreads"));
+const SpreadDetail     = lazy(() => import("./pages/public/SpreadDetail"));
+const CardsList        = lazy(() => import("./pages/public/CardsList"));
+const CardDetail       = lazy(() => import("./pages/public/CardDetail"));
+const Unsubscribe      = lazy(() => import("./pages/public/Unsubscribe"));
+const SharePage        = lazy(() => import("./pages/public/SharePage"));
+const TarotCardsIndex  = lazy(() => import("./pages/public/TarotCardsIndex"));
+const TarotCardMeaning = lazy(() => import("./pages/public/TarotCardMeaning"));
 
-// Admin Pages
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminFeatureFlags from "./pages/admin/AdminFeatureFlags";
-import AdminPrompts from "./pages/admin/AdminPrompts";
-import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
-import AdminEdgeTest from "./pages/admin/AdminEdgeTest";
-import AdminCardAssets from "./pages/admin/AdminCardAssets";
-import AdminSpreads from "./pages/admin/AdminSpreads";
-import AdminLeads from "./pages/admin/AdminLeads";
-import AdminStats from "./pages/admin/AdminStats";
-import AdminProdChecklist from "./pages/admin/AdminProdChecklist";
-import AdminImportDeck from "./pages/admin/AdminImportDeck";
+// ─── Legal pages — lazy ──────────────────────────────────────────────────────
+const Privacy       = lazy(() => import("./pages/legal/Privacy"));
+const Terms         = lazy(() => import("./pages/legal/Terms"));
+const Imprint       = lazy(() => import("./pages/legal/Imprint"));
+const CookiesPolicy = lazy(() => import("./pages/legal/CookiesPolicy"));
+const ExerciseRights= lazy(() => import("./pages/legal/ExerciseRights"));
 
+// ─── Protected app pages — lazy ──────────────────────────────────────────────
+const Dashboard      = lazy(() => import("./pages/app/Dashboard"));
+const DailyRitual    = lazy(() => import("./pages/app/DailyRitual"));
+const Journey        = lazy(() => import("./pages/app/Journey"));
+const Onboarding     = lazy(() => import("./pages/app/Onboarding"));
+const NewReading     = lazy(() => import("./pages/app/NewReading"));
+const History        = lazy(() => import("./pages/app/History"));
+const Favorites      = lazy(() => import("./pages/app/Favorites"));
+const ReadingDetail  = lazy(() => import("./pages/app/ReadingDetail"));
+const ReadingRedirect= lazy(() => import("./pages/app/ReadingRedirect"));
+const ReadingSession = lazy(() => import("./pages/app/ReadingSession"));
+const Profile        = lazy(() => import("./pages/app/Profile"));
+const Diagnostic     = lazy(() => import("./pages/app/Diagnostic"));
+
+// ─── Admin pages — lazy (heaviest bundle, rarely visited) ────────────────────
+const AdminDashboard      = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminFeatureFlags   = lazy(() => import("./pages/admin/AdminFeatureFlags"));
+const AdminPrompts        = lazy(() => import("./pages/admin/AdminPrompts"));
+const AdminAuditLogs      = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminEdgeTest       = lazy(() => import("./pages/admin/AdminEdgeTest"));
+const AdminCardAssets     = lazy(() => import("./pages/admin/AdminCardAssets"));
+const AdminSpreads        = lazy(() => import("./pages/admin/AdminSpreads"));
+const AdminLeads          = lazy(() => import("./pages/admin/AdminLeads"));
+const AdminStats          = lazy(() => import("./pages/admin/AdminStats"));
+const AdminProdChecklist  = lazy(() => import("./pages/admin/AdminProdChecklist"));
+const AdminImportDeck     = lazy(() => import("./pages/admin/AdminImportDeck"));
+
+// ─── QueryClient ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Don't retry on 4xx-type errors — avoids RLS 42501 spam
+      // Don't retry on 4xx/RLS errors — avoids 42501 spam
       retry: (failureCount, error) => {
         if (error instanceof Error && error.message.includes('42501')) return false;
+        if (error instanceof Error && error.message.includes('406')) return false;
         return failureCount < 2;
       },
       staleTime: 30_000,
@@ -72,23 +79,27 @@ const queryClient = new QueryClient({
   },
 });
 
-// FIX #1/#7 (SEC-12/SEC-13): Register queryClient so AuthContext.signOut() can
-// call queryClient.clear() — prevents stale data after logout on shared devices
 setQueryClientRef(queryClient);
 
-// Validate all routes at startup (dev AND build - throws if invalid)
+// Route validation (dev + build)
 const allPaths = [
   ...Object.values(CANONICAL_ROUTES),
   ...Object.keys(LEGACY_REDIRECTS),
 ];
 validateRoutes(allPaths);
 
-// Log route dump for verification (dev only)
 if (import.meta.env.DEV) {
   console.log('[ROUTE DUMP] Canonical routes:');
   console.table(Object.entries(CANONICAL_ROUTES).map(([key, path]) => ({ key, path })));
-  console.log('[ROUTE DUMP] Legacy redirects:');
-  console.table(Object.entries(LEGACY_REDIRECTS).map(([from, to]) => ({ from, to })));
+}
+
+// ─── Suspense fallback ────────────────────────────────────────────────────────
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <LoadingScreen message="Chargement…" />
+    </div>
+  );
 }
 
 const App = () => (
@@ -99,68 +110,70 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <MaintenanceGuard>
-              <Routes>
-                {/* ========== PUBLIC ROUTES (ASCII only) ========== */}
-                <Route path="/" element={<Landing />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/disclaimer" element={<Disclaimer />} />
-                <Route path="/status" element={<Status />} />
-                 <Route path="/tirages" element={<Spreads />} />
-                 <Route path="/tirages/:slug" element={<SpreadDetail />} />
-                 <Route path="/cartes" element={<CardsList />} />
-                 <Route path="/cartes/:id" element={<CardDetail />} />
-                 <Route path="/tarot" element={<TarotCardsIndex />} />
-                 <Route path="/tarot/:slug" element={<TarotCardMeaning />} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
-                <Route path="/partage/:shareId" element={<SharePage />} />
-                <Route path="/legal/privacy" element={<Privacy />} />
-                <Route path="/legal/terms" element={<Terms />} />
-                <Route path="/legal/imprint" element={<Imprint />} />
-                <Route path="/legal/cookies" element={<CookiesPolicy />} />
-                <Route path="/legal/rights" element={<ExerciseRights />} />
-                
-                {/* ========== PROTECTED APP ROUTES (ASCII only) ========== */}
-                <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/app/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false} requirePremium={false}><Onboarding /></ProtectedRoute>} />
-                <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
-                <Route path="/app/daily" element={<ProtectedRoute><DailyRitual /></ProtectedRoute>} />
-                <Route path="/app/journey" element={<ProtectedRoute><Journey /></ProtectedRoute>} />
-                <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
-                <Route path="/app/result/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
-                <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-                <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
-                <Route path="/app/diagnostic" element={<ProtectedRoute><Diagnostic /></ProtectedRoute>} />
-                
-                {/* ========== ADMIN ROUTES (ASCII only) ========== */}
-                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                <Route path="/admin/flags" element={<AdminRoute><AdminFeatureFlags /></AdminRoute>} />
-                <Route path="/admin/prompts" element={<AdminRoute><AdminPrompts /></AdminRoute>} />
-                <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
-                <Route path="/admin/edge-test" element={<AdminRoute><AdminEdgeTest /></AdminRoute>} />
-                <Route path="/admin/card-assets" element={<AdminRoute><AdminCardAssets /></AdminRoute>} />
-                <Route path="/admin/spreads" element={<AdminRoute><AdminSpreads /></AdminRoute>} />
-                <Route path="/admin/leads" element={<AdminRoute><AdminLeads /></AdminRoute>} />
-                <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
-                <Route path="/admin/prod-check" element={<AdminRoute><AdminProdChecklist /></AdminRoute>} />
-                <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
-                
-                {/* ========== LEGACY REDIRECTS (ASCII slugs only) ========== */}
-                 <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
-                 <Route path="/statut" element={<Navigate to="/status" replace />} />
-                <Route path="/clause-non-responsabilite" element={<Navigate to="/disclaimer" replace />} />
-                <Route path="/juridique/confidentialite" element={<Navigate to="/legal/privacy" replace />} />
-                <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
-                <Route path="/mentions-juridiques" element={<Navigate to="/legal/terms" replace />} />
-                <Route path="/mentions-legales" element={<Navigate to="/legal/imprint" replace />} />
-                <Route path="/app/lecture/:id" element={<ReadingRedirect />} />
-                <Route path="/admin/journaux-audit" element={<Navigate to="/admin/audit-logs" replace />} />
-                
-                {/* ========== 404 ========== */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* ═══ PUBLIC ═══════════════════════════════════════════════ */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/disclaimer" element={<Disclaimer />} />
+                  <Route path="/status" element={<Status />} />
+                  <Route path="/tirages" element={<Spreads />} />
+                  <Route path="/tirages/:slug" element={<SpreadDetail />} />
+                  <Route path="/cartes" element={<CardsList />} />
+                  <Route path="/cartes/:id" element={<CardDetail />} />
+                  <Route path="/tarot" element={<TarotCardsIndex />} />
+                  <Route path="/tarot/:slug" element={<TarotCardMeaning />} />
+                  <Route path="/unsubscribe" element={<Unsubscribe />} />
+                  <Route path="/partage/:shareId" element={<SharePage />} />
+                  <Route path="/legal/privacy" element={<Privacy />} />
+                  <Route path="/legal/terms" element={<Terms />} />
+                  <Route path="/legal/imprint" element={<Imprint />} />
+                  <Route path="/legal/cookies" element={<CookiesPolicy />} />
+                  <Route path="/legal/rights" element={<ExerciseRights />} />
+
+                  {/* ═══ PROTECTED APP ════════════════════════════════════════ */}
+                  <Route path="/app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/app/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/app/onboarding" element={<ProtectedRoute requireOnboarding={false} requirePremium={false}><Onboarding /></ProtectedRoute>} />
+                  <Route path="/app/new" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
+                  <Route path="/app/daily" element={<ProtectedRoute><DailyRitual /></ProtectedRoute>} />
+                  <Route path="/app/journey" element={<ProtectedRoute><Journey /></ProtectedRoute>} />
+                  <Route path="/app/tirage/:slug" element={<ProtectedRoute><NewReading /></ProtectedRoute>} />
+                  <Route path="/app/result/:sessionId" element={<ProtectedRoute><ReadingSession /></ProtectedRoute>} />
+                  <Route path="/app/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                  <Route path="/app/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+                  <Route path="/app/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/app/reading/:id" element={<ProtectedRoute><ReadingDetail /></ProtectedRoute>} />
+                  <Route path="/app/diagnostic" element={<ProtectedRoute><Diagnostic /></ProtectedRoute>} />
+
+                  {/* ═══ ADMIN ════════════════════════════════════════════════ */}
+                  <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                  <Route path="/admin/flags" element={<AdminRoute><AdminFeatureFlags /></AdminRoute>} />
+                  <Route path="/admin/prompts" element={<AdminRoute><AdminPrompts /></AdminRoute>} />
+                  <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
+                  <Route path="/admin/edge-test" element={<AdminRoute><AdminEdgeTest /></AdminRoute>} />
+                  <Route path="/admin/card-assets" element={<AdminRoute><AdminCardAssets /></AdminRoute>} />
+                  <Route path="/admin/spreads" element={<AdminRoute><AdminSpreads /></AdminRoute>} />
+                  <Route path="/admin/leads" element={<AdminRoute><AdminLeads /></AdminRoute>} />
+                  <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
+                  <Route path="/admin/prod-check" element={<AdminRoute><AdminProdChecklist /></AdminRoute>} />
+                  <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
+
+                  {/* ═══ LEGACY REDIRECTS ══════════════════════════════════════ */}
+                  <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+                  <Route path="/statut" element={<Navigate to="/status" replace />} />
+                  <Route path="/clause-non-responsabilite" element={<Navigate to="/disclaimer" replace />} />
+                  <Route path="/juridique/confidentialite" element={<Navigate to="/legal/privacy" replace />} />
+                  <Route path="/mentions/juridiques" element={<Navigate to="/legal/terms" replace />} />
+                  <Route path="/mentions-juridiques" element={<Navigate to="/legal/terms" replace />} />
+                  <Route path="/mentions-legales" element={<Navigate to="/legal/imprint" replace />} />
+                  <Route path="/app/lecture/:id" element={<ReadingRedirect />} />
+                  <Route path="/admin/journaux-audit" element={<Navigate to="/admin/audit-logs" replace />} />
+
+                  {/* ═══ 404 ═══════════════════════════════════════════════════ */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
               <CookieBanner />
               <RemoveLovableBadge />
             </MaintenanceGuard>
