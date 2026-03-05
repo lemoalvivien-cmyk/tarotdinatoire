@@ -199,12 +199,26 @@ function RevealPhase({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4 }}
-        className="flex flex-col items-center gap-2"
+        className="flex flex-col items-center gap-3"
       >
-        <MysticButton onClick={onContinue} size="lg">
-          <BookOpen className="h-4 w-4 mr-2" />
-          Écrire ma réflexion
-        </MysticButton>
+        <div className="flex items-center gap-3">
+          <MysticButton onClick={onContinue} size="lg">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Écrire ma réflexion
+          </MysticButton>
+          <button
+            onClick={onShare}
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: 'hsl(var(--primary) / 0.15)',
+              border: '1px solid hsl(var(--primary) / 0.4)',
+              color: 'hsl(var(--primary))',
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+            Partager
+          </button>
+        </div>
         <button
           onClick={onContinue}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
@@ -232,10 +246,13 @@ export default function DailyRitual() {
     hasDrawnToday,
   } = useDailyDraw();
 
+  const { data: allCards } = useTarotCards();
+
   const [phase, setPhase] = useState<'anticipation' | 'reveal' | 'journal'>(() =>
     hasDrawnToday ? 'journal' : 'anticipation'
   );
   const [localDraw, setLocalDraw] = useState<DailyDraw | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const activeDraw = localDraw ?? todayDraw;
 
@@ -246,6 +263,9 @@ export default function DailyRitual() {
       setPhase('reveal');
     }
   };
+
+  const activeCard = activeDraw ? allCards?.find(c => c.id === activeDraw.card_id) : null;
+  const interp = activeDraw?.interpretation as Record<string, string> | null;
 
   // If user comes back and already drew today, show journal directly
   const currentPhase = hasDrawnToday && phase === 'anticipation' ? 'journal' : phase;
