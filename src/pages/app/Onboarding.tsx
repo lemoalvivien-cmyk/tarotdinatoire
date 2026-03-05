@@ -26,6 +26,8 @@ const DOMAINS = [
 const MAX_PROFILE_RETRIES = 5;
 const RETRY_DELAY = 300;
 
+const TOTAL_STEPS = 3; // Disclaimer, Profile, Astrology
+
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -33,6 +35,8 @@ export default function Onboarding() {
   const [displayName, setDisplayName] = useState('');
   const [intention, setIntention] = useState('');
   const [preferredDomain, setPreferredDomain] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [zodiacSign, setZodiacSign] = useState('');
   const [isReady, setIsReady] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
