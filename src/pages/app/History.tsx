@@ -178,10 +178,11 @@ export default function History() {
         card?.nom_fr.toLowerCase().includes(q) ||
         card?.keywords_fr?.some(k => k.toLowerCase().includes(q)) ||
         item.summary?.toLowerCase().includes(q) ||
-        item.question?.toLowerCase().includes(q)
+              item.question?.toLowerCase().includes(q)
       );
     });
   }, [historyItems, searchQuery, cardMap]);
+
 
   // ─── Mutations ────────────────────────────────────────────────────────────
   const toggleFavorite = useMutation({

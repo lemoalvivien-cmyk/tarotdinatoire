@@ -194,7 +194,7 @@ export default function Favorites() {
               <p className="text-foreground/80 font-medium">
                 {searchQuery
                   ? `Aucun résultat pour « ${searchQuery} »`
-                  : 'Aucun tirage favori pour l'instant'}
+                  : "Aucun tirage favori pour l'instant"}
               </p>
               {!searchQuery && (
                 <Button onClick={() => navigate('/app/new')} className="btn-mystic">
