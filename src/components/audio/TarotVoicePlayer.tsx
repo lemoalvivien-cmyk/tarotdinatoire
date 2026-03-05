@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, Play, Pause, Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { PremiumGate } from '@/components/subscription/PremiumGate';
 
 interface TarotVoicePlayerProps {
   text: string;
@@ -19,6 +21,7 @@ export function TarotVoicePlayer({
   autoPlay = false,
   className = '',
 }: TarotVoicePlayerProps) {
+  const { hasAccess, loading: accessLoading } = useFeatureAccess('audio_readings');
   const [state, setState] = useState<PlayerState>('idle');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
