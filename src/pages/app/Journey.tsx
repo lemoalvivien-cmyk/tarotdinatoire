@@ -162,15 +162,7 @@ export default function Journey() {
                     border: '1px solid hsl(var(--border))',
                   }}
                 >
-                  {profileLoading ? (
-                    <OracleLoader size="sm" message="Calcul de votre profil…" />
-                  ) : (
-                    <EnergyChart
-                      history={(energyProfile?.energy_history ?? []) as import('@/hooks/useDailyDraw').EnergyHistory[]}
-                      topThemes={(energyProfile?.top_themes ?? []) as import('@/hooks/useDailyDraw').TopTheme[]}
-                      avgEnergy={energyProfile?.avg_energy ?? 5}
-                    />
-                  )}
+                  <EnergyProfileDashboard />
                 </div>
               </TabsContent>
 
