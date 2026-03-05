@@ -42,6 +42,7 @@ export default function ReadingSession() {
   const { user } = useAuth();
   const { data: allCards } = useTarotCards();
   const { track } = useAnalytics();
+  const { zodiacSign } = useAstrology();
 
   const [interpretation, setInterpretation] = useState<TarotInterpretation | TemplateInterpretationData | null>(null);
   const [isInterpreting, setIsInterpreting] = useState(false);
