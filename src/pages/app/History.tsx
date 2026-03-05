@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useTarotCards } from '@/hooks/useTarotCards';
+import { useTarotCards, useCardMap } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { STALE_DAILY, rlsSafeRetry } from '@/queries/queryConfig';
 import {
   BookOpen,
   Loader2,
