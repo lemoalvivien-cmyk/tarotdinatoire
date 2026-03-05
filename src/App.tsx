@@ -28,6 +28,8 @@ import Terms from "./pages/legal/Terms";
 import Imprint from "./pages/legal/Imprint";
 import CookiesPolicy from "./pages/legal/CookiesPolicy";
 import ExerciseRights from "./pages/legal/ExerciseRights";
+import TarotCardsIndex from "./pages/public/TarotCardsIndex";
+import TarotCardMeaning from "./pages/public/TarotCardMeaning";
 import NotFound from "./pages/NotFound";
 
 // Protected App Pages
@@ -92,10 +94,12 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/disclaimer" element={<Disclaimer />} />
                 <Route path="/status" element={<Status />} />
-                <Route path="/tirages" element={<Spreads />} />
-                <Route path="/tirages/:slug" element={<SpreadDetail />} />
-                <Route path="/cartes" element={<CardsList />} />
-                <Route path="/cartes/:id" element={<CardDetail />} />
+                 <Route path="/tirages" element={<Spreads />} />
+                 <Route path="/tirages/:slug" element={<SpreadDetail />} />
+                 <Route path="/cartes" element={<CardsList />} />
+                 <Route path="/cartes/:id" element={<CardDetail />} />
+                 <Route path="/tarot" element={<TarotCardsIndex />} />
+                 <Route path="/tarot/:slug" element={<TarotCardMeaning />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/partage/:shareId" element={<SharePage />} />
                 <Route path="/legal/privacy" element={<Privacy />} />

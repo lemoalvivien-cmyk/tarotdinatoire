@@ -41,3 +41,7 @@ verify_jwt = false
 
 [functions.tarot-tts]
 verify_jwt = false
+
+[functions.card-insight]
+verify_jwt = false
+

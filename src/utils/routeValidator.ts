@@ -46,6 +46,8 @@ export const CANONICAL_ROUTES = {
   SPREAD_DETAIL: '/tirages/:slug',
   CARDS_LIST: '/cartes',
   CARD_DETAIL: '/cartes/:id',
+  TAROT_INDEX: '/tarot',
+  TAROT_CARD: '/tarot/:slug',
   UNSUBSCRIBE: '/unsubscribe',
   SHARE: '/partage/:shareId',
   LEGAL_PRIVACY: '/legal/privacy',
