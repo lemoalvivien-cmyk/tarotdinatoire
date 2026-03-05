@@ -282,30 +282,38 @@ export default function DailyRitual() {
   const { data: allCards } = useTarotCards();
   const { awardXP } = useKarma();
 
-  const [phase, setPhase] = useState<'anticipation' | 'reveal' | 'journal'>(() =>
-    hasDrawnToday ? 'journal' : 'anticipation'
-  );
+  const [phase, setPhase] = useState<'anticipation' | 'reveal' | 'journal'>('anticipation');
   const [localDraw, setLocalDraw] = useState<DailyDraw | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
 
   const activeDraw = localDraw ?? todayDraw;
+
+  // O(1) card lookup — avoid linear scan on every render
+  const activeCard = useMemo(
+    () => (activeDraw ? allCards?.find(c => c.id === activeDraw.card_id) ?? null : null),
+    [activeDraw?.card_id, allCards],
+  );
+  const interp = activeDraw?.interpretation as Record<string, string> | null;
+
+  // React to async data: if draw loads and phase is still anticipation, jump to journal
+  useEffect(() => {
+    if (todayDraw && phase === 'anticipation') {
+      setPhase('journal');
+    }
+  }, [todayDraw, phase]);
 
   const handleDraw = async () => {
     const draw = await performDraw();
     if (draw) {
       setLocalDraw(draw);
       setPhase('reveal');
-      // Award XP for daily draw + streak bonus
       awardXP('daily_draw');
       if (streak >= 1) awardXP('streak_bonus');
     }
   };
 
-  const activeCard = activeDraw ? allCards?.find(c => c.id === activeDraw.card_id) : null;
-  const interp = activeDraw?.interpretation as Record<string, string> | null;
-
-  // If user comes back and already drew today, show journal directly
-  const currentPhase = hasDrawnToday && phase === 'anticipation' ? 'journal' : phase;
+  // currentPhase drives the AnimatePresence — use phase directly (effect handles transition)
+  const currentPhase = phase;
 
   if (drawLoading) {
     return (
