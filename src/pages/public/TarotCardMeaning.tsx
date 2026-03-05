@@ -56,12 +56,6 @@ function useDailyInsight(cardId: string | undefined) {
     queryKey: ['card-insight', cardId],
     queryFn: async () => {
       if (!cardId) return null;
-      const { data, error } = await supabase.functions.invoke('card-insight', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        body: null,
-      });
-      // Use URL params approach
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const url = `https://${projectId}.supabase.co/functions/v1/card-insight?card_id=${encodeURIComponent(cardId)}`;
       const res = await fetch(url);
@@ -73,6 +67,7 @@ function useDailyInsight(cardId: string | undefined) {
     retry: 1,
   });
 }
+
 
 // ── Keyword pill ──────────────────────────────────────────────────────────────
 function KeywordPill({ word }: { word: string }) {
