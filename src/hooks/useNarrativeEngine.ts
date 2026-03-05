@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { qk, STALE_NARRATIVE, rlsSafeRetry } from '@/queries/queryConfig';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface NarrativeMemory {
@@ -36,20 +37,23 @@ export interface NarrativePatternData {
   orientation_split?: { upright: number; reversed: number };
 }
 
+const NARRATIVE_COLUMNS =
+  'id, user_id, summary, themes, key_cards, emotional_arc, emotional_direction, ' +
+  'time_range_start, time_range_end, reading_count, pattern_data, created_at';
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useNarrativeEngine() {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Latest narrative from DB
   const { data: narrative, isLoading } = useQuery({
-    queryKey: ['narrative-memory', user?.id],
+    queryKey: qk.narrative(user?.id),
     queryFn: async (): Promise<NarrativeMemory | null> => {
       if (!user) return null;
       const { data, error } = await supabase
         .from('narrative_memories')
-        .select('*')
+        .select(NARRATIVE_COLUMNS)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -58,17 +62,17 @@ export function useNarrativeEngine() {
       return data as unknown as NarrativeMemory | null;
     },
     enabled: !!user && !!session,
-    staleTime: 300_000, // 5min
+    staleTime: STALE_NARRATIVE,
+    retry: rlsSafeRetry,
   });
 
-  // All narrative history (last 10)
   const { data: narrativeHistory = [] } = useQuery({
-    queryKey: ['narrative-history', user?.id],
+    queryKey: qk.narrativeHistory(user?.id),
     queryFn: async (): Promise<NarrativeMemory[]> => {
       if (!user) return [];
       const { data, error } = await supabase
         .from('narrative_memories')
-        .select('*')
+        .select(NARRATIVE_COLUMNS)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -76,16 +80,15 @@ export function useNarrativeEngine() {
       return (data ?? []) as unknown as NarrativeMemory[];
     },
     enabled: !!user && !!session,
-    staleTime: 300_000,
+    staleTime: STALE_NARRATIVE,
+    retry: rlsSafeRetry,
   });
 
-  // Generate/refresh narrative
   const generateNarrative = useCallback(async (forceRefresh = false): Promise<NarrativeMemory | null> => {
     if (!session?.access_token) {
       toast.error('Session expirée. Veuillez vous reconnecter.');
       return null;
     }
-
     setIsGenerating(true);
     try {
       const resp = await fetch(
@@ -100,43 +103,28 @@ export function useNarrativeEngine() {
         }
       );
 
-      if (resp.status === 429) {
-        toast.error('Limite atteinte. Réessayez dans quelques minutes.');
-        return null;
-      }
-      if (resp.status === 402) {
-        toast.error('Crédits insuffisants pour l\'oracle narratif.');
-        return null;
-      }
+      if (resp.status === 429) { toast.error('Limite atteinte. Réessayez dans quelques minutes.'); return null; }
+      if (resp.status === 402) { toast.error('Crédits insuffisants pour l\'oracle narratif.'); return null; }
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Erreur de génération');
+        throw new Error((err as { error?: string }).error ?? 'Erreur de génération');
       }
 
       const json = await resp.json();
-      const result = json.narrative as NarrativeMemory;
+      if (json.fresh) toast.success('Votre récit a été mis à jour ✨');
 
-      if (json.fresh) {
-        toast.success('Votre récit a été mis à jour ✨');
-      }
+      // Invalidate both keys at once
+      queryClient.invalidateQueries({ queryKey: qk.narrative(user?.id) });
+      queryClient.invalidateQueries({ queryKey: qk.narrativeHistory(user?.id) });
 
-      queryClient.invalidateQueries({ queryKey: ['narrative-memory'] });
-      queryClient.invalidateQueries({ queryKey: ['narrative-history'] });
-
-      return result;
+      return json.narrative as NarrativeMemory;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Impossible de générer le récit.');
       return null;
     } finally {
       setIsGenerating(false);
     }
-  }, [session, queryClient]);
+  }, [session, queryClient, user?.id]);
 
-  return {
-    narrative,
-    narrativeHistory,
-    isLoading,
-    isGenerating,
-    generateNarrative,
-  };
+  return { narrative, narrativeHistory, isLoading, isGenerating, generateNarrative };
 }
