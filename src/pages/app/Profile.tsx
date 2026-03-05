@@ -328,6 +328,23 @@ export default function Profile() {
             </div>
           )}
 
+          {/* ─── Karma & Achievements ───────────────────────────────────────── */}
+          <KarmaWidget />
+
+          <div
+            className="p-6 rounded-2xl space-y-4"
+            style={{
+              background: 'hsl(var(--card) / 0.6)',
+              border: '1px solid hsl(var(--border))',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <Trophy className="h-5 w-5 text-primary" />
+              <h2 className="font-serif text-xl font-semibold">Succès</h2>
+            </div>
+            <AchievementsPanel />
+          </div>
+
           {/* RGPD Actions */}
           <div className="space-y-4">
             <h2 className="font-serif text-xl font-semibold">Vos données (RGPD)</h2>
