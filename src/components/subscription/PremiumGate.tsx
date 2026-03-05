@@ -14,7 +14,7 @@ const FEATURE_META: Record<PremiumFeature, {
 }> = {
   unlimited_readings: {
     label: 'Tirages Illimités',
-    description: 'Effectuez autant de tirages que vous le souhaitez, sans restriction.',
+    description: "Effectuez autant de tirages que vous le souhaitez, sans restriction.",
     icon: BookOpen,
     benefit: 'Accès illimité à tous vos tirages',
   },
