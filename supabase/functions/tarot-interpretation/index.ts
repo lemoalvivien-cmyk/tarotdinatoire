@@ -414,8 +414,9 @@ Génère une interprétation structurée selon le JSON_SCHEMA. Pour chaque posit
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
-        max_tokens: 2500,
+        temperature: 0.72,
+        // Scale tokens: simple spreads (1-3 cards) → 1200, complex (7-10) → 4000
+        max_tokens: cardContexts.length <= 3 ? 1400 : cardContexts.length <= 6 ? 2800 : 4500,
       }),
     });
 
