@@ -149,6 +149,54 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_draws: {
+        Row: {
+          card_id: string
+          created_at: string
+          draw_date: string
+          energy_score: number | null
+          id: string
+          interpretation: Json | null
+          journal_entry: string | null
+          mood: string | null
+          orientation: string
+          reflection_question: string | null
+          themes: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          draw_date?: string
+          energy_score?: number | null
+          id?: string
+          interpretation?: Json | null
+          journal_entry?: string | null
+          mood?: string | null
+          orientation?: string
+          reflection_question?: string | null
+          themes?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          draw_date?: string
+          energy_score?: number | null
+          id?: string
+          interpretation?: Json | null
+          journal_entry?: string | null
+          mood?: string | null
+          orientation?: string
+          reflection_question?: string | null
+          themes?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_leads: {
         Row: {
           consent: boolean
@@ -598,6 +646,7 @@ export type Database = {
           verification_sent_at: string
         }[]
       }
+      get_energy_profile: { Args: { uid: string }; Returns: Json }
       get_my_subscription: {
         Args: never
         Returns: {
@@ -613,6 +662,7 @@ export type Database = {
         }[]
       }
       get_subscription_status: { Args: { uid: string }; Returns: Json }
+      get_user_streak: { Args: { uid: string }; Returns: number }
       has_reading_credits: { Args: { uid: string }; Returns: boolean }
       has_role: {
         Args: {
