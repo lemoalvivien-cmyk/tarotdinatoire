@@ -87,6 +87,13 @@ export function Header() {
                 {isAppRoute && (
                   <>
                     <Link 
+                      to="/app/daily" 
+                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <Flame className="h-4 w-4" />
+                      Rituel
+                    </Link>
+                    <Link 
                       to="/app" 
                       className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
                     >
