@@ -275,8 +275,13 @@ export type Database = {
         Row: {
           admin_bootstrap_used: boolean
           double_opt_in: boolean | null
+          enable_advanced_spreads: boolean | null
+          enable_ai_deep_analysis: boolean | null
+          enable_audio_readings: boolean | null
           enable_billing: boolean | null
+          enable_relationship_analysis: boolean | null
           enable_shop: boolean | null
+          enable_unlimited_readings: boolean | null
           enable_waitlist: boolean | null
           id: number
           maintenance_mode: boolean | null
@@ -285,8 +290,13 @@ export type Database = {
         Insert: {
           admin_bootstrap_used?: boolean
           double_opt_in?: boolean | null
+          enable_advanced_spreads?: boolean | null
+          enable_ai_deep_analysis?: boolean | null
+          enable_audio_readings?: boolean | null
           enable_billing?: boolean | null
+          enable_relationship_analysis?: boolean | null
           enable_shop?: boolean | null
+          enable_unlimited_readings?: boolean | null
           enable_waitlist?: boolean | null
           id?: number
           maintenance_mode?: boolean | null
@@ -295,8 +305,13 @@ export type Database = {
         Update: {
           admin_bootstrap_used?: boolean
           double_opt_in?: boolean | null
+          enable_advanced_spreads?: boolean | null
+          enable_ai_deep_analysis?: boolean | null
+          enable_audio_readings?: boolean | null
           enable_billing?: boolean | null
+          enable_relationship_analysis?: boolean | null
           enable_shop?: boolean | null
+          enable_unlimited_readings?: boolean | null
           enable_waitlist?: boolean | null
           id?: number
           maintenance_mode?: boolean | null
