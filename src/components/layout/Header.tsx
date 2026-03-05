@@ -195,6 +195,14 @@ export function Header() {
                     Accueil
                   </Link>
                   <Link 
+                    to="/app/daily" 
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Flame className="h-4 w-4" />
+                    Rituel du jour
+                  </Link>
+                  <Link 
                     to="/app/new" 
                     className="text-sm font-medium text-foreground hover:text-primary transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
