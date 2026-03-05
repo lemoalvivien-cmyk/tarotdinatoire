@@ -109,7 +109,6 @@ function Section({
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function TarotCardMeaning() {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
   const { data: allCards, isLoading: cardsLoading } = useTarotCards();
 
   // Resolve card from slug
