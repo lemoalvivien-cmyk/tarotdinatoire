@@ -306,6 +306,7 @@ export default function DailyRitual() {
                   key="reveal"
                   draw={activeDraw}
                   onContinue={() => setPhase('journal')}
+                  onShare={() => setShareOpen(true)}
                 />
               )}
 
@@ -329,7 +330,7 @@ export default function DailyRitual() {
                     <div className="flex-1 space-y-1">
                       <p className="text-xs text-muted-foreground">Votre carte du jour</p>
                       <p className="font-serif font-medium text-foreground">
-                        {(activeDraw.interpretation as Record<string, string> | null)?.title ?? activeDraw.card_id}
+                        {interp?.title ?? activeDraw.card_id}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {activeDraw.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
@@ -337,6 +338,19 @@ export default function DailyRitual() {
                         {activeDraw.themes?.slice(0, 2).join(', ')}
                       </p>
                     </div>
+                    {/* Share button on journal view */}
+                    <button
+                      onClick={() => setShareOpen(true)}
+                      className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition-all hover:scale-105"
+                      style={{
+                        background: 'hsl(var(--primary) / 0.12)',
+                        border: '1px solid hsl(var(--primary) / 0.35)',
+                        color: 'hsl(var(--primary))',
+                      }}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      Partager
+                    </button>
                   </div>
 
                   {/* Tabs: Journal / Énergie / Voyage */}
