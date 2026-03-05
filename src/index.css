@@ -503,7 +503,99 @@ div[style*="fixed"] a[href*="lovable.dev"] {
     background: hsl(260 30% 8% / 0.60);
     border-radius: inherit;
   }
+
+  /* ========================================
+     SEMANTIC COMPONENT CLASSES
+     Single source of truth — replace inline style={} and
+     any hardcoded hex / rgba values across all pages.
+     ======================================== */
+
+  /* -- Page header -- */
+  .page-header { @apply text-center space-y-3 animate-fade-in-up; }
+  .page-header-icon {
+    @apply inline-flex items-center justify-center w-14 h-14 rounded-full;
+    background: hsl(var(--primary) / 0.10);
+    color: hsl(var(--primary));
+  }
+  .page-header-title  { @apply font-serif text-3xl md:text-4xl font-semibold text-foreground; }
+  .page-header-subtitle { @apply text-muted-foreground text-sm; }
+
+  /* -- Stat tiles -- */
+  .stat-card {
+    @apply p-5 rounded-xl text-center;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.50);
+  }
+  .stat-card-primary {
+    @apply p-5 rounded-xl text-center;
+    background: hsl(var(--primary) / 0.08);
+    border: 1px solid hsl(var(--primary) / 0.20);
+  }
+  .stat-card-value   { @apply text-3xl font-serif font-semibold text-primary; }
+  .stat-card-label   {
+    @apply text-xs mt-1 flex items-center justify-center gap-1;
+    color: hsl(var(--foreground) / 0.70);
+  }
+
+  /* -- History / journal list row -- */
+  .history-item {
+    @apply group p-4 sm:p-5 rounded-xl cursor-pointer;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.50);
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-easing-default),
+      box-shadow var(--motion-duration-fast) var(--motion-easing-default),
+      transform var(--motion-duration-fast) var(--motion-easing-default);
+  }
+  .history-item:hover {
+    border-color: hsl(var(--primary) / 0.30);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-1px);
+  }
+
+  /* -- Favorite star (tokenized color) -- */
+  .icon-favorite        { color: hsl(var(--color-favorite)); fill: hsl(var(--color-favorite)); }
+  .icon-favorite-empty  { color: hsl(var(--muted-foreground)); }
+  .icon-favorite-empty:hover,
+  .group:hover .icon-favorite-empty { color: hsl(var(--color-favorite) / 0.70); }
+
+  /* -- Action cards (Dashboard quick-actions) -- */
+  .action-card {
+    @apply p-6 rounded-2xl;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.50);
+    box-shadow: var(--shadow-soft);
+    transition:
+      box-shadow var(--motion-duration-fast) var(--motion-easing-default),
+      transform var(--motion-duration-fast) var(--motion-easing-default);
+  }
+  .action-card:hover { box-shadow: var(--shadow-glow); transform: translateY(-4px); }
+
+  .action-card-primary {
+    @apply p-6 rounded-2xl;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05));
+    border: 1px solid hsl(var(--primary) / 0.35);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.15);
+    transition:
+      transform var(--motion-duration-fast) var(--motion-easing-default),
+      box-shadow var(--motion-duration-fast) var(--motion-easing-default);
+  }
+  .action-card-primary:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px hsl(var(--primary) / 0.25);
+  }
+
+  /* -- Daily ritual streak ring -- */
+  .streak-ring {
+    @apply flex flex-col items-center justify-center w-14 h-14 rounded-full;
+    transition:
+      background var(--motion-duration-normal) var(--motion-easing-default),
+      border-color var(--motion-duration-normal) var(--motion-easing-default);
+  }
+  .streak-ring-active  { background: hsl(var(--primary) / 0.20); border: 2px solid hsl(var(--primary) / 0.60); }
+  .streak-ring-inactive{ background: hsl(var(--muted) / 0.50);   border: 2px solid hsl(var(--border)); }
 }
+
 
 @layer utilities {
   /* Animation de flottement */
