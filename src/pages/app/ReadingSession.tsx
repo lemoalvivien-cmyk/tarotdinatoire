@@ -16,6 +16,7 @@ import {
   type TemplateInterpretationData 
 } from '@/utils/tarotTemplateEngine';
 import { InterpretationDisplay } from '@/components/tarot/InterpretationDisplay';
+import { SpreadInterpretationDisplay } from '@/components/tarot/SpreadInterpretationDisplay';
 import { EmailOptInForm } from '@/components/email/EmailOptInForm';
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
