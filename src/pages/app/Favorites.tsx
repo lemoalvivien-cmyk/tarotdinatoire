@@ -160,8 +160,8 @@ export default function Favorites() {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-3 animate-fade-in-up">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-yellow-400/10 text-yellow-500">
-              <Star className="h-7 w-7 fill-yellow-400" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary/30 text-secondary-foreground">
+              <Star className="h-7 w-7" style={{ fill: 'hsl(var(--secondary))', color: 'hsl(var(--secondary))' }} />
             </div>
             <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
               Mes Favoris
@@ -211,7 +211,7 @@ export default function Favorites() {
                 return (
                   <div
                     key={reading.id}
-                    className="group p-4 sm:p-5 rounded-xl bg-card border border-border/50 hover:border-yellow-400/30 hover:shadow-md transition-all cursor-pointer"
+                    className="group p-4 sm:p-5 rounded-xl bg-card border border-border/50 hover:border-secondary/30 hover:shadow-md transition-all cursor-pointer"
                     onClick={() => navigate(`/app/reading/${reading.id}`)}
                   >
                     <div className="flex items-start justify-between gap-3">
