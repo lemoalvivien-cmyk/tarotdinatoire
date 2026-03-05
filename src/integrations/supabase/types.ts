@@ -354,6 +354,7 @@ export type Database = {
           intention: string | null
           onboarding_completed: boolean | null
           preferred_domain: string | null
+          referred_by: string | null
           updated_at: string
         }
         Insert: {
@@ -363,6 +364,7 @@ export type Database = {
           intention?: string | null
           onboarding_completed?: boolean | null
           preferred_domain?: string | null
+          referred_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -372,6 +374,7 @@ export type Database = {
           intention?: string | null
           onboarding_completed?: boolean | null
           preferred_domain?: string | null
+          referred_by?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -467,6 +470,78 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      shared_readings: {
+        Row: {
+          card_id: string
+          card_name_fr: string
+          created_at: string
+          draw_id: string | null
+          expires_at: string
+          id: string
+          image_url: string | null
+          interp_summary: string | null
+          interp_title: string | null
+          orientation: string
+          reading_id: string | null
+          referral_code: string | null
+          share_id: string
+          signup_count: number
+          user_id: string
+          visit_count: number
+        }
+        Insert: {
+          card_id: string
+          card_name_fr?: string
+          created_at?: string
+          draw_id?: string | null
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          interp_summary?: string | null
+          interp_title?: string | null
+          orientation?: string
+          reading_id?: string | null
+          referral_code?: string | null
+          share_id?: string
+          signup_count?: number
+          user_id: string
+          visit_count?: number
+        }
+        Update: {
+          card_id?: string
+          card_name_fr?: string
+          created_at?: string
+          draw_id?: string | null
+          expires_at?: string
+          id?: string
+          image_url?: string | null
+          interp_summary?: string | null
+          interp_title?: string | null
+          orientation?: string
+          reading_id?: string | null
+          referral_code?: string | null
+          share_id?: string
+          signup_count?: number
+          user_id?: string
+          visit_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_readings_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "daily_draws"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_readings_reading_id_fkey"
+            columns: ["reading_id"]
+            isOneToOne: false
+            referencedRelation: "tarot_readings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
