@@ -119,6 +119,8 @@ export default function Onboarding() {
           display_name: displayName || null,
           intention: intention || null,
           preferred_domain: preferredDomain || null,
+          birth_date: birthDate || null,
+          zodiac_sign: zodiacSign || (birthDate ? getZodiacSignFromDate(new Date(birthDate))?.id ?? null : null),
           updated_at: new Date().toISOString(),
         }, {
           onConflict: 'id',
@@ -167,7 +169,7 @@ export default function Onboarding() {
       return;
     }
     
-    if (step === 1) {
+    if (step === TOTAL_STEPS - 1) {
       handleComplete();
     } else {
       setStep(step + 1);
