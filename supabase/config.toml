@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.psychological-reflection]
 verify_jwt = false
+
+[functions.tarot-tts]
+verify_jwt = false
