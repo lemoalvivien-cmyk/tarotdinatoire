@@ -63,7 +63,7 @@ function AnticipationPhase({
             onClick={!isDrawing ? onDraw : undefined}
           >
             <img
-              src="/public/assets/tarot/back.svg"
+              src="/assets/tarot/back.svg"
               alt="Carte cachée"
               className="w-24 h-auto opacity-60"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}

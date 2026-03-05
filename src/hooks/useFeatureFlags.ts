@@ -29,17 +29,22 @@ export function useFeatureFlags() {
     queryFn: async (): Promise<FeatureFlags> => {
       const { data, error } = await supabase
         .from('feature_flags')
-        .select('*')
+        .select('id, maintenance_mode, enable_billing, enable_waitlist, enable_shop, admin_bootstrap_used, updated_at, enable_unlimited_readings, enable_advanced_spreads, enable_ai_deep_analysis, enable_audio_readings, enable_relationship_analysis')
         .eq('id', 1)
         .single();
 
       if (error) {
-        console.error('[useFeatureFlags] Error - requires authentication:', error);
+        // Non-admin users will get RLS 42501 — this is expected, not an error
+        if (error.code === '42501' || error.code === 'PGRST116') {
+          throw error; // silently rethrow to trigger retry: false
+        }
+        console.error('[useFeatureFlags] Unexpected error:', error);
         throw error;
       }
       return data as FeatureFlags;
     },
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
     refetchOnWindowFocus: true,
+    retry: false, // Prevents RLS-denied spam for non-admin users
   });
 }
