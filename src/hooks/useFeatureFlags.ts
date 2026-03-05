@@ -9,6 +9,12 @@ export interface FeatureFlags {
   enable_waitlist: boolean;
   admin_bootstrap_used: boolean;
   updated_at: string;
+  // Premium monetization feature flags
+  enable_unlimited_readings: boolean;
+  enable_advanced_spreads: boolean;
+  enable_ai_deep_analysis: boolean;
+  enable_audio_readings: boolean;
+  enable_relationship_analysis: boolean;
 }
 
 /**

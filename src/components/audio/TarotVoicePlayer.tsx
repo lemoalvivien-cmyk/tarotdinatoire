@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, Play, Pause, Loader2, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { PremiumGate } from '@/components/subscription/PremiumGate';
 
 interface TarotVoicePlayerProps {
   text: string;
@@ -19,6 +21,7 @@ export function TarotVoicePlayer({
   autoPlay = false,
   className = '',
 }: TarotVoicePlayerProps) {
+  const { hasAccess, loading: accessLoading } = useFeatureAccess('audio_readings');
   const [state, setState] = useState<PlayerState>('idle');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -134,7 +137,7 @@ export function TarotVoicePlayer({
 
   const isActive = state === 'playing' || state === 'paused';
 
-  return (
+  const playerUI = (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -243,5 +246,12 @@ export function TarotVoicePlayer({
         </button>
       </div>
     </motion.div>
+  );
+
+  // Gate the entire player behind the audio_readings feature flag
+  return (
+    <PremiumGate feature="audio_readings" hasAccess={hasAccess} loading={accessLoading} variant="inline" className={className}>
+      {playerUI}
+    </PremiumGate>
   );
 }
