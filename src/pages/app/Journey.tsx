@@ -7,10 +7,11 @@ import { PatternInsights } from '@/components/narrative/PatternInsights';
 import { EnergyChart } from '@/components/daily/EnergyChart';
 import { StreakCounter } from '@/components/daily/StreakCounter';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
+import { SynchronicityEngine } from '@/components/synchronicity/SynchronicityEngine';
 import { useNarrativeEngine } from '@/hooks/useNarrativeEngine';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, BarChart2, BookOpen, Clock } from 'lucide-react';
+import { Sparkles, BarChart2, BookOpen, Clock, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Journey() {
