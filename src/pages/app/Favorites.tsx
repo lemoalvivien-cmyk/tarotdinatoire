@@ -29,11 +29,8 @@ export default function Favorites() {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ─── O(1) card lookup ─────────────────────────────────────────────────────
-  const cardMap = useMemo<Map<string, NonNullable<typeof allCards>[number]>>(() => {
-    if (!allCards) return new Map();
-    return new Map(allCards.map(c => [c.id, c]));
-  }, [allCards]);
+  // O(1) card lookup via shared hook
+  const cardMap = useCardMap(allCards);
 
   // ─── Query ────────────────────────────────────────────────────────────────
   const { data, isLoading, error, refetch } = useQuery({
@@ -64,6 +61,9 @@ export default function Favorites() {
       }));
       return { readings, total: count || 0 };
     },
+    staleTime: STALE_DAILY,
+    retry: rlsSafeRetry,
+    placeholderData: (prev) => prev,
   });
 
   // ─── Remove favorite — optimistic ────────────────────────────────────────
