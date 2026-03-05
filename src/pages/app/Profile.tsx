@@ -9,7 +9,9 @@ import { toast } from 'sonner';
 import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
-import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles } from 'lucide-react';
+import { KarmaWidget } from '@/components/gamification/KarmaWidget';
+import { AchievementsPanel } from '@/components/gamification/AchievementsPanel';
+import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles, Trophy } from 'lucide-react';
 import { SubscriptionBadge } from '@/components/subscription';
 import {
   AlertDialog,
