@@ -12,6 +12,7 @@ import { CookieBanner } from "@/components/cookies/CookieBanner";
 import RemoveLovableBadge from "@/components/RemoveLovableBadge";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { rlsSafeRetry, STALE_MEDIUM } from "@/queries/queryConfig";
 
 // ─── Public pages — eager (needed at first paint) ─────────────────────────────
 import Landing from "./pages/public/Landing";
