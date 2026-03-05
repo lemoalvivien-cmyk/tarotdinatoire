@@ -1,72 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
-import { supabase } from '@/integrations/supabase/client';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
+import { useDashboardStats } from '@/queries/useDashboardStats';
 import { KarmaWidget } from '@/components/gamification/KarmaWidget';
 import { Sparkles, Plus, BookOpen, Star, ArrowRight, Flame, Calendar } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [stats, setStats] = useState({ totalReadings: 0, favorites: 0 });
-
   const { streak, hasDrawnToday, drawLoading } = useDailyDraw();
-
-  // Dev logging
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('[Dashboard] State:', {
-        userId: user?.id,
-        profileLoading,
-        onboardingCompleted: profile?.onboarding_completed,
-      });
-    }
-  }, [user?.id, profileLoading, profile?.onboarding_completed]);
+  const { stats, isLoading: statsLoading } = useDashboardStats();
 
   // Redirect to onboarding if not completed
   useEffect(() => {
     if (!profileLoading && profile && !profile.onboarding_completed) {
-      if (import.meta.env.DEV) {
-        console.log('[Dashboard] Onboarding not completed, redirecting');
-      }
       navigate('/app/onboarding', { replace: true });
     }
   }, [profile, profileLoading, navigate]);
-
-  // Fetch stats
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!user) return;
-      try {
-        const { count: totalReadings } = await supabase
-          .from('tarot_readings')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-
-        const { count: favorites } = await supabase
-          .from('tarot_readings')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('is_favorite', true);
-
-        setStats({ totalReadings: totalReadings || 0, favorites: favorites || 0 });
-      } catch (error) {
-        if (import.meta.env.DEV) console.error('[Dashboard] Error fetching stats:', error);
-      } finally {
-        setStatsLoading(false);
-      }
-    };
-
-    if (!profileLoading && profile?.onboarding_completed) fetchStats();
-  }, [user, profileLoading, profile?.onboarding_completed]);
 
   if (profileLoading || statsLoading || drawLoading) {
     return (
@@ -106,7 +61,6 @@ export default function Dashboard() {
                   boxShadow: '0 8px 32px hsl(var(--primary) / 0.15)',
                 }}
               >
-                {/* Background sparkle */}
                 <motion.div
                   className="absolute top-4 right-6 text-4xl opacity-20 select-none pointer-events-none"
                   animate={{ rotate: [0, 15, -10, 0] }}
@@ -117,13 +71,10 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {/* Flame + streak */}
                     <div
                       className="flex flex-col items-center justify-center w-14 h-14 rounded-full"
                       style={{
-                        background: streak > 0
-                          ? 'hsl(var(--primary) / 0.2)'
-                          : 'hsl(var(--muted) / 0.5)',
+                        background: streak > 0 ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--muted) / 0.5)',
                         border: `2px solid ${streak > 0 ? 'hsl(var(--primary) / 0.6)' : 'hsl(var(--border))'}`,
                       }}
                     >
@@ -148,10 +99,7 @@ export default function Dashboard() {
                         {hasDrawnToday && (
                           <span
                             className="text-xs px-2 py-0.5 rounded-full"
-                            style={{
-                              background: 'hsl(var(--primary) / 0.15)',
-                              color: 'hsl(var(--primary))',
-                            }}
+                            style={{ background: 'hsl(var(--primary) / 0.15)', color: 'hsl(var(--primary))' }}
                           >
                             ✓ Complété
                           </span>
@@ -212,7 +160,7 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Stats + Karma */}
+          {/* Stats + Streak */}
           <div className="grid grid-cols-2 gap-4">
             <div className="p-5 rounded-xl bg-card border border-border/50 text-center">
               <p className="text-3xl font-serif font-semibold text-primary">{stats.totalReadings}</p>
@@ -282,6 +230,7 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </Layout>
