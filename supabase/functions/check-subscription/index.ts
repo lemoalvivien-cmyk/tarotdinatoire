@@ -113,8 +113,15 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      cancelAtPeriodEnd = subscription.cancel_at_period_end;
+      // current_period_end can be a unix timestamp (number) or a Date string depending on Stripe API version
+      const rawEnd = subscription.current_period_end;
+      if (rawEnd != null) {
+        const endMs = typeof rawEnd === 'number' ? rawEnd * 1000 : new Date(rawEnd as string).getTime();
+        if (!isNaN(endMs)) {
+          subscriptionEnd = new Date(endMs).toISOString();
+        }
+      }
+      cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
       logStep("Active subscription found", { 
         subscriptionId: subscription.id, 
         endDate: subscriptionEnd,
