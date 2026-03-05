@@ -69,13 +69,8 @@ const AdminImportDeck     = lazy(() => import("./pages/admin/AdminImportDeck"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Don't retry on 4xx/RLS errors — avoids 42501 spam
-      retry: (failureCount, error) => {
-        if (error instanceof Error && error.message.includes('42501')) return false;
-        if (error instanceof Error && error.message.includes('406')) return false;
-        return failureCount < 2;
-      },
-      staleTime: 30_000,
+      retry: rlsSafeRetry,
+      staleTime: STALE_MEDIUM,
     },
   },
 });
