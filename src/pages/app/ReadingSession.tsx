@@ -431,7 +431,12 @@ export default function ReadingSession() {
             {/* Interpretation */}
             {interpretation && (
               <div className="mp-glass rounded-2xl p-6">
-                <InterpretationDisplay interpretation={interpretation} />
+                <SpreadInterpretationDisplay
+                  interpretation={interpretation}
+                  spreadId={session?.spread_id}
+                  cards={selectedCards}
+                  spreadPositions={positions}
+                />
               </div>
             )}
 
