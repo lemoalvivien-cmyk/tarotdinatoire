@@ -11,7 +11,9 @@ import { ShareModal } from '@/components/share/ShareModal';
 import { PsychologicalReflection } from '@/components/reflection/PsychologicalReflection';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { useTarotCards } from '@/hooks/useTarotCards';
+import { useKarma } from '@/hooks/useKarma';
 import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
+import { KarmaWidget } from '@/components/gamification/KarmaWidget';
 import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DailyDraw } from '@/hooks/useDailyDraw';
@@ -278,6 +280,7 @@ export default function DailyRitual() {
   } = useDailyDraw();
 
   const { data: allCards } = useTarotCards();
+  const { awardXP } = useKarma();
 
   const [phase, setPhase] = useState<'anticipation' | 'reveal' | 'journal'>(() =>
     hasDrawnToday ? 'journal' : 'anticipation'
@@ -292,6 +295,9 @@ export default function DailyRitual() {
     if (draw) {
       setLocalDraw(draw);
       setPhase('reveal');
+      // Award XP for daily draw + streak bonus
+      awardXP('daily_draw');
+      if (streak >= 1) awardXP('streak_bonus');
     }
   };
 
@@ -438,9 +444,10 @@ export default function DailyRitual() {
                           existingEntry={activeDraw.journal_entry}
                           existingMood={activeDraw.mood}
                           existingEnergyScore={activeDraw.energy_score}
-                          onSave={({ drawId, journal_entry, mood, energy_score }) =>
-                            saveJournal.mutate({ drawId, journal_entry, mood, energy_score })
-                          }
+                          onSave={({ drawId, journal_entry, mood, energy_score }) => {
+                            saveJournal.mutate({ drawId, journal_entry, mood, energy_score });
+                            awardXP('journal_entry');
+                          }}
                           isSaving={saveJournal.isPending}
                         />
                       </div>

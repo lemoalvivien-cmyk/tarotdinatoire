@@ -9,7 +9,9 @@ import { toast } from 'sonner';
 import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useQueryClient } from '@tanstack/react-query';
-import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles } from 'lucide-react';
+import { KarmaWidget } from '@/components/gamification/KarmaWidget';
+import { AchievementsPanel } from '@/components/gamification/AchievementsPanel';
+import { User, Download, Trash2, AlertTriangle, Shield, CheckCircle, Crown, CreditCard, Calendar, Sparkles, Trophy } from 'lucide-react';
 import { SubscriptionBadge } from '@/components/subscription';
 import {
   AlertDialog,
@@ -325,6 +327,23 @@ export default function Profile() {
               </div>
             </div>
           )}
+
+          {/* ─── Karma & Achievements ───────────────────────────────────────── */}
+          <KarmaWidget />
+
+          <div
+            className="p-6 rounded-2xl space-y-4"
+            style={{
+              background: 'hsl(var(--card) / 0.6)',
+              border: '1px solid hsl(var(--border))',
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <Trophy className="h-5 w-5 text-primary" />
+              <h2 className="font-serif text-xl font-semibold">Succès</h2>
+            </div>
+            <AchievementsPanel />
+          </div>
 
           {/* RGPD Actions */}
           <div className="space-y-4">

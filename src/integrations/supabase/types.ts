@@ -761,6 +761,81 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_key: string
+          earned_at: string
+          id: string
+          user_id: string
+          xp_reward: number
+        }
+        Insert: {
+          achievement_key: string
+          earned_at?: string
+          id?: string
+          user_id: string
+          xp_reward?: number
+        }
+        Update: {
+          achievement_key?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      user_karma: {
+        Row: {
+          created_at: string
+          id: string
+          last_action_at: string | null
+          level: number
+          level_name: string
+          longest_streak: number
+          streak: number
+          total_daily_draws: number
+          total_journals: number
+          total_readings: number
+          total_shares: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_action_at?: string | null
+          level?: number
+          level_name?: string
+          longest_streak?: number
+          streak?: number
+          total_daily_draws?: number
+          total_journals?: number
+          total_readings?: number
+          total_shares?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_action_at?: string | null
+          level?: number
+          level_name?: string
+          longest_streak?: number
+          streak?: number
+          total_daily_draws?: number
+          total_journals?: number
+          total_readings?: number
+          total_shares?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -787,9 +862,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_karma: { Args: { p_action: string; p_uid: string }; Returns: Json }
       bootstrap_first_admin: {
         Args: { allowed_email: string }
         Returns: boolean
+      }
+      compute_karma_level: {
+        Args: { p_xp: number }
+        Returns: {
+          level: number
+          level_name: string
+          progress_pct: number
+          xp_next_level: number
+          xp_this_level: number
+        }[]
       }
       decrement_reading_credit: { Args: { uid: string }; Returns: undefined }
       get_card_patterns: {
@@ -820,6 +906,7 @@ export type Database = {
         Returns: Json
       }
       get_energy_profile: { Args: { uid: string }; Returns: Json }
+      get_karma_profile: { Args: { p_uid: string }; Returns: Json }
       get_my_subscription: {
         Args: never
         Returns: {
