@@ -3,7 +3,63 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Stars, Moon, Sparkles, Shield, Lock, ChevronDown, Flame, BookOpen, Eye, Zap, Heart, TrendingUp } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
-import { MysticButton, SiteHeader, SiteFooter } from '@/components/mystic';
+import { MysticButton } from '@/components/mystic';
+import { Link as RouterLink } from 'react-router-dom';
+import { Shield as ShieldIcon, CreditCard } from 'lucide-react';
+
+// ─── Landing-specific Header & Footer (standalone, no auth needed) ────────────
+function LandingHeader() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b border-white/10 bg-black/20">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+          <RouterLink to="/" className="flex items-center gap-2 group">
+            <Sparkles className="h-7 w-7 transition-all duration-300 group-hover:scale-110" style={{ color: 'hsl(var(--mp-brand-gold))' }} />
+            <span className="font-serif text-xl font-semibold tracking-tight text-white">Tarot Divinatoire</span>
+          </RouterLink>
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+            <span className="text-xs font-medium" style={{ color: 'hsl(var(--mp-brand-gold))' }}>3,90€/mois · Illimité</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function LandingFooter() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className="relative z-10 border-t border-white/10 bg-black/20 backdrop-blur-sm">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+              <CreditCard className="h-4 w-4" style={{ color: 'hsl(var(--mp-brand-gold))' }} />
+              <span className="text-xs text-white/90">3,90€/mois · Sans engagement</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+              <ShieldIcon className="h-4 w-4" style={{ color: 'hsl(var(--mp-brand-gold))' }} />
+              <span className="text-xs text-white/90">Paiement sécurisé Stripe</span>
+            </div>
+          </div>
+          <nav className="flex flex-wrap justify-center gap-4 md:gap-6">
+            {[
+              { href: '/legal/terms', label: 'CGV' },
+              { href: '/legal/privacy', label: 'Confidentialité' },
+              { href: '/legal/imprint', label: 'Mentions légales' },
+              { href: '/disclaimer', label: 'Avertissement' },
+            ].map(l => (
+              <RouterLink key={l.href} to={l.href} className="text-sm text-white/70 hover:text-white transition-colors focus:outline-none focus-visible:underline">
+                {l.label}
+              </RouterLink>
+            ))}
+          </nav>
+          <p className="text-xs text-white/50">© {year} VLM Consulting · L'Œil du Tarot. Tous droits réservés.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
 import { motion, useReducedMotion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 // ─── Animated Starfield Canvas ────────────────────────────────────────────────
