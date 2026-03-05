@@ -8,9 +8,10 @@ import { EnergyChart } from '@/components/daily/EnergyChart';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
 import { ReflectionJournal } from '@/components/daily/ReflectionJournal';
 import { ShareModal } from '@/components/share/ShareModal';
+import { PsychologicalReflection } from '@/components/reflection/PsychologicalReflection';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { useTarotCards } from '@/hooks/useTarotCards';
-import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2 } from 'lucide-react';
+import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DailyDraw } from '@/hooks/useDailyDraw';
 
@@ -353,22 +354,42 @@ export default function DailyRitual() {
                     </button>
                   </div>
 
-                  {/* Tabs: Journal / Énergie / Voyage */}
-                  <Tabs defaultValue="reflection">
-                    <TabsList className="w-full grid grid-cols-3">
-                      <TabsTrigger value="reflection">
-                        <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-                        Réflexion
+                  {/* Tabs: Psychologie / Journal / Énergie / Voyage */}
+                  <Tabs defaultValue="psyche">
+                    <TabsList className="w-full grid grid-cols-4">
+                      <TabsTrigger value="psyche" className="text-xs">
+                        <Brain className="h-3.5 w-3.5 mr-1" />
+                        Psyché
                       </TabsTrigger>
-                      <TabsTrigger value="energy">
-                        <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+                      <TabsTrigger value="reflection" className="text-xs">
+                        <BookOpen className="h-3.5 w-3.5 mr-1" />
+                        Journal
+                      </TabsTrigger>
+                      <TabsTrigger value="energy" className="text-xs">
+                        <TrendingUp className="h-3.5 w-3.5 mr-1" />
                         Énergie
                       </TabsTrigger>
-                      <TabsTrigger value="journey">
-                        <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                      <TabsTrigger value="journey" className="text-xs">
+                        <Sparkles className="h-3.5 w-3.5 mr-1" />
                         Voyage
                       </TabsTrigger>
                     </TabsList>
+
+                    {/* ── Psyché tab (new) ── */}
+                    <TabsContent value="psyche" className="mt-4">
+                      <div
+                        className="rounded-2xl p-5"
+                        style={{
+                          background: 'hsl(var(--card) / 0.5)',
+                          border: '1px solid hsl(var(--border))',
+                        }}
+                      >
+                        <PsychologicalReflection
+                          drawId={activeDraw.id}
+                          cardName={activeCard?.nom_fr ?? activeDraw.card_id}
+                        />
+                      </div>
+                    </TabsContent>
 
                     <TabsContent value="reflection" className="mt-4">
                       <div

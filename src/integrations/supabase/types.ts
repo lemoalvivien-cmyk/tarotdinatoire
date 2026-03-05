@@ -161,6 +161,7 @@ export type Database = {
           journal_entry: string | null
           mood: string | null
           orientation: string
+          psych_reflection: Json | null
           reflection_question: string | null
           themes: string[] | null
           updated_at: string
@@ -177,6 +178,7 @@ export type Database = {
           journal_entry?: string | null
           mood?: string | null
           orientation?: string
+          psych_reflection?: Json | null
           reflection_question?: string | null
           themes?: string[] | null
           updated_at?: string
@@ -193,6 +195,7 @@ export type Database = {
           journal_entry?: string | null
           mood?: string | null
           orientation?: string
+          psych_reflection?: Json | null
           reflection_question?: string | null
           themes?: string[] | null
           updated_at?: string
