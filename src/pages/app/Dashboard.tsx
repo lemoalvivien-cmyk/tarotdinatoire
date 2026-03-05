@@ -212,15 +212,11 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
+          {/* Stats + Karma */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="p-5 rounded-xl bg-card border border-border/50 text-center">
               <p className="text-3xl font-serif font-semibold text-primary">{stats.totalReadings}</p>
               <p className="text-xs text-foreground/70 mt-1">Tirages</p>
-            </div>
-            <div className="p-5 rounded-xl bg-card border border-border/50 text-center">
-              <p className="text-3xl font-serif font-semibold text-secondary">{stats.favorites}</p>
-              <p className="text-xs text-foreground/70 mt-1">Favoris</p>
             </div>
             <div
               className="p-5 rounded-xl text-center"
@@ -237,6 +233,9 @@ export default function Dashboard() {
               </p>
             </div>
           </div>
+
+          {/* Karma / Level widget */}
+          <KarmaWidget />
 
           {/* Empty state */}
           {stats.totalReadings === 0 && !hasDrawnToday && (
