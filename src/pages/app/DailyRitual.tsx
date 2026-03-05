@@ -11,6 +11,7 @@ import { ShareModal } from '@/components/share/ShareModal';
 import { PsychologicalReflection } from '@/components/reflection/PsychologicalReflection';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { useTarotCards } from '@/hooks/useTarotCards';
+import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
 import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DailyDraw } from '@/hooks/useDailyDraw';
@@ -119,6 +120,19 @@ function RevealPhase({
   const card = allCards?.find(c => c.id === draw.card_id);
   const interp = draw.interpretation as Record<string, string> | null;
 
+  // Build narration text from interpretation
+  const narrationText = interp
+    ? [
+        card?.nom_fr ? `${card.nom_fr}.` : '',
+        draw.orientation === 'upright' ? 'À l\'endroit.' : 'Renversée.',
+        interp.title ? interp.title + '.' : '',
+        interp.summary ?? '',
+        interp.advice ? `Conseil du jour : ${interp.advice}` : '',
+      ]
+        .filter(Boolean)
+        .join(' ')
+    : '';
+
   return (
     <motion.div
       key="reveal"
@@ -193,6 +207,22 @@ function RevealPhase({
         >
           <span className="font-medium">Conseil du jour : </span>
           {interp.advice}
+        </motion.div>
+      )}
+
+      {/* Voice narration — autoplay with the reveal */}
+      {narrationText && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.3 }}
+          className="w-full max-w-sm"
+        >
+          <TarotVoicePlayer
+            text={narrationText}
+            context="daily"
+            autoPlay={true}
+          />
         </motion.div>
       )}
 
