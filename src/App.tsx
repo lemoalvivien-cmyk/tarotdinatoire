@@ -22,6 +22,7 @@ import SpreadDetail from "./pages/public/SpreadDetail";
 import CardsList from "./pages/public/CardsList";
 import CardDetail from "./pages/public/CardDetail";
 import Unsubscribe from "./pages/public/Unsubscribe";
+import SharePage from "./pages/public/SharePage";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import Imprint from "./pages/legal/Imprint";
