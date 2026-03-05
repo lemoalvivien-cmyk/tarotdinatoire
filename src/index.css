@@ -252,6 +252,12 @@ div[style*="fixed"] a[href*="lovable.dev"] {
     --sidebar-accent-foreground: 0 0% 94%;
     --sidebar-border: 260 20% 18%;
     --sidebar-ring: 265 50% 65%;
+
+    /* ── Interaction state tokens (dark) ─────────────────── */
+    --color-favorite: 48 96% 53%;
+    --color-success: 142 65% 50%;
+    --color-warning: 38 92% 50%;
+    --color-info: 220 75% 65%;
   }
 }
 
