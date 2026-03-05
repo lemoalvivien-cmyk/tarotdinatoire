@@ -11,6 +11,7 @@ import { ShareModal } from '@/components/share/ShareModal';
 import { PsychologicalReflection } from '@/components/reflection/PsychologicalReflection';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { useTarotCards } from '@/hooks/useTarotCards';
+import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
 import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2, Brain } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DailyDraw } from '@/hooks/useDailyDraw';
