@@ -76,7 +76,7 @@ export function useDailyDraw() {
       if (!user) return { total_draws: 0, streak: 0, avg_energy: 5, top_themes: [], energy_history: [] };
       const { data, error } = await supabase.rpc('get_energy_profile', { uid: user.id });
       if (error) throw error;
-      return (data as EnergyProfile) ?? { total_draws: 0, streak: 0, avg_energy: 5, top_themes: [], energy_history: [] };
+      return (data as unknown as EnergyProfile) ?? { total_draws: 0, streak: 0, avg_energy: 5, top_themes: [], energy_history: [] };
     },
     enabled: !!user && !!session,
     staleTime: 120_000,
