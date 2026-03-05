@@ -7,9 +7,10 @@ import { StreakCounter } from '@/components/daily/StreakCounter';
 import { EnergyChart } from '@/components/daily/EnergyChart';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
 import { ReflectionJournal } from '@/components/daily/ReflectionJournal';
+import { ShareModal } from '@/components/share/ShareModal';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { useTarotCards } from '@/hooks/useTarotCards';
-import { Sparkles, ChevronDown, TrendingUp, BookOpen } from 'lucide-react';
+import { Sparkles, ChevronDown, TrendingUp, BookOpen, Share2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { DailyDraw } from '@/hooks/useDailyDraw';
 
@@ -107,9 +108,11 @@ function AnticipationPhase({
 function RevealPhase({
   draw,
   onContinue,
+  onShare,
 }: {
   draw: DailyDraw;
   onContinue: () => void;
+  onShare: () => void;
 }) {
   const { data: allCards } = useTarotCards();
   const card = allCards?.find(c => c.id === draw.card_id);
@@ -196,12 +199,26 @@ function RevealPhase({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4 }}
-        className="flex flex-col items-center gap-2"
+        className="flex flex-col items-center gap-3"
       >
-        <MysticButton onClick={onContinue} size="lg">
-          <BookOpen className="h-4 w-4 mr-2" />
-          Écrire ma réflexion
-        </MysticButton>
+        <div className="flex items-center gap-3">
+          <MysticButton onClick={onContinue} size="lg">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Écrire ma réflexion
+          </MysticButton>
+          <button
+            onClick={onShare}
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: 'hsl(var(--primary) / 0.15)',
+              border: '1px solid hsl(var(--primary) / 0.4)',
+              color: 'hsl(var(--primary))',
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+            Partager
+          </button>
+        </div>
         <button
           onClick={onContinue}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
@@ -229,10 +246,13 @@ export default function DailyRitual() {
     hasDrawnToday,
   } = useDailyDraw();
 
+  const { data: allCards } = useTarotCards();
+
   const [phase, setPhase] = useState<'anticipation' | 'reveal' | 'journal'>(() =>
     hasDrawnToday ? 'journal' : 'anticipation'
   );
   const [localDraw, setLocalDraw] = useState<DailyDraw | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const activeDraw = localDraw ?? todayDraw;
 
@@ -243,6 +263,9 @@ export default function DailyRitual() {
       setPhase('reveal');
     }
   };
+
+  const activeCard = activeDraw ? allCards?.find(c => c.id === activeDraw.card_id) : null;
+  const interp = activeDraw?.interpretation as Record<string, string> | null;
 
   // If user comes back and already drew today, show journal directly
   const currentPhase = hasDrawnToday && phase === 'anticipation' ? 'journal' : phase;
@@ -283,6 +306,7 @@ export default function DailyRitual() {
                   key="reveal"
                   draw={activeDraw}
                   onContinue={() => setPhase('journal')}
+                  onShare={() => setShareOpen(true)}
                 />
               )}
 
@@ -306,7 +330,7 @@ export default function DailyRitual() {
                     <div className="flex-1 space-y-1">
                       <p className="text-xs text-muted-foreground">Votre carte du jour</p>
                       <p className="font-serif font-medium text-foreground">
-                        {(activeDraw.interpretation as Record<string, string> | null)?.title ?? activeDraw.card_id}
+                        {interp?.title ?? activeDraw.card_id}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {activeDraw.orientation === 'upright' ? 'À l\'endroit' : 'Renversée'}
@@ -314,6 +338,19 @@ export default function DailyRitual() {
                         {activeDraw.themes?.slice(0, 2).join(', ')}
                       </p>
                     </div>
+                    {/* Share button on journal view */}
+                    <button
+                      onClick={() => setShareOpen(true)}
+                      className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition-all hover:scale-105"
+                      style={{
+                        background: 'hsl(var(--primary) / 0.12)',
+                        border: '1px solid hsl(var(--primary) / 0.35)',
+                        color: 'hsl(var(--primary))',
+                      }}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      Partager
+                    </button>
                   </div>
 
                   {/* Tabs: Journal / Énergie / Voyage */}
@@ -400,6 +437,24 @@ export default function DailyRitual() {
           </div>
         </div>
       </MysticBackground>
+
+      {/* Share Modal */}
+      {activeDraw && (
+        <ShareModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          card={activeCard}
+          payload={{
+            draw_id: activeDraw.id,
+            card_id: activeDraw.card_id,
+            card_name_fr: activeCard?.nom_fr ?? activeDraw.card_id,
+            orientation: activeDraw.orientation,
+            interp_title: interp?.title,
+            interp_summary: interp?.summary,
+            image_url: activeCard?.image_url ?? undefined,
+          }}
+        />
+      )}
     </Layout>
   );
 }

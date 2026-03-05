@@ -22,6 +22,7 @@ import SpreadDetail from "./pages/public/SpreadDetail";
 import CardsList from "./pages/public/CardsList";
 import CardDetail from "./pages/public/CardDetail";
 import Unsubscribe from "./pages/public/Unsubscribe";
+import SharePage from "./pages/public/SharePage";
 import Privacy from "./pages/legal/Privacy";
 import Terms from "./pages/legal/Terms";
 import Imprint from "./pages/legal/Imprint";
@@ -96,6 +97,7 @@ const App = () => (
                 <Route path="/cartes" element={<CardsList />} />
                 <Route path="/cartes/:id" element={<CardDetail />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/partage/:shareId" element={<SharePage />} />
                 <Route path="/legal/privacy" element={<Privacy />} />
                 <Route path="/legal/terms" element={<Terms />} />
                 <Route path="/legal/imprint" element={<Imprint />} />
