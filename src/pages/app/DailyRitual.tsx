@@ -444,9 +444,10 @@ export default function DailyRitual() {
                           existingEntry={activeDraw.journal_entry}
                           existingMood={activeDraw.mood}
                           existingEnergyScore={activeDraw.energy_score}
-                          onSave={({ drawId, journal_entry, mood, energy_score }) =>
-                            saveJournal.mutate({ drawId, journal_entry, mood, energy_score })
-                          }
+                          onSave={({ drawId, journal_entry, mood, energy_score }) => {
+                            saveJournal.mutate({ drawId, journal_entry, mood, energy_score });
+                            awardXP('journal_entry');
+                          }}
                           isSaving={saveJournal.isPending}
                         />
                       </div>
