@@ -11,7 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PROFILE_QUERY_KEY } from '@/hooks/useProfile';
-import { Sparkles, Shield, User, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Sparkles, Shield, User, ArrowRight, ArrowLeft, AlertTriangle, Star } from 'lucide-react';
+import { ZODIAC_SIGNS, getZodiacSignFromDate } from '@/utils/astrologyData';
 
 const DOMAINS = [
   { value: 'amour', label: 'Amour & Relations' },
@@ -25,6 +26,8 @@ const DOMAINS = [
 const MAX_PROFILE_RETRIES = 5;
 const RETRY_DELAY = 300;
 
+const TOTAL_STEPS = 3; // Disclaimer, Profile, Astrology
+
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -32,6 +35,8 @@ export default function Onboarding() {
   const [displayName, setDisplayName] = useState('');
   const [intention, setIntention] = useState('');
   const [preferredDomain, setPreferredDomain] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [zodiacSign, setZodiacSign] = useState('');
   const [isReady, setIsReady] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -114,6 +119,8 @@ export default function Onboarding() {
           display_name: displayName || null,
           intention: intention || null,
           preferred_domain: preferredDomain || null,
+          birth_date: birthDate || null,
+          zodiac_sign: zodiacSign || (birthDate ? getZodiacSignFromDate(new Date(birthDate))?.id ?? null : null),
           updated_at: new Date().toISOString(),
         }, {
           onConflict: 'id',
@@ -162,7 +169,7 @@ export default function Onboarding() {
       return;
     }
     
-    if (step === 1) {
+    if (step === TOTAL_STEPS - 1) {
       handleComplete();
     } else {
       setStep(step + 1);
@@ -191,10 +198,10 @@ export default function Onboarding() {
         <div className="w-full max-w-lg space-y-8">
           {/* Progress */}
           <div className="flex justify-center gap-2">
-            {[0, 1].map((i) => (
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 w-16 rounded-full transition-colors ${
+                className={`h-1.5 w-12 rounded-full transition-colors ${
                   i <= step ? 'bg-primary' : 'bg-muted'
                 }`}
               />
@@ -324,6 +331,78 @@ export default function Onboarding() {
             </div>
           )}
 
+          {/* Step 3: Astrology */}
+          {step === 2 && (
+            <div className="space-y-6 animate-fade-in-up">
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 text-primary">
+                  <Star className="h-10 w-10" />
+                </div>
+                <h1 className="font-serif text-2xl md:text-3xl font-semibold">
+                  Votre Profil Astral
+                </h1>
+                <p className="text-muted-foreground">
+                  Enrichissez vos tirages avec votre énergie zodiacale (optionnel).
+                </p>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="birthDate">Date de naissance</Label>
+                  <input
+                    id="birthDate"
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => {
+                      setBirthDate(e.target.value);
+                      if (e.target.value) {
+                        const computed = getZodiacSignFromDate(new Date(e.target.value));
+                        if (computed) setZodiacSign(computed.id);
+                      }
+                    }}
+                    className="w-full h-10 rounded-md border border-input bg-card px-3 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Votre signe sera détecté automatiquement.
+                  </p>
+                </div>
+
+                {zodiacSign && (() => {
+                  const sign = ZODIAC_SIGNS.find(s => s.id === zodiacSign);
+                  if (!sign) return null;
+                  return (
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
+                      <span className="text-3xl">{sign.emoji}</span>
+                      <div>
+                        <p className="font-semibold">{sign.name_fr} {sign.symbol}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {sign.element} · {sign.ruling_planet_fr} · {sign.date_range}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="space-y-2">
+                  <Label htmlFor="zodiacSelect">Ou choisissez votre signe</Label>
+                  <Select value={zodiacSign} onValueChange={setZodiacSign} disabled={loading}>
+                    <SelectTrigger className="bg-card">
+                      <SelectValue placeholder="Signe astrologique (optionnel)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ZODIAC_SIGNS.map((sign) => (
+                        <SelectItem key={sign.id} value={sign.id}>
+                          {sign.emoji} {sign.name_fr} {sign.symbol} — {sign.date_range}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
           <div className="flex items-center justify-between pt-4">
             <Button
@@ -348,15 +427,15 @@ export default function Onboarding() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  {step === 1 ? 'Commencer mon voyage' : 'Continuer'}
+                  {step === TOTAL_STEPS - 1 ? 'Commencer mon voyage' : 'Continuer'}
                   <ArrowRight className="h-4 w-4" />
                 </span>
               )}
             </Button>
           </div>
 
-          {/* Skip (only on step 2) */}
-          {step === 1 && (
+          {/* Skip (only on last 2 steps) */}
+          {step >= 1 && (
             <div className="text-center">
               <button
                 onClick={handleComplete}

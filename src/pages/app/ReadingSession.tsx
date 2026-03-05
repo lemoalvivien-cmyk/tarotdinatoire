@@ -21,6 +21,8 @@ import { EmailOptInForm } from '@/components/email/EmailOptInForm';
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
 import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
+import { AstroInsightPanel } from '@/components/astrology';
+import { useAstrology } from '@/hooks/useAstrology';
 
 interface SpreadPosition {
   key: string;
@@ -40,6 +42,7 @@ export default function ReadingSession() {
   const { user } = useAuth();
   const { data: allCards } = useTarotCards();
   const { track } = useAnalytics();
+  const { zodiacSign } = useAstrology();
 
   const [interpretation, setInterpretation] = useState<TarotInterpretation | TemplateInterpretationData | null>(null);
   const [isInterpreting, setIsInterpreting] = useState(false);
@@ -389,6 +392,11 @@ export default function ReadingSession() {
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Votre question</p>
                 <p className="font-medium text-foreground">{session.question}</p>
               </div>
+            )}
+
+            {/* Astro Influence (if user has zodiac set) */}
+            {zodiacSign && (
+              <AstroInsightPanel zodiacSign={zodiacSign} context="reading" />
             )}
 
             {/* Template/Fallback Info Banner - Discreet */}

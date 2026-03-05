@@ -369,6 +369,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          birth_date: string | null
           created_at: string
           display_name: string | null
           id: string
@@ -377,8 +378,10 @@ export type Database = {
           preferred_domain: string | null
           referred_by: string | null
           updated_at: string
+          zodiac_sign: string | null
         }
         Insert: {
+          birth_date?: string | null
           created_at?: string
           display_name?: string | null
           id: string
@@ -387,8 +390,10 @@ export type Database = {
           preferred_domain?: string | null
           referred_by?: string | null
           updated_at?: string
+          zodiac_sign?: string | null
         }
         Update: {
+          birth_date?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -397,6 +402,7 @@ export type Database = {
           preferred_domain?: string | null
           referred_by?: string | null
           updated_at?: string
+          zodiac_sign?: string | null
         }
         Relationships: []
       }
