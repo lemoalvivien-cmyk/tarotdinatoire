@@ -28,6 +28,8 @@ import Terms from "./pages/legal/Terms";
 import Imprint from "./pages/legal/Imprint";
 import CookiesPolicy from "./pages/legal/CookiesPolicy";
 import ExerciseRights from "./pages/legal/ExerciseRights";
+import TarotCardsIndex from "./pages/public/TarotCardsIndex";
+import TarotCardMeaning from "./pages/public/TarotCardMeaning";
 import NotFound from "./pages/NotFound";
 
 // Protected App Pages
