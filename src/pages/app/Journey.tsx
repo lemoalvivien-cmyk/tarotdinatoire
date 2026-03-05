@@ -4,14 +4,14 @@ import { MysticBackground } from '@/components/mystic';
 import { StepHeader, OracleLoader } from '@/components/tarot-ui';
 import { NarrativeMemoryCard } from '@/components/narrative/NarrativeMemoryCard';
 import { PatternInsights } from '@/components/narrative/PatternInsights';
-import { EnergyChart } from '@/components/daily/EnergyChart';
+import { EnergyProfileDashboard } from '@/components/daily/EnergyProfileDashboard';
 import { StreakCounter } from '@/components/daily/StreakCounter';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
 import { SynchronicityEngine } from '@/components/synchronicity/SynchronicityEngine';
 import { useNarrativeEngine } from '@/hooks/useNarrativeEngine';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, BarChart2, BookOpen, Clock, Zap } from 'lucide-react';
+import { Sparkles, BarChart2, BookOpen, Clock, Zap, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Journey() {
