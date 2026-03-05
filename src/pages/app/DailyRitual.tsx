@@ -375,6 +375,22 @@ export default function DailyRitual() {
                       </TabsTrigger>
                     </TabsList>
 
+                    {/* ── Psyché tab (new) ── */}
+                    <TabsContent value="psyche" className="mt-4">
+                      <div
+                        className="rounded-2xl p-5"
+                        style={{
+                          background: 'hsl(var(--card) / 0.5)',
+                          border: '1px solid hsl(var(--border))',
+                        }}
+                      >
+                        <PsychologicalReflection
+                          drawId={activeDraw.id}
+                          cardName={activeCard?.nom_fr ?? activeDraw.card_id}
+                        />
+                      </div>
+                    </TabsContent>
+
                     <TabsContent value="reflection" className="mt-4">
                       <div
                         className="rounded-2xl p-5"
