@@ -31,6 +31,7 @@ import NotFound from "./pages/NotFound";
 
 // Protected App Pages
 import Dashboard from "./pages/app/Dashboard";
+import DailyRitual from "./pages/app/DailyRitual";
 import Onboarding from "./pages/app/Onboarding";
 import NewReading from "./pages/app/NewReading";
 import History from "./pages/app/History";
