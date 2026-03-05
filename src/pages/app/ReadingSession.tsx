@@ -21,6 +21,8 @@ import { EmailOptInForm } from '@/components/email/EmailOptInForm';
 import { MysticBackground, MysticButton } from '@/components/mystic';
 import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
 import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
+import { AstroInsightPanel } from '@/components/astrology';
+import { useAstrology } from '@/hooks/useAstrology';
 
 interface SpreadPosition {
   key: string;
