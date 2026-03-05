@@ -151,7 +151,6 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieBanner />
-              <PWAInstallPrompt />
               <RemoveLovableBadge />
             </MaintenanceGuard>
           </BrowserRouter>

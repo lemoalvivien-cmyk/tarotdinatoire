@@ -297,7 +297,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
         ogDescription="Un oracle qui vous connaît. Tirage quotidien · Analyse psychologique · Récit de vie IA · Synchronicités."
       />
 
-      <SiteHeader />
+      <LandingHeader />
 
       {/* ── HERO ── */}
       <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
@@ -728,7 +728,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
         </div>
       </section>
 
-      <SiteFooter />
+      <LandingFooter />
     </div>
   );
 });
