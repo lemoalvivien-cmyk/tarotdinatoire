@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download } from 'lucide-react';
+import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -86,6 +86,13 @@ export function Header() {
               <>
                 {isAppRoute && (
                   <>
+                    <Link 
+                      to="/app/daily" 
+                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <Flame className="h-4 w-4" />
+                      Rituel
+                    </Link>
                     <Link 
                       to="/app" 
                       className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
@@ -186,6 +193,14 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Accueil
+                  </Link>
+                  <Link 
+                    to="/app/daily" 
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Flame className="h-4 w-4" />
+                    Rituel du jour
                   </Link>
                   <Link 
                     to="/app/new" 
