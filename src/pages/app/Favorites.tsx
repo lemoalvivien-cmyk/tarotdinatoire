@@ -257,7 +257,7 @@ export default function Favorites() {
                         disabled={removeFavorite.isPending && removeFavorite.variables === reading.id}
                         title="Retirer des favoris"
                       >
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform" />
+                        <Star className="h-4 w-4 group-hover:scale-110 transition-transform" style={{ fill: 'hsl(var(--secondary))', color: 'hsl(var(--secondary))' }} />
                       </Button>
                     </div>
                   </div>
