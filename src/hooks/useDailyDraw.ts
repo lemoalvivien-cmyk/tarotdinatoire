@@ -113,12 +113,16 @@ export function useDailyDraw() {
     staleTime: 60_000,
   });
 
-  // Perform today's draw via Edge Function
+  // Perform today's draw via Edge Function — idempotent (server enforces one-per-day)
+  const isDrawingRef = useRef(false);
   const performDraw = useCallback(async (): Promise<DailyDraw | null> => {
     if (!session?.access_token) {
       toast.error('Session expirée. Veuillez vous reconnecter.');
       return null;
     }
+    // Guard double-click / concurrent calls
+    if (isDrawingRef.current) return null;
+    isDrawingRef.current = true;
     setIsDrawing(true);
     try {
       const resp = await fetch(
