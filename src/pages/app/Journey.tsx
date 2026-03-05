@@ -115,6 +115,19 @@ export default function Journey() {
                 />
               </TabsContent>
 
+              {/* ── Synchronicity tab ───────────────────────────────── */}
+              <TabsContent value="sync" className="mt-4">
+                <div
+                  className="rounded-2xl p-5"
+                  style={{
+                    background: 'hsl(var(--card) / 0.5)',
+                    border: '1px solid hsl(var(--border))',
+                  }}
+                >
+                  <SynchronicityEngine />
+                </div>
+              </TabsContent>
+
               {/* ── Patterns tab ────────────────────────────────────── */}
               <TabsContent value="patterns" className="mt-4">
                 <div
