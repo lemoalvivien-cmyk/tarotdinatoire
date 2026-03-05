@@ -210,6 +210,22 @@ function RevealPhase({
         </motion.div>
       )}
 
+      {/* Voice narration — autoplay with the reveal */}
+      {narrationText && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.3 }}
+          className="w-full max-w-sm"
+        >
+          <TarotVoicePlayer
+            text={narrationText}
+            context="daily"
+            autoPlay={true}
+          />
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
