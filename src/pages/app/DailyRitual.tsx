@@ -280,6 +280,7 @@ export default function DailyRitual() {
   } = useDailyDraw();
 
   const { data: allCards } = useTarotCards();
+  const { awardXP } = useKarma();
 
   const [phase, setPhase] = useState<'anticipation' | 'reveal' | 'journal'>(() =>
     hasDrawnToday ? 'journal' : 'anticipation'
@@ -294,6 +295,9 @@ export default function DailyRitual() {
     if (draw) {
       setLocalDraw(draw);
       setPhase('reveal');
+      // Award XP for daily draw + streak bonus
+      awardXP('daily_draw');
+      if (streak >= 1) awardXP('streak_bonus');
     }
   };
 
