@@ -107,7 +107,7 @@ export function useDailyDraw() {
         .order('draw_date', { ascending: false })
         .limit(30);
       if (error) throw error;
-      return (data ?? []) as DailyDraw[];
+      return (data ?? []) as unknown as DailyDraw[];
     },
     enabled: !!user && !!session,
     staleTime: 60_000,
