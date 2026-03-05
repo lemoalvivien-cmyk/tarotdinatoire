@@ -66,6 +66,11 @@ export default {
           violet: "hsl(var(--mystic-violet))",
           lavender: "hsl(var(--mystic-lavender))",
         },
+        // Interaction state tokens
+        favorite: "hsl(var(--color-favorite))",
+        success: "hsl(var(--color-success))",
+        warning: "hsl(var(--color-warning))",
+        info: "hsl(var(--color-info))",
         celestial: {
           blue: "hsl(var(--celestial-blue))",
         },

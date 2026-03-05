@@ -9,6 +9,7 @@ import { KarmaWidget } from '@/components/gamification/KarmaWidget';
 import { Sparkles, Plus, BookOpen, Star, ArrowRight, Flame, Calendar } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
 
 export default function Dashboard() {
   const { profile, loading: profileLoading } = useProfile();
@@ -36,31 +37,25 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-5xl mx-auto space-y-8">
+        <motion.div
+          className="max-w-5xl mx-auto space-y-8"
+          variants={staggerContainer(0.1, 0)}
+          initial="hidden"
+          animate="visible"
+        >
 
           {/* Welcome */}
-          <div className="text-center space-y-3 animate-fade-in-up">
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
+          <motion.div variants={fadeInUp} className="page-header">
+            <h1 className="page-header-title">
               Bienvenue dans votre espace mystique
             </h1>
-            <p className="text-foreground/80">Que souhaitez-vous explorer aujourd'hui ?</p>
-          </div>
+            <p className="page-header-subtitle text-base">Que souhaitez-vous explorer aujourd'hui ?</p>
+          </motion.div>
 
-          {/* ─── Daily Ritual CTA — Hero card ───────────────────────────────── */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          {/* ─── Daily Ritual CTA — Hero card ──────────────────────────── */}
+          <motion.div variants={staggerItem}>
             <Link to="/app/daily" className="group block">
-              <div
-                className="relative overflow-hidden rounded-2xl p-6 md:p-8 transition-all hover:-translate-y-1"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))',
-                  border: '1px solid hsl(var(--primary) / 0.35)',
-                  boxShadow: '0 8px 32px hsl(var(--primary) / 0.15)',
-                }}
-              >
+              <div className="action-card-primary relative overflow-hidden">
                 <motion.div
                   className="absolute top-4 right-6 text-4xl opacity-20 select-none pointer-events-none"
                   animate={{ rotate: [0, 15, -10, 0] }}
@@ -71,13 +66,8 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div
-                      className="flex flex-col items-center justify-center w-14 h-14 rounded-full"
-                      style={{
-                        background: streak > 0 ? 'hsl(var(--primary) / 0.2)' : 'hsl(var(--muted) / 0.5)',
-                        border: `2px solid ${streak > 0 ? 'hsl(var(--primary) / 0.6)' : 'hsl(var(--border))'}`,
-                      }}
-                    >
+                    {/* Streak ring */}
+                    <div className={`streak-ring ${streak > 0 ? 'streak-ring-active' : 'streak-ring-inactive'}`}>
                       <Flame
                         className="h-6 w-6"
                         style={{ color: streak > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
@@ -97,10 +87,7 @@ export default function Dashboard() {
                           Rituel du jour
                         </h2>
                         {hasDrawnToday && (
-                          <span
-                            className="text-xs px-2 py-0.5 rounded-full"
-                            style={{ background: 'hsl(var(--primary) / 0.15)', color: 'hsl(var(--primary))' }}
-                          >
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary">
                             ✓ Complété
                           </span>
                         )}
@@ -119,8 +106,7 @@ export default function Dashboard() {
                   </div>
 
                   <ArrowRight
-                    className="h-5 w-5 opacity-50 group-hover:opacity-100 transition-all group-hover:translate-x-1"
-                    style={{ color: 'hsl(var(--primary))' }}
+                    className="h-5 w-5 opacity-50 group-hover:opacity-100 transition-all group-hover:translate-x-1 text-primary"
                   />
                 </div>
               </div>
@@ -128,9 +114,9 @@ export default function Dashboard() {
           </motion.div>
 
           {/* Quick Actions grid */}
-          <div className="grid md:grid-cols-2 gap-5">
+          <motion.div variants={staggerItem} className="grid md:grid-cols-2 gap-5">
             <Link to="/app/new" className="group">
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-soft transition-all hover:shadow-glow hover:-translate-y-1">
+              <div className="action-card-primary">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <Plus className="h-6 w-6 text-primary" />
@@ -145,7 +131,7 @@ export default function Dashboard() {
             </Link>
 
             <Link to="/app/history" className="group">
-              <div className="p-6 rounded-2xl bg-card border border-border/50 shadow-soft transition-all hover:shadow-soft hover:-translate-y-1">
+              <div className="action-card">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-secondary/30 flex items-center justify-center">
                     <BookOpen className="h-6 w-6 text-foreground" />
@@ -158,37 +144,34 @@ export default function Dashboard() {
                 </div>
               </div>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Stats + Streak */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 rounded-xl bg-card border border-border/50 text-center">
-              <p className="text-3xl font-serif font-semibold text-primary">{stats.totalReadings}</p>
-              <p className="text-xs text-foreground/70 mt-1">Tirages</p>
+          <motion.div variants={staggerItem} className="grid grid-cols-2 gap-4">
+            <div className="stat-card">
+              <p className="stat-card-value">{stats.totalReadings}</p>
+              <p className="stat-card-label">Tirages</p>
             </div>
-            <div
-              className="p-5 rounded-xl text-center"
-              style={{
-                background: 'hsl(var(--primary) / 0.08)',
-                border: '1px solid hsl(var(--primary) / 0.2)',
-              }}
-            >
-              <p className="text-3xl font-serif font-semibold" style={{ color: 'hsl(var(--primary))' }}>
-                {streak}
-              </p>
-              <p className="text-xs text-foreground/70 mt-1 flex items-center justify-center gap-1">
+            <div className="stat-card-primary">
+              <p className="stat-card-value">{streak}</p>
+              <p className="stat-card-label">
                 <Flame className="h-3 w-3" /> Série
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Karma / Level widget */}
-          <KarmaWidget />
+          <motion.div variants={staggerItem}>
+            <KarmaWidget />
+          </motion.div>
 
           {/* Empty state */}
           {stats.totalReadings === 0 && !hasDrawnToday && (
-            <div className="p-10 rounded-2xl glass-mystic text-center space-y-5 animate-scale-in">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary">
+            <motion.div
+              variants={staggerItem}
+              className="p-10 rounded-2xl glass-mystic text-center space-y-5"
+            >
+              <div className="page-header-icon mx-auto">
                 <Star className="h-8 w-8" />
               </div>
               <div className="space-y-2">
@@ -211,12 +194,12 @@ export default function Dashboard() {
                   </Button>
                 </Link>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Returning user quick links */}
           {(stats.totalReadings > 0 || hasDrawnToday) && (
-            <div className="p-5 rounded-xl bg-card border border-border/50">
+            <motion.div variants={staggerItem} className="p-5 rounded-xl bg-card border border-border/50">
               <h3 className="font-serif text-sm font-semibold text-foreground mb-3">Actions rapides</h3>
               <div className="flex flex-wrap gap-2">
                 <Link to="/app/favorites">
@@ -228,10 +211,10 @@ export default function Dashboard() {
                   <Button variant="outline" size="sm">Mon profil</Button>
                 </Link>
               </div>
-            </div>
+            </motion.div>
           )}
 
-        </div>
+        </motion.div>
       </div>
     </Layout>
   );

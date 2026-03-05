@@ -273,15 +273,13 @@ export default function History() {
     <Layout>
       <div className="container mx-auto px-4 py-8 md:py-14">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-3 animate-fade-in-up">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 text-primary">
+          {/* Header — semantic .page-header */}
+          <div className="page-header">
+            <div className="page-header-icon">
               <BookOpen className="h-7 w-7" />
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-              Journal des Tirages
-            </h1>
-            <p className="text-muted-foreground text-sm">
+            <h1 className="page-header-title">Journal des Tirages</h1>
+            <p className="page-header-subtitle">
               {totalItems} tirage{totalItems !== 1 ? 's' : ''} au total
             </p>
           </div>
@@ -302,7 +300,7 @@ export default function History() {
           {/* Empty state */}
           {filteredItems.length === 0 ? (
             <div className="p-12 rounded-2xl glass-mystic text-center space-y-4 animate-scale-in">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 text-primary">
+              <div className="page-header-icon mx-auto">
                 <Sparkles className="h-7 w-7" />
               </div>
               <p className="text-foreground/80 font-medium">
@@ -324,7 +322,7 @@ export default function History() {
                 return (
                   <div
                     key={`${item.type}-${item.id}`}
-                    className="group p-4 sm:p-5 rounded-xl bg-card border border-border/50 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
+                    className="history-item"
                     onClick={() => handleItemClick(item)}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -375,9 +373,7 @@ export default function History() {
                         >
                           <Star
                             className={`h-4 w-4 transition-colors ${
-                              item.is_favorite
-                                ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-muted-foreground group-hover:text-yellow-400'
+                              item.is_favorite ? 'icon-favorite' : 'icon-favorite-empty'
                             }`}
                           />
                         </Button>

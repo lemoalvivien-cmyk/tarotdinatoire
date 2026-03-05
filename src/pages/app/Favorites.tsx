@@ -159,15 +159,13 @@ export default function Favorites() {
     <Layout>
       <div className="container mx-auto px-4 py-8 md:py-14">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-3 animate-fade-in-up">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary/30 text-secondary-foreground">
-              <Star className="h-7 w-7" style={{ fill: 'hsl(var(--secondary))', color: 'hsl(var(--secondary))' }} />
+          {/* Header — semantic .page-header */}
+          <div className="page-header">
+            <div className="page-header-icon" style={{ background: 'hsl(var(--color-favorite) / 0.15)', color: 'hsl(var(--color-favorite))' }}>
+              <Star className="h-7 w-7 icon-favorite" />
             </div>
-            <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground">
-              Mes Favoris
-            </h1>
-            <p className="text-muted-foreground text-sm">
+            <h1 className="page-header-title">Mes Favoris</h1>
+            <p className="page-header-subtitle">
               {data?.total ?? 0} tirage{(data?.total ?? 0) !== 1 ? 's' : ''} sauvegardé
               {(data?.total ?? 0) !== 1 ? 's' : ''}
             </p>
@@ -189,7 +187,7 @@ export default function Favorites() {
           {/* Empty state */}
           {filteredReadings.length === 0 ? (
             <div className="p-12 rounded-2xl glass-mystic text-center space-y-4 animate-scale-in">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 text-primary">
+              <div className="page-header-icon mx-auto">
                 <Sparkles className="h-7 w-7" />
               </div>
               <p className="text-foreground/80 font-medium">
@@ -212,7 +210,7 @@ export default function Favorites() {
                 return (
                   <div
                     key={reading.id}
-                    className="group p-4 sm:p-5 rounded-xl bg-card border border-border/50 hover:border-secondary/30 hover:shadow-md transition-all cursor-pointer"
+                    className="history-item"
                     onClick={() => navigate(`/app/reading/${reading.id}`)}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -258,7 +256,7 @@ export default function Favorites() {
                         disabled={removeFavorite.isPending && removeFavorite.variables === reading.id}
                         title="Retirer des favoris"
                       >
-                        <Star className="h-4 w-4 group-hover:scale-110 transition-transform" style={{ fill: 'hsl(var(--secondary))', color: 'hsl(var(--secondary))' }} />
+                        <Star className="h-4 w-4 icon-favorite group-hover:scale-110 transition-transform" />
                       </Button>
                     </div>
                   </div>
