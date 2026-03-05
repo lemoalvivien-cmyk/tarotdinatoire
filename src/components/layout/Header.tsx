@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download } from 'lucide-react';
+import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
