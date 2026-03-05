@@ -96,6 +96,7 @@ const App = () => (
                 <Route path="/cartes" element={<CardsList />} />
                 <Route path="/cartes/:id" element={<CardDetail />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/partage/:shareId" element={<SharePage />} />
                 <Route path="/legal/privacy" element={<Privacy />} />
                 <Route path="/legal/terms" element={<Terms />} />
                 <Route path="/legal/imprint" element={<Imprint />} />

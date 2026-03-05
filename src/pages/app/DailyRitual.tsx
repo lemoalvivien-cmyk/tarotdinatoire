@@ -437,6 +437,24 @@ export default function DailyRitual() {
           </div>
         </div>
       </MysticBackground>
+
+      {/* Share Modal */}
+      {activeDraw && (
+        <ShareModal
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          card={activeCard}
+          payload={{
+            draw_id: activeDraw.id,
+            card_id: activeDraw.card_id,
+            card_name_fr: activeCard?.nom_fr ?? activeDraw.card_id,
+            orientation: activeDraw.orientation,
+            interp_title: interp?.title,
+            interp_summary: interp?.summary,
+            image_url: activeCard?.image_url ?? undefined,
+          }}
+        />
+      )}
     </Layout>
   );
 }
