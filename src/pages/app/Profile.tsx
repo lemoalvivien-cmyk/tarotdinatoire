@@ -213,12 +213,12 @@ export default function Profile() {
               <div className="animate-pulse h-20 bg-muted/30 rounded-lg" />
             ) : isPremium ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/20">
-                    <Crown className="h-6 w-6 text-amber-500" />
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-secondary/10 border border-secondary/30">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary/20">
+                    <Crown className="h-6 w-6" style={{ color: 'hsl(var(--secondary-foreground))' }} />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-amber-600 dark:text-amber-400">Abonnement Premium</p>
+                    <p className="font-semibold" style={{ color: 'hsl(var(--mystic-gold))' }}>Abonnement Premium</p>
                     <p className="text-sm text-muted-foreground">
                       Tirages illimités • Interprétations approfondies
                     </p>
