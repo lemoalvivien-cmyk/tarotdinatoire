@@ -21,7 +21,7 @@ const ARCANA_LABELS: Record<string, string> = {
 
 function CardThumb({ card }: { card: TarotCard }) {
   const slug = nameToSlug(card.nom_fr);
-  const img = getTarotImagePath(card.id, card.image_url);
+  const img = card ? getCardFaceUrl(card) : null;
 
   return (
     <Link

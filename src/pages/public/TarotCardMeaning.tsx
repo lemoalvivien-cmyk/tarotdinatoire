@@ -130,7 +130,7 @@ export default function TarotCardMeaning() {
   const { data: insightData, isLoading: insightLoading, refetch: refetchInsight } = useDailyInsight(card?.id);
 
   // Image path
-  const imagePath = card ? getTarotImagePath(card.id, card.image_url) : null;
+  const imagePath = card ? getCardFaceUrl(card) : null;
 
   // Spiritual interpretation derived from meanings + keywords
   const spiritualInterpretation = card
