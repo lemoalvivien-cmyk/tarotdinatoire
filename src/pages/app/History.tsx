@@ -66,7 +66,7 @@ export default function History() {
 
       const { data, error, count } = await supabase
         .from('reading_sessions')
-        .select('*, reading_results(*)', { count: 'exact' })
+        .select('id, spread_id, question, selected_cards, created_at, reading_results(id, interpretation)', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -84,7 +84,7 @@ export default function History() {
 
       const { data, error, count } = await supabase
         .from('tarot_readings')
-        .select('*', { count: 'exact' })
+        .select('id, user_id, spread_id, question, cards, ai_interpretation, user_notes, is_favorite, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
 

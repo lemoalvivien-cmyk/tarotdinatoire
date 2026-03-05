@@ -36,7 +36,7 @@ export default function Favorites() {
 
       const { data, error, count } = await supabase
         .from('tarot_readings')
-        .select('*', { count: 'exact' })
+        .select('id, user_id, spread_id, question, cards, ai_interpretation, user_notes, is_favorite, created_at', { count: 'exact' })
         .eq('is_favorite', true)
         .order('created_at', { ascending: false })
         .range(from, to);

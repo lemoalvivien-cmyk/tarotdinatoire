@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame, Map } from 'lucide-react';
@@ -57,8 +57,9 @@ export function Header() {
     navigate('/');
   };
 
-  // Check if user is on app routes
-  const isAppRoute = window.location.pathname.startsWith('/app');
+  const location = useLocation();
+  // isAppRoute must be derived from location to be reactive
+  const isAppRoute = location.pathname.startsWith('/app');
 
   return (
     <header className="sticky top-0 z-50 glass-mystic border-b border-border/50">

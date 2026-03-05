@@ -8,7 +8,7 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MaintenanceGuard } from "@/components/layout/MaintenanceGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CookieBanner } from "@/components/cookies/CookieBanner";
-import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
+// PWAInstallPrompt is rendered inside Layout — removed duplicate here
 import RemoveLovableBadge from "@/components/RemoveLovableBadge";
 import { validateRoutes, CANONICAL_ROUTES, LEGACY_REDIRECTS } from "@/utils/routeValidator";
 
@@ -59,7 +59,18 @@ import AdminStats from "./pages/admin/AdminStats";
 import AdminProdChecklist from "./pages/admin/AdminProdChecklist";
 import AdminImportDeck from "./pages/admin/AdminImportDeck";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Don't retry on 4xx-type errors — avoids RLS 42501 spam
+      retry: (failureCount, error) => {
+        if (error instanceof Error && error.message.includes('42501')) return false;
+        return failureCount < 2;
+      },
+      staleTime: 30_000,
+    },
+  },
+});
 
 // FIX #1/#7 (SEC-12/SEC-13): Register queryClient so AuthContext.signOut() can
 // call queryClient.clear() — prevents stale data after logout on shared devices
@@ -151,7 +162,6 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <CookieBanner />
-              <PWAInstallPrompt />
               <RemoveLovableBadge />
             </MaintenanceGuard>
           </BrowserRouter>

@@ -9,23 +9,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { 
-  RefreshCw, 
-  Wand2, 
-  AlertTriangle, 
-  Home, 
-  Sparkles, 
-  Shuffle, 
-  Scissors,
-  Heart,
-  HelpCircle,
-  ArrowRight,
-  ArrowLeft,
-  Star,
-  Target,
-  Compass,
-  Check
-} from 'lucide-react';
+import { RefreshCw, AlertTriangle, Home, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import type { TarotCard as TarotCardType } from '@/types/tarot';
@@ -41,7 +25,7 @@ import { SelectedCardsDisplay } from '@/components/tarot/SelectedCardsDisplay';
 import { InterpretationLoader } from '@/components/tarot/InterpretationLoader';
 import { PaywallOverlay } from '@/components/subscription/PaywallOverlay';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
+import { StepContainer, StepTitle, IntentionGrid, RitualPhase, INTENTIONS } from '@/components/tarot/RitualStepUI';
 
 const questionSchema = z.string().max(240, 'La question ne doit pas dépasser 240 caractères').optional();
 
@@ -59,14 +43,6 @@ const STEPS = [
 ];
 
 type StepId = 'intention' | 'question' | 'spread' | 'ritual' | 'selection' | 'reading';
-
-// Intention options
-const INTENTIONS = [
-  { id: 'guidance', label: 'Guidance générale', icon: Compass, description: 'Un éclairage sur ma situation' },
-  { id: 'love', label: 'Amour', icon: Heart, description: 'Relations, sentiments' },
-  { id: 'career', label: 'Carrière', icon: Target, description: 'Travail, projets' },
-  { id: 'personal', label: 'Développement', icon: Star, description: 'Croissance personnelle' },
-];
 
 interface SpreadPosition {
   key: string;
@@ -310,6 +286,7 @@ export default function NewReading() {
       if (!accessToken) {
         toast.error('Session expirée. Veuillez vous reconnecter.');
         navigate('/auth');
+        isSubmittingRef.current = false;
         return;
       }
 
@@ -668,124 +645,4 @@ export default function NewReading() {
   );
 }
 
-// Sub-components
-
-function StepContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-function StepTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div className="text-center space-y-2">
-      <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-white drop-shadow-lg">
-        {title}
-      </h1>
-      {subtitle && (
-        <p className="text-white/80 text-sm sm:text-base drop-shadow-md">
-          {subtitle}
-        </p>
-      )}
-    </div>
-  );
-}
-
-interface RitualPhaseProps {
-  phase: string;
-  onShuffle: () => void;
-  onCut: () => void;
-  onStartSelection: () => void;
-  shuffledDeck: TarotCardType[];
-  cardsRequired: number;
-  goBack: () => void;
-}
-
-function RitualPhase({
-  phase,
-  onShuffle,
-  onCut,
-  onStartSelection,
-  shuffledDeck,
-  cardsRequired,
-  goBack,
-}: RitualPhaseProps) {
-  const isShuffling = phase === 'shuffling';
-  const isCutting = phase === 'cutting';
-  const showShuffle = phase === 'idle' || phase === 'shuffling';
-  const showCut = phase === 'shuffled' || phase === 'cutting';
-  const showStart = phase === 'cut';
-
-  return (
-    <div className="space-y-8">
-      <StepTitle 
-        title={
-          showShuffle ? (isShuffling ? 'Le jeu se mélange...' : 'Mélangez le jeu') :
-          showCut ? (isCutting ? 'Coupe en cours...' : 'Coupez le jeu') :
-          'Le jeu est prêt'
-        }
-        subtitle={
-          showShuffle ? 'Concentrez-vous sur votre question' :
-          showCut ? 'La coupe scelle votre intention' :
-          'Choisissez vos cartes'
-        }
-      />
-
-      {/* Animated deck */}
-      <AnimatedDeck
-        cards={shuffledDeck}
-        phase={phase as 'idle' | 'shuffling' | 'shuffled' | 'cutting' | 'cut' | 'selecting' | 'ready'}
-        selectedCardIds={[]}
-        maxCards={cardsRequired}
-      />
-
-      {/* Actions */}
-      <div className="flex flex-col items-center gap-4">
-        {showShuffle && (
-          <MysticButton
-            size="lg"
-            onClick={onShuffle}
-            disabled={isShuffling}
-            leftIcon={<Shuffle className="w-5 h-5" />}
-          >
-            {isShuffling ? 'Mélange...' : 'Mélanger le jeu'}
-          </MysticButton>
-        )}
-        
-        {showCut && (
-          <MysticButton
-            size="lg"
-            onClick={onCut}
-            disabled={isCutting}
-            leftIcon={<Scissors className="w-5 h-5" />}
-          >
-            {isCutting ? 'Coupe...' : 'Couper le jeu'}
-          </MysticButton>
-        )}
-        
-        {showStart && (
-          <MysticButton
-            size="lg"
-            onClick={onStartSelection}
-            leftIcon={<Wand2 className="w-5 h-5" />}
-          >
-            Choisir mes cartes
-          </MysticButton>
-        )}
-        
-        <MysticButton variant="ghost" size="sm" onClick={goBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour
-        </MysticButton>
-      </div>
-    </div>
-  );
-}
+// Sub-components extracted to src/components/tarot/RitualStepUI.tsx

@@ -48,12 +48,12 @@ export default function Dashboard() {
       try {
         const { count: totalReadings } = await supabase
           .from('tarot_readings')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id);
 
         const { count: favorites } = await supabase
           .from('tarot_readings')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .eq('is_favorite', true);
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -113,12 +113,16 @@ export function useDailyDraw() {
     staleTime: 60_000,
   });
 
-  // Perform today's draw via Edge Function
+  // Perform today's draw via Edge Function — idempotent (server enforces one-per-day)
+  const isDrawingRef = useRef(false);
   const performDraw = useCallback(async (): Promise<DailyDraw | null> => {
     if (!session?.access_token) {
       toast.error('Session expirée. Veuillez vous reconnecter.');
       return null;
     }
+    // Guard double-click / concurrent calls
+    if (isDrawingRef.current) return null;
+    isDrawingRef.current = true;
     setIsDrawing(true);
     try {
       const resp = await fetch(
@@ -157,6 +161,7 @@ export function useDailyDraw() {
       return null;
     } finally {
       setIsDrawing(false);
+      isDrawingRef.current = false;
     }
   }, [session, queryClient]);
 
