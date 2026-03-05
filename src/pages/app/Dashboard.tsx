@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
+import { KarmaWidget } from '@/components/gamification/KarmaWidget';
 import { Sparkles, Plus, BookOpen, Star, ArrowRight, Flame, Calendar } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
