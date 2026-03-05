@@ -313,11 +313,11 @@ export default function Profile() {
 
           {/* Admin Activated Success */}
           {activated && (
-            <div className="p-6 rounded-xl bg-green-500/10 border border-green-500/30 space-y-4 animate-scale-in">
+            <div className="p-6 rounded-xl bg-primary/5 border border-primary/30 space-y-4 animate-scale-in">
               <div className="flex items-start gap-4">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
-                  <h3 className="font-medium text-green-600 dark:text-green-400">Admin activé</h3>
+                  <h3 className="font-medium text-primary">Admin activé</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     Votre compte administrateur est maintenant actif.
                   </p>
