@@ -304,7 +304,7 @@ export default function History() {
               <p className="text-foreground/80 font-medium">
                 {searchQuery
                   ? `Aucun résultat pour « ${searchQuery} »`
-                  : 'Votre journal est vide pour l'instant'}
+                  : "Votre journal est vide pour l'instant"}
               </p>
               {!searchQuery && (
                 <Button onClick={() => navigate('/app/new')} className="btn-mystic">
