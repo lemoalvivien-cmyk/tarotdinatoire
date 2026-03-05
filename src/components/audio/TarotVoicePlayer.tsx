@@ -137,7 +137,7 @@ export function TarotVoicePlayer({
 
   const isActive = state === 'playing' || state === 'paused';
 
-  return (
+  const playerUI = (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
