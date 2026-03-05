@@ -329,14 +329,30 @@ serve(async (req) => {
     const hasLegalTopic = /\b(procès|avocat|tribunal|jugement|condamn|prison|divorce|garde|juridique|légal|plainte|litige)\b/i.test(questionLower);
     const hasFinancialTopic = /\b(investir|bourse|actions|bitcoin|crypto|prêt|crédit|dette|faillite|héritage|placement|trader)\b/i.test(questionLower);
 
+    // ── Spread-specific archetypal context ──────────────────────────────────
+    const SPREAD_ARCHETYPES: Record<string, string> = {
+      three_cards: `Ce tirage en 3 cartes révèle la ligne du temps de l'âme: Passé (racine karmique), Présent (carrefour d'action), Futur (potentiel émergent). Chaque carte dialogue avec les autres pour créer une narrative cohérente.`,
+      celtic_cross: `La Croix Celtique est le tirage le plus complet du tarot. Les 10 positions forment un système d'analyse holistique: la croix centrale révèle le cœur du sujet, le bâton vertical montre la trajectoire. Tisse les fils entre les positions pour une lecture intégrée.`,
+      relationship: `Ce tirage relationnel explore la constellation énergétique entre deux personnes. Analyse les miroirs entre Vous (pos.1) et L'Autre (pos.2), le Lien qui les unit (pos.3), l'Obstacle (pos.4), les Fondations (pos.5), le Potentiel (pos.6) et la Guidance (pos.7). La relation est un chemin de croissance mutuelle.`,
+      life_path: `Ce tirage du Chemin de Vie touche aux archétypes profonds de l'âme. L'Âme (pos.1) dialogue avec les Dons (pos.2) et les Ombres (pos.3) pour révéler la totalité de l'être. Le Passé (pos.4), Présent (pos.5) et la Leçon (pos.6) tissent le fil karmique. La Vocation (pos.7), le Défi (pos.8) et la Destinée (pos.9) révèlent la mission de vie. Utilise un langage archétypal profond.`,
+      amour: `Ce tirage de l'amour explore la dynamique affective en profondeur. Analyse les résonances entre Vous et l'Autre, ce qui unit et ce qui défie, le passé, présent et futur du lien. Sois bienveillant — les questions du cœur sont délicates.`,
+      marseille: `Ce grand tirage Marseille offre une vision panoramique de la vie. Tisse ensemble les 10 positions comme un tapissier qui révèle le motif caché derrière les fils apparents. La synthèse doit être aussi puissante que les positions individuelles.`,
+    };
+
+    const spreadArchetype = SPREAD_ARCHETYPES[payload.spread_id] || `Ce tirage de ${cardContexts.length} cartes offre une guidance sur votre chemin de vie actuel.`;
+
     // Build prompt
-    const systemPrompt = `Tu es un tarologue expert du Tarot de Marseille avec 30 ans d'expérience. Tu pratiques une approche bienveillante et introspective du tarot.
+    const systemPrompt = `Tu es un tarologue expert du Tarot de Marseille avec 30 ans d'expérience. Tu pratiques une approche jungienne, bienveillante et profondément introspective.
 
 STYLE ET TON:
 - Ton mystique et premium, jamais fataliste ni alarmiste
-- Langage évocateur avec métaphores lumineuses
-- Français soutenu mais accessible
-- Toujours bienveillant et encourageant
+- Langage archétypal et poétique avec métaphores lumineuses
+- Français soutenu mais accessible et intime
+- Toujours bienveillant, encourageant et non-directif
+- Chaque position est une invitation à la conscience, jamais une prédiction figée
+
+ARCHÉTYPE DU TIRAGE:
+${spreadArchetype}
 
 RÈGLES DE SÉCURITÉ:
 - JAMAIS d'avis médical, juridique ou financier
@@ -349,29 +365,30 @@ ${hasFinancialTopic ? "⚠️ La question touche les finances: recommander un co
 STRUCTURE DE RÉPONSE (JSON STRICT):
 ${JSON_SCHEMA}
 
-IMPORTANT: Répondre UNIQUEMENT en JSON valide, sans texte avant/après, sans bloc markdown.`;
+IMPORTANT: Répondre UNIQUEMENT en JSON valide, sans texte avant/après, sans bloc markdown.
+Pour les tirages complexes (>5 cartes), le message dans interpretation_par_position doit être de 4-6 phrases par carte.
+Le message_global doit tisser ensemble les fils de toutes les cartes en une narrative cohérente (6-10 phrases).`;
 
     const userContext = profile ? 
-      `Contexte: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention: ${profile.intention}. ` : ""}` : "";
+      `Contexte: ${profile.display_name ? `Pseudo: ${profile.display_name}. ` : ""}${profile.intention ? `Intention de vie: ${profile.intention}. ` : ""}${profile.preferred_domain ? `Domaine de prédilection: ${profile.preferred_domain}. ` : ""}` : "";
 
     const userPrompt = `${userContext}
 
-Question: ${payload.question || "Guidance générale demandée."}
+Question: ${payload.question || "Guidance générale sur mon chemin actuel."}
 
 Tirage: ${spreadData?.name_fr || payload.spread_id} (${cardContexts.length} carte${cardContexts.length > 1 ? 's' : ''})
 
-Cartes tirées:
-${cardContexts.map(c => `- Position "${c!.position_label}": ${c!.name_fr} (${c!.type === "major" ? "Arcane Majeur" : "Mineur"})
-  Sens: ${c!.orientation === "upright" ? "À l'endroit" : "Renversée"}
-  Signification: ${c!.meaning || "N/A"}
-  Mots-clés: ${c!.keywords?.join(", ") || "N/A"}`).join("\n\n")}
+Cartes tirées dans l'ordre:
+${cardContexts.map((c, i) => `${i + 1}. Position "${c!.position_label}": ${c!.name_fr} (${c!.type === "major" ? "Arcane Majeur #" + c!.numero : "Arcane Mineur"})
+   Sens: ${c!.orientation === "upright" ? "À l'endroit — énergie exprimée" : "Renversée — énergie intériorisée"}
+   Signification: ${c!.meaning || "Guidance et introspection"}
+   Mots-clés: ${c!.keywords?.join(", ") || "transformation, clarté"}`).join("\n\n")}
 
-Génère une interprétation structurée avec:
-- resume_court (max 300 caractères)
-- interpretation_par_position (une entrée par carte avec position, carte, sens, message détaillé)
-- message_global (synthèse bienveillante)
-- actions_concretes (5 actions pratiques)
-- limites_ethiques (rappel déontologique)`;
+Génère une interprétation structurée selon le JSON_SCHEMA. Pour chaque position, le message doit:
+- Relier spécifiquement la carte à sa position dans ce tirage
+- Utiliser les mots-clés de la carte de façon évocatrice
+- Donner une guidance concrète adaptée à cette position
+- Pour les tirages > 5 cartes: faire des ponts entre les cartes (ex: "Cette carte répond à celle du Passé...")`;
 
     console.log("Calling Lovable AI...");
 
