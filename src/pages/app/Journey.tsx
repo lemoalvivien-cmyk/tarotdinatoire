@@ -7,10 +7,11 @@ import { PatternInsights } from '@/components/narrative/PatternInsights';
 import { EnergyChart } from '@/components/daily/EnergyChart';
 import { StreakCounter } from '@/components/daily/StreakCounter';
 import { JourneyTimeline } from '@/components/daily/JourneyTimeline';
+import { SynchronicityEngine } from '@/components/synchronicity/SynchronicityEngine';
 import { useNarrativeEngine } from '@/hooks/useNarrativeEngine';
 import { useDailyDraw } from '@/hooks/useDailyDraw';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, BarChart2, BookOpen, Clock } from 'lucide-react';
+import { Sparkles, BarChart2, BookOpen, Clock, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Journey() {
@@ -81,14 +82,18 @@ export default function Journey() {
 
             {/* Main tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="w-full grid grid-cols-4">
+              <TabsList className="w-full grid grid-cols-5">
                 <TabsTrigger value="narrative" className="text-xs">
                   <Sparkles className="h-3.5 w-3.5 mr-1" />
                   Récit
                 </TabsTrigger>
+                <TabsTrigger value="sync" className="text-xs">
+                  <Zap className="h-3.5 w-3.5 mr-1" />
+                  Sync
+                </TabsTrigger>
                 <TabsTrigger value="patterns" className="text-xs">
                   <BarChart2 className="h-3.5 w-3.5 mr-1" />
-                  Patterns
+                  Radar
                 </TabsTrigger>
                 <TabsTrigger value="energy" className="text-xs">
                   <BarChart2 className="h-3.5 w-3.5 mr-1" />
@@ -108,6 +113,19 @@ export default function Journey() {
                   isGenerating={isGenerating}
                   onGenerate={(force) => generateNarrative(force ?? false)}
                 />
+              </TabsContent>
+
+              {/* ── Synchronicity tab ───────────────────────────────── */}
+              <TabsContent value="sync" className="mt-4">
+                <div
+                  className="rounded-2xl p-5"
+                  style={{
+                    background: 'hsl(var(--card) / 0.5)',
+                    border: '1px solid hsl(var(--border))',
+                  }}
+                >
+                  <SynchronicityEngine />
+                </div>
               </TabsContent>
 
               {/* ── Patterns tab ────────────────────────────────────── */}

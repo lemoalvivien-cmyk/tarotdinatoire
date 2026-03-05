@@ -23,3 +23,18 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.synchronicity-engine]
+verify_jwt = false
+
+[functions.og-share]
+verify_jwt = false
+
+[functions.daily-draw]
+verify_jwt = false
+
+[functions.narrative-engine]
+verify_jwt = false
+
+[functions.psychological-reflection]
+verify_jwt = false
