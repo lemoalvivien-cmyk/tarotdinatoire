@@ -210,7 +210,7 @@ export default function Favorites() {
                 return (
                   <div
                     key={reading.id}
-                    className="history-item"
+                    className="history-item group"
                     onClick={() => navigate(`/app/reading/${reading.id}`)}
                   >
                     <div className="flex items-start justify-between gap-3">
