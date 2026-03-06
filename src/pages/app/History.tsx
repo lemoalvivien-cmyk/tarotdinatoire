@@ -322,7 +322,7 @@ export default function History() {
                 return (
                   <div
                     key={`${item.type}-${item.id}`}
-                    className="history-item"
+                    className="history-item group"
                     onClick={() => handleItemClick(item)}
                   >
                     <div className="flex items-start justify-between gap-3">

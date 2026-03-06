@@ -539,7 +539,7 @@ div[style*="fixed"] a[href*="lovable.dev"] {
 
   /* -- History / journal list row -- */
   .history-item {
-    @apply group p-4 sm:p-5 rounded-xl cursor-pointer;
+    @apply p-4 sm:p-5 rounded-xl cursor-pointer;
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border) / 0.50);
     transition:
