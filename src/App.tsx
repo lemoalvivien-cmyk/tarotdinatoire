@@ -155,6 +155,7 @@ const App = () => (
                   <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
                   <Route path="/admin/prod-check" element={<AdminRoute><AdminProdChecklist /></AdminRoute>} />
                   <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
+                  <Route path="/admin/agent-jobs" element={<AdminRoute><AdminAgentJobs /></AdminRoute>} />
 
                   {/* ═══ LEGACY REDIRECTS ══════════════════════════════════════ */}
                   <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />

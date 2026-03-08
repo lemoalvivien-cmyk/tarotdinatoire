@@ -45,3 +45,6 @@ verify_jwt = false
 [functions.card-insight]
 verify_jwt = false
 
+[functions.agent-dispatcher]
+verify_jwt = false
+
