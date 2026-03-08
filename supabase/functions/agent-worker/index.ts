@@ -1,26 +1,48 @@
 /**
  * agent-worker — OpenClaw job consumer
  *
- * Architecture:
- * ─────────────────────────────────────────────────────────
+ * ══════════════════════════════════════════════════════════
+ * SÉCURITÉ — FAIL-CLOSED
+ * ══════════════════════════════════════════════════════════
+ * 1. Si WORKER_SECRET n'est PAS configuré en env → 500 immédiat.
+ *    Il n'existe AUCUN mode "ouvert en dev". Toute invocation sans
+ *    secret configuré est rejetée. Configurer WORKER_SECRET est
+ *    obligatoire avant toute exécution.
+ *
+ * 2. Si le header x-worker-secret est absent ou incorrect → 401.
+ *
+ * ══════════════════════════════════════════════════════════
+ * ARCHITECTURE
+ * ══════════════════════════════════════════════════════════
  *   Frontend → agent-dispatcher → agent_jobs (DB) → agent-worker
  *                                                        ↓
  *                                              OpenClawJobExecutor
  *                                              (adapts job_type → action)
  *
- * IMPORTANT — Current status per job_type:
- *   ui_qa_check          → ⚠ ADAPTER/STUB (returns mock result)
- *   content_synthesis    → ⚠ ADAPTER/STUB (returns mock result)
- *   data_verification    → ✅ REAL  (queries agent_jobs DB stats)
- *   admin_assist_review  → ⚠ ADAPTER/STUB (returns mock result)
- *   security_drift_check → ⚠ ADAPTER/STUB (returns mock result — no external OpenClaw API yet)
+ * JAMAIS : Frontend → OpenClaw directement.
+ * JAMAIS : Worker sans WORKER_SECRET configuré.
  *
- * To plug in a real OpenClaw API, set OPENCLAW_API_URL + OPENCLAW_API_KEY secrets
- * and update OpenClawClient below. Stubs will be replaced job-type by job-type.
+ * ══════════════════════════════════════════════════════════
+ * ÉTAT DES HANDLERS PAR JOB_TYPE
+ * ══════════════════════════════════════════════════════════
+ *   ui_qa_check          → ⚠ STUB (OPENCLAW_API_URL requis pour activer)
+ *   content_synthesis    → ⚠ STUB (OPENCLAW_API_URL requis pour activer)
+ *   data_verification    → ✅ RÉEL (query DB agent_jobs — aucune API externe)
+ *   admin_assist_review  → ⚠ STUB (OPENCLAW_API_URL requis pour activer)
+ *   security_drift_check → ⚠ STUB (OPENCLAW_API_URL requis, max_attempts=1)
  *
- * Auth: requires x-worker-secret header matching WORKER_SECRET env var
- * CORS: not exposed to browsers — no CORS headers
- * Invocation: cron scheduler or admin panel only
+ * Pour activer les stubs : configurer OPENCLAW_API_URL + OPENCLAW_API_KEY.
+ * L'OpenClawClient bascule automatiquement en mode réel quand les deux sont présents.
+ *
+ * ══════════════════════════════════════════════════════════
+ * INVOCATION
+ * ══════════════════════════════════════════════════════════
+ * POST /functions/v1/agent-worker
+ * Headers: x-worker-secret: <WORKER_SECRET>
+ * Body (optionnel): { "batch_size": 1-10 }
+ *
+ * Déclenché par: cron scheduler ou panneau admin uniquement.
+ * Jamais exposé aux navigateurs (pas de CORS).
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -52,11 +74,17 @@ interface JobResult {
 }
 
 // ══════════════════════════════════════════════════════════
-// OpenClawClient — interface to external OpenClaw API
-// STATUS: NOT YET CONNECTED TO EXTERNAL API
-// Replace this with real HTTP calls when OPENCLAW_API_URL is configured
+// OpenClawClient
 // ══════════════════════════════════════════════════════════
-class OpenClawClient {
+// Interface vers l'API externe OpenClaw.
+//
+// MODE RÉEL   : OPENCLAW_API_URL + OPENCLAW_API_KEY configurés → appels HTTP réels.
+// MODE STUB   : variables absentes → résultats marqués _stub:true, aucun appel externe.
+//
+// IMPORTANT : Le mode stub retourne toujours _stub:true dans le result.
+//             Vérifier openclaw_connected dans le résultat pour distinguer.
+// ══════════════════════════════════════════════════════════
+export class OpenClawClient {
   private readonly apiUrl: string | null;
   private readonly apiKey: string | null;
   readonly isConnected: boolean;
@@ -69,45 +97,56 @@ class OpenClawClient {
 
   /**
    * Execute an action against the OpenClaw API.
-   * When not connected (OPENCLAW_API_URL not set), returns a typed stub.
+   *
+   * RÉEL  : quand OPENCLAW_API_URL + OPENCLAW_API_KEY sont configurés.
+   * STUB  : retourne { _stub: true, action, ... } sans appel externe.
+   *
+   * Note sécurité : le context est loggué sans payload utilisateur sensible.
+   * Seuls les context_keys (noms des clés) sont loggués, jamais les valeurs.
    */
   async execute(
     action: string,
     context: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     if (!this.isConnected) {
-      // ⚠ STUB — replace with real fetch when OPENCLAW_API_URL is configured
+      // ⚠ STUB — activer en configurant OPENCLAW_API_URL + OPENCLAW_API_KEY
       return {
         _stub: true,
         action,
         executed_at: new Date().toISOString(),
-        context_keys: Object.keys(context),
-        note: "OpenClaw not connected. Set OPENCLAW_API_URL + OPENCLAW_API_KEY to activate.",
+        context_keys: Object.keys(context), // clés uniquement, jamais valeurs
+        note: "OpenClaw non connecté. Configurer OPENCLAW_API_URL + OPENCLAW_API_KEY.",
       };
     }
 
+    // MODE RÉEL
     const response = await fetch(`${this.apiUrl}/v1/actions/${action}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
+        "X-Request-ID": crypto.randomUUID(),
       },
       body: JSON.stringify(context),
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`OpenClaw API error ${response.status}: ${err}`);
+      // Log code uniquement, jamais le body complet (peut contenir des secrets)
+      const errStatus = response.status;
+      throw new Error(`OpenClaw API error HTTP ${errStatus} on action=${action}`);
     }
 
-    return await response.json();
+    return await response.json() as Record<string, unknown>;
   }
 }
 
 // ══════════════════════════════════════════════════════════
-// OpenClawJobExecutor — maps job_type → OpenClaw action
+// OpenClawJobExecutor
 // ══════════════════════════════════════════════════════════
-class OpenClawJobExecutor {
+// Adapte job_type → action OpenClaw.
+// Chaque handler est isolé. Les stubs sont explicitement marqués.
+// ══════════════════════════════════════════════════════════
+export class OpenClawJobExecutor {
   private readonly client: OpenClawClient;
   private readonly adminClient: ReturnType<typeof createClient>;
 
@@ -129,15 +168,14 @@ class OpenClawJobExecutor {
       case "security_drift_check":
         return this.runSecurityDriftCheck(job.payload);
       default:
-        throw new Error(`Unknown job_type: ${job.job_type}`);
+        throw new Error(`Unknown job_type: ${(job as ClaimedJob).job_type}`);
     }
   }
 
-  /**
-   * ui_qa_check — STATUS: ⚠ STUB
-   * Intended: call OpenClaw to scan the target_url for UI regressions.
-   * Not yet connected to external API.
-   */
+  // ── ui_qa_check ─────────────────────────────────────────
+  // STATUS: ⚠ STUB
+  // Objectif réel: appeler OpenClaw pour scanner target_url (regressions UI).
+  // Activation: configurer OPENCLAW_API_URL + OPENCLAW_API_KEY.
   private async runUiQaCheck(payload: Record<string, unknown>): Promise<JobResult> {
     const result = await this.client.execute("ui_qa_check", {
       target_url: payload.target_url ?? "https://tarotdinatoire.lovable.app",
@@ -151,10 +189,10 @@ class OpenClawJobExecutor {
     };
   }
 
-  /**
-   * content_synthesis — STATUS: ⚠ STUB
-   * Intended: call OpenClaw to synthesize content from provided sources.
-   */
+  // ── content_synthesis ───────────────────────────────────
+  // STATUS: ⚠ STUB
+  // Objectif réel: synthétiser du contenu depuis des sources via OpenClaw.
+  // Activation: configurer OPENCLAW_API_URL + OPENCLAW_API_KEY.
   private async runContentSynthesis(payload: Record<string, unknown>): Promise<JobResult> {
     const result = await this.client.execute("content_synthesis", {
       sources: payload.sources ?? [],
@@ -168,10 +206,9 @@ class OpenClawJobExecutor {
     };
   }
 
-  /**
-   * data_verification — STATUS: ✅ REAL (DB-based, no external API needed)
-   * Verifies data integrity within agent_jobs table and reports stats.
-   */
+  // ── data_verification ───────────────────────────────────
+  // STATUS: ✅ RÉEL (DB-based, aucune API externe requise)
+  // Vérifie l'intégrité des données dans agent_jobs et rapporte les stats.
   private async runDataVerification(payload: Record<string, unknown>): Promise<JobResult> {
     const scope = (payload.scope as string) ?? "agent_jobs";
     const startedAt = new Date().toISOString();
@@ -199,8 +236,8 @@ class OpenClawJobExecutor {
       };
     }
 
-    // Fallback for other scopes — stub
-    const result = await this.client.execute("data_verification", { scope, ...payload });
+    // Fallback pour d'autres scopes via OpenClaw (stub si non connecté)
+    const result = await this.client.execute("data_verification", { scope });
     return {
       job_type: "data_verification",
       scope,
@@ -209,10 +246,10 @@ class OpenClawJobExecutor {
     };
   }
 
-  /**
-   * admin_assist_review — STATUS: ⚠ STUB
-   * Intended: call OpenClaw to review admin actions for anomalies.
-   */
+  // ── admin_assist_review ─────────────────────────────────
+  // STATUS: ⚠ STUB
+  // Objectif réel: OpenClaw analyse les actions admin pour détecter des anomalies.
+  // Activation: configurer OPENCLAW_API_URL + OPENCLAW_API_KEY.
   private async runAdminAssistReview(payload: Record<string, unknown>): Promise<JobResult> {
     const result = await this.client.execute("admin_assist_review", {
       review_window_hours: payload.review_window_hours ?? 24,
@@ -225,11 +262,11 @@ class OpenClawJobExecutor {
     };
   }
 
-  /**
-   * security_drift_check — STATUS: ⚠ STUB
-   * Intended: call OpenClaw to detect RLS/policy drift vs baseline.
-   * max_attempts=1 (fail-closed, no retry on security checks).
-   */
+  // ── security_drift_check ────────────────────────────────
+  // STATUS: ⚠ STUB
+  // Objectif réel: OpenClaw détecte les dérives RLS/policy vs baseline.
+  // IMPORTANT: max_attempts=1 (fail-closed, pas de retry sur les checks sécurité).
+  // Activation: configurer OPENCLAW_API_URL + OPENCLAW_API_KEY.
   private async runSecurityDriftCheck(payload: Record<string, unknown>): Promise<JobResult> {
     const result = await this.client.execute("security_drift_check", {
       policies: payload.policies ?? "all",
@@ -246,9 +283,24 @@ class OpenClawJobExecutor {
 }
 
 // ══════════════════════════════════════════════════════════
-// Main handler
+// Main handler — FAIL-CLOSED
 // ══════════════════════════════════════════════════════════
 Deno.serve(async (req) => {
+  // ── FAIL-CLOSED: WORKER_SECRET OBLIGATOIRE ───────────────
+  // Si WORKER_SECRET n'est pas configuré → 500 immédiat.
+  // Il n'y a AUCUN mode "ouvert". Configurer le secret est pré-requis.
+  const workerSecret = Deno.env.get("WORKER_SECRET");
+  if (!workerSecret) {
+    return new Response(
+      JSON.stringify({
+        error: "Worker not configured: WORKER_SECRET missing.",
+        hint: "Configure WORKER_SECRET secret before invoking this function.",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  // ── Méthode ──────────────────────────────────────────────
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -256,27 +308,25 @@ Deno.serve(async (req) => {
     });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const workerSecret = Deno.env.get("WORKER_SECRET");
-
-  // Worker secret auth — prevents unauthorized invocation
-  if (workerSecret) {
-    const provided = req.headers.get("x-worker-secret");
-    if (!provided || provided !== workerSecret) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+  // ── Auth: x-worker-secret obligatoire ────────────────────
+  // WORKER_SECRET est configuré → header doit correspondre exactement.
+  const provided = req.headers.get("x-worker-secret");
+  if (!provided || provided !== workerSecret) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
+  // ── Init clients ─────────────────────────────────────────
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const db = createClient(supabaseUrl, serviceKey);
   const openclaw = new OpenClawClient();
   const executor = new OpenClawJobExecutor(openclaw, db);
 
   try {
-    // Parse batch size
+    // ── Parse batch size ──────────────────────────────────
     let batchSize = 1;
     try {
       const body = await req.json().catch(() => ({}));
@@ -284,19 +334,19 @@ Deno.serve(async (req) => {
         batchSize = Math.min(Math.max(1, body.batch_size), 10);
       }
     } catch {
-      // ignore — use default
+      // ignore — default 1
     }
 
-    // Atomic claim
+    // ── Claim atomique (FOR UPDATE SKIP LOCKED) ───────────
     const { data: claimedJobs, error: claimError } = await db
       .rpc("claim_next_agent_job", { p_limit: batchSize });
 
     if (claimError) {
-      console.error("[agent-worker] claim error code:", claimError.code);
-      return new Response(JSON.stringify({ error: "Failed to claim jobs" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      // Log code uniquement, jamais le message complet (peut contenir des données)
+      return new Response(
+        JSON.stringify({ error: "Failed to claim jobs", code: claimError.code }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
     }
 
     if (!claimedJobs || claimedJobs.length === 0) {
@@ -330,6 +380,7 @@ Deno.serve(async (req) => {
           p_error_message: null,
         });
 
+        // Audit: métadonnées techniques uniquement, jamais payload utilisateur
         await db.from("admin_audit_logs").insert({
           action: "agent_job_completed",
           admin_user_id: job.created_by,
@@ -345,13 +396,14 @@ Deno.serve(async (req) => {
 
         results.push({ id: job.id, status: "completed", duration_ms: durationMs });
       } catch (err) {
-        const isTimeout   = err instanceof Error && err.message === "JOB_TIMEOUT";
+        const isTimeout = err instanceof Error && err.message === "JOB_TIMEOUT";
         const terminalStatus = isTimeout ? "timeout" : "failed";
+        // Jamais de stack trace ni de payload dans le message d'erreur loggué
         const errorMsg = isTimeout
           ? `Timeout after ${job.timeout_seconds}s`
-          : (err instanceof Error ? err.message : "Unknown error");
+          : (err instanceof Error ? err.message.slice(0, 200) : "Unknown error");
 
-        // Retry if attempts remain (only for non-timeout failures)
+        // Retry uniquement pour les échecs non-timeout, si tentatives restantes
         const shouldRetry = !isTimeout && job.attempt_count < job.max_attempts;
 
         if (shouldRetry) {
@@ -375,6 +427,7 @@ Deno.serve(async (req) => {
             p_error_message: errorMsg,
           });
 
+          // Audit failure: job_type + attempt uniquement, jamais payload
           await db.from("admin_audit_logs").insert({
             action: `agent_job_${terminalStatus}`,
             admin_user_id: job.created_by,
@@ -383,7 +436,6 @@ Deno.serve(async (req) => {
             metadata: {
               job_type: job.job_type,
               attempt: job.attempt_count,
-              // No user payload logged on failure
             },
           });
 
@@ -397,10 +449,11 @@ Deno.serve(async (req) => {
       { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (err) {
-    console.error("[agent-worker] unexpected error type:", typeof err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Log type uniquement, jamais le message (peut contenir des données sensibles)
+    const errType = err instanceof Error ? err.constructor.name : typeof err;
+    return new Response(
+      JSON.stringify({ error: "Internal server error", type: errType }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
   }
 });
