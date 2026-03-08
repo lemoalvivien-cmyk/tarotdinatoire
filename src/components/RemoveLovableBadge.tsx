@@ -27,7 +27,7 @@ const RemoveLovableBadge = forwardRef<HTMLDivElement>(function RemoveLovableBadg
       for (const el of all) {
         const text = (el.textContent || "").toLowerCase();
         if (!text.includes("edit with lovable") && !text.includes("edit in lovable")) continue;
-        
+
         const node = el instanceof HTMLElement ? el : null;
         if (!node) continue;
 
@@ -76,5 +76,7 @@ const RemoveLovableBadge = forwardRef<HTMLDivElement>(function RemoveLovableBadg
     };
   }, []);
 
-  return null;
-}
+  return <div ref={ref} style={{ display: 'none' }} aria-hidden="true" />;
+});
+
+export default RemoveLovableBadge;
