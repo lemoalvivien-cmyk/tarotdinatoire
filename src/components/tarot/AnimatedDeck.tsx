@@ -4,6 +4,7 @@ import { CARD_BACK_URL } from '@/constants/tarotAssets';
 import type { TarotCard } from '@/types/tarot';
 import { useState } from 'react';
 import { ImmersiveCardSelection } from './ImmersiveCardSelection';
+import { TarotCard3D } from './TarotCard3D';
 
 type DeckPhase = 'idle' | 'shuffling' | 'shuffled' | 'cutting' | 'cut' | 'selecting' | 'ready';
 

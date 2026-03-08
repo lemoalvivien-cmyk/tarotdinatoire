@@ -283,8 +283,8 @@ function TarotCardCSS({ className }: { className?: string }) {
     <div
       className={cn(
         'relative w-[180px] h-[270px] rounded-xl overflow-hidden border-2',
-        'border-yellow-400/30 shadow-lg',
-        'bg-gradient-to-br from-violet-900 to-indigo-950',
+        'border-mp-brand-gold/30 shadow-mp-card',
+        'bg-mp-bg-900',
         'animate-[float_3s_ease-in-out_infinite]',
         className
       )}
