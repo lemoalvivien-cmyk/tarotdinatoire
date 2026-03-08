@@ -18,6 +18,7 @@ import { rlsSafeRetry, STALE_MEDIUM } from "@/queries/queryConfig";
 import Landing from "./pages/public/Landing";
 import Auth from "./pages/public/Auth";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/public/ResetPassword";
 
 // ─── Public pages — lazy ─────────────────────────────────────────────────────
 const Disclaimer       = lazy(() => import("./pages/public/Disclaimer"));
