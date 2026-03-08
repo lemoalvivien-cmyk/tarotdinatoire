@@ -1,12 +1,15 @@
 /**
  * useSubscription — migré de useState/useEffect vers useQuery
- * Bénéfices :
- *   - Cache partagé, déduplication automatique des requêtes en parallèle
- *   - Pas de polling manuel — visibility-based refetch géré par RQ
- *   - Cleanup automatique (pas de fuite setInterval/setTimeout)
- *   - Stripe-return : invalidation ciblée via queryClient
+ *
+ * Correctifs appliqués :
+ *  - Plus de polling manuel (setInterval/visibilitychange dans useEffect)
+ *  - Cache partagé React Query : déduplication si plusieurs composants s'abonnent
+ *  - refetchOnWindowFocus + refetchInterval (5 min, arrêté en background)
+ *  - Refresh ciblé via queryClient.invalidateQueries après paiement/promo
+ *  - Fallback DB propre si Edge Function échoue
+ *  - Suppression des console.error (stripped en prod de toute façon, mais propre)
  */
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,59 +34,63 @@ const FREE_STATUS: SubscriptionStatus = {
   trial_ends_at: null,
 };
 
+// Isolated fetcher — pur, testable, sans dépendance au contexte React
 async function fetchSubscriptionStatus(userId: string): Promise<SubscriptionStatus> {
-  // Primary: Edge Function (Stripe sync)
+  // Primary: Edge Function (synchronisé avec Stripe)
   const { data, error } = await supabase.functions.invoke('check-subscription');
 
   if (!error && data) {
     return data as SubscriptionStatus;
   }
 
-  // Fallback: direct DB query when Edge Function fails
-  const { data: subData, error: dbError } = await supabase
+  // Fallback: requête DB directe si l'Edge Function échoue
+  const { data: subData } = await supabase
     .from('subscriptions')
     .select('plan, credits_remaining, subscription_status, current_period_end, cancel_at_period_end, trial_ends_at')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (dbError || !subData) return FREE_STATUS;
+  if (!subData) return FREE_STATUS;
 
-  const isTrial     = subData.plan === 'trial' && subData.subscription_status === 'active';
+  const isTrial      = subData.plan === 'trial' && subData.subscription_status === 'active';
   const isTrialValid = isTrial && !!subData.current_period_end && new Date(subData.current_period_end) > new Date();
-  const isPremium   = subData.plan === 'premium' && subData.subscription_status === 'active';
+  const isPremiumRow = subData.plan === 'premium' && subData.subscription_status === 'active';
 
   return {
-    subscribed:            isPremium || isTrialValid,
-    plan:                  subData.plan as 'free' | 'premium' | 'trial',
-    credits_remaining:     subData.credits_remaining,
-    subscription_end:      subData.current_period_end,
-    cancel_at_period_end:  subData.cancel_at_period_end ?? false,
-    trial_ends_at:         subData.trial_ends_at,
+    subscribed:           isPremiumRow || isTrialValid,
+    plan:                 subData.plan as 'free' | 'premium' | 'trial',
+    credits_remaining:    subData.credits_remaining,
+    subscription_end:     subData.current_period_end,
+    cancel_at_period_end: subData.cancel_at_period_end ?? false,
+    trial_ends_at:        subData.trial_ends_at,
   };
 }
 
 export function useSubscription() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
+  // ── React Query — remplace useState + setInterval + visibilitychange ──────
   const { data: status, isLoading: loading } = useQuery({
     queryKey: qk.subscription(user?.id),
-    queryFn: () => fetchSubscriptionStatus(user!.id),
-    enabled: !!user,
-    staleTime: STALE_SUB,         // 5 min — frais mais pas agressif
-    refetchOnWindowFocus: true,   // Refresh quand l'utilisateur revient sur l'onglet
-    refetchInterval: 5 * 60 * 1000, // Polling passif toutes les 5 min si onglet visible
+    queryFn:  () => fetchSubscriptionStatus(user!.id),
+    enabled:  !!user,
+    staleTime: STALE_SUB,                   // 5 min
+    refetchOnWindowFocus:      true,        // refresh quand l'utilisateur revient
+    refetchInterval:           5 * 60_000, // polling 5 min (uniquement si onglet actif)
     refetchIntervalInBackground: false,
     retry: rlsSafeRetry,
   });
 
-  // Refresh ciblé — utilisé après retour Stripe ou redemption promo
-  const refresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: qk.subscription(user?.id) });
+  // Invalidation ciblée — utilisée après retour Stripe ou activation promo
+  const refresh = useCallback((): Promise<void> => {
+    return queryClient
+      .invalidateQueries({ queryKey: qk.subscription(user?.id) })
+      .then(() => undefined);
   }, [queryClient, user?.id]);
 
-  const [checkoutLoading, setCheckoutLoading] = useQueryState();
-
+  // ── Stripe checkout ────────────────────────────────────────────────────────
   const startCheckout = async () => {
     if (!user) {
       toast.error('Veuillez vous connecter pour souscrire à un abonnement.');
@@ -94,6 +101,7 @@ export function useSubscription() {
       const { data, error } = await supabase.functions.invoke('create-checkout');
       if (error) throw error;
       if (!data?.url) throw new Error('URL de paiement non reçue');
+      // Utilise location.href (pas window.open) pour éviter le popup blocker iOS Safari
       window.location.href = data.url;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Impossible de démarrer le paiement');
@@ -102,6 +110,7 @@ export function useSubscription() {
     }
   };
 
+  // ── Customer portal ────────────────────────────────────────────────────────
   const openCustomerPortal = async () => {
     if (!user) return;
     try {
@@ -114,6 +123,7 @@ export function useSubscription() {
     }
   };
 
+  // ── Promo code ─────────────────────────────────────────────────────────────
   const redeemPromo = async (code: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const { data, error } = await supabase.rpc('redeem_promo_code', { p_code: code });
@@ -129,13 +139,14 @@ export function useSubscription() {
     }
   };
 
-  const resolvedStatus = status ?? FREE_STATUS;
-  const hasCredits = resolvedStatus.subscribed || (resolvedStatus.credits_remaining ?? 0) > 0;
-  const isPremium  = resolvedStatus.plan !== 'free' && resolvedStatus.subscribed;
-  const isTrial    = resolvedStatus.plan === 'trial' && resolvedStatus.subscribed;
+  // ── Derived booleans ───────────────────────────────────────────────────────
+  const resolved  = status ?? FREE_STATUS;
+  const hasCredits = resolved.subscribed || (resolved.credits_remaining ?? 0) > 0;
+  const isPremium  = resolved.plan !== 'free' && resolved.subscribed;
+  const isTrial    = resolved.plan === 'trial' && resolved.subscribed;
 
   return {
-    status: resolvedStatus,
+    status: resolved,
     loading,
     checkoutLoading,
     hasCredits,
@@ -146,17 +157,4 @@ export function useSubscription() {
     redeemPromo,
     refresh,
   };
-}
-
-// ── Minimal local boolean state without useState/useEffect noise ──────────────
-function useQueryState(): [boolean, (v: boolean) => void] {
-  const ref = { current: false };
-  // Simple wrapper — React state for UI update, no RQ involvement
-  const [v, setV] = ((): [boolean, (val: boolean) => void] => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { useState } = require('react');
-    return useState(false);
-  })();
-  void ref;
-  return [v, setV];
 }
