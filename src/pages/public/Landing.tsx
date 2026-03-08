@@ -908,15 +908,17 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           <SectionReveal className="max-w-2xl mx-auto text-center">
             <div className="font-serif text-5xl mb-6 opacity-40" style={{ color: gold }}>✦</div>
             <h2 className="font-serif text-4xl md:text-6xl font-semibold text-white leading-tight mb-6">
-              Vous n'êtes pas venu<br />voir les cartes.
+              Il y a des choses<br />que vous savez déjà.
             </h2>
-            <p className="text-white/45 text-lg leading-relaxed mb-10 max-w-lg mx-auto">
-              Vous êtes venu ressentir quelque chose.
-              Votre premier rituel vous attend.
+            <p className="text-white/50 text-lg leading-relaxed mb-3 max-w-lg mx-auto">
+              Vous les sentez. Vous les portez. Vous n'arrivez pas encore à les formuler.
+            </p>
+            <p className="text-white/35 text-base leading-relaxed mb-10 max-w-md mx-auto">
+              C'est exactement là que Tarot Dinatoire entre en jeu.
             </p>
             <Link to={ctaHref}>
               <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-lg px-12">
-                {ctaLabel}
+                Commencer mon premier rituel
               </MysticButton>
             </Link>
             <p className="text-white/22 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
