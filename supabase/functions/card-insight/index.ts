@@ -1,11 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// ── Zero Trust CORS allowlist — no wildcard ────────────────────────────────
 const ALLOWED_ORIGINS = [
-  "https://tarotdivinatoire.app",
+  "https://tarotdinatoire.lovable.app",
   "https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app",
   "http://localhost:5173",
-  "http://localhost:3000",
+  "http://localhost:8080",
 ];
 
 function corsHeaders(origin: string | null) {
