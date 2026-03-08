@@ -352,10 +352,11 @@ function LandingHeader({ ctaHref }: { ctaHref: string }) {
 }
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
-function LandingFooter() {
+const LandingFooter = forwardRef<HTMLElement>(function LandingFooter(_, ref) {
   const year = new Date().getFullYear();
   return (
     <footer
+      ref={ref}
       className="relative z-10 border-t"
       style={{ borderColor: 'hsl(var(--mp-surface-border))', backgroundColor: 'hsl(var(--mp-bg-900))' }}
       role="contentinfo"
@@ -393,7 +394,7 @@ function LandingFooter() {
       </div>
     </footer>
   );
-}
+});
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function Landing() {
