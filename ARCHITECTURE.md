@@ -225,29 +225,74 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 
 ## BLOC 5 · ZERO TRUST — RBAC
 
-### Matrice d'accès
+### Matrice d'accès complète (vérifiée fichier par fichier)
 
-| Rôle | agent_jobs | tarot_cards | subscriptions | feature_flags | user_roles |
-|---|---|---|---|---|---|
-| `anon` | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `authenticated` | ❌ | SELECT | SELECT own | ❌ | SELECT own |
-| `admin` | ALL | ALL | ALL | SELECT/UPDATE | ALL |
-| `service_role` | ALL | ALL | ALL | ALL | ALL |
+| Table / Ressource | anon | authenticated (user) | admin | service_role |
+|---|---|---|---|---|
+| `profiles` | ❌ | SELECT/UPDATE/DELETE own | SELECT all | ALL |
+| `user_roles` | ❌ | SELECT own | ALL | ALL |
+| `subscriptions` | ❌ | SELECT/UPDATE own | SELECT/UPDATE all | ALL |
+| `tarot_cards` | SELECT | SELECT | ALL | ALL |
+| `tarot_spreads` | SELECT | SELECT | ALL | ALL |
+| `reading_sessions` | ❌ | SELECT/INSERT(credit)/DELETE own | ❌ | ALL |
+| `reading_results` | ❌ | SELECT/INSERT via session | ❌ | ALL |
+| `tarot_readings` | ❌ | SELECT/INSERT(credit)/UPDATE/DELETE own | SELECT all | ALL |
+| `daily_draws` | ❌ | ALL own | SELECT all | ALL |
+| `narrative_memories` | ❌ | SELECT/DELETE own — **NO INSERT/UPDATE** | SELECT all | ALL |
+| `synchronicity_insights` | ❌ | ALL own | ❌ | ALL |
+| `user_karma` | ❌ | SELECT/UPDATE/DELETE own — INSERT own | SELECT all | ALL |
+| `user_achievements` | ❌ | SELECT/INSERT/DELETE own — **NO UPDATE** | SELECT all | ALL |
+| `ai_usage_daily` | ❌ | SELECT own — **NO INSERT/UPDATE/DELETE** | SELECT all | ALL |
+| `email_leads` | INSERT(consent=true) | SELECT/UPDATE/DELETE own | SELECT/UPDATE all | ALL |
+| `shared_readings` | SELECT(not expired) | INSERT/DELETE own | ❌ | ALL |
+| `consent_logs` | INSERT(user_id=null) | SELECT/INSERT/DELETE own | SELECT all | ALL |
+| `analytics_events` | INSERT(allowlist) | SELECT/INSERT(allowlist)/DELETE own | SELECT all | ALL |
+| `feature_flags` | ❌ | ❌ | SELECT/UPDATE | ALL |
+| `ai_prompt_templates` | ❌ | ❌ | ALL | ALL |
+| `promo_codes` | ❌ | ❌ | ALL | ALL |
+| `admin_audit_logs` | ❌ | ❌ | SELECT/INSERT — **NO DELETE/UPDATE** | ALL |
+| **`agent_jobs`** | ❌ | ❌ | SELECT/INSERT/UPDATE — **NO DELETE** | ALL |
 
-### Tests de non-régression
+### Fonctions RPC SECURITY DEFINER (contournent RLS)
 
-Fichier : `supabase/functions/agent-dispatcher/index_test.ts`
-
-| Test ID | Description | Attendu |
+| Fonction | Appelant autorisé | Justification |
 |---|---|---|
-| ZT-01 | Pas de header Auth | 401 |
-| ZT-02 | JWT invalide | 401 |
-| ZT-03 | OPTIONS preflight | 200 + CORS headers |
-| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ origine attaquant |
-| ZT-05 | job_type injection | Jamais 201 |
-| ZT-06 | Méthode GET | 405 |
-| ZT-07 | Payload > 10 KB | Jamais 201 |
-| ZT-08 | Origine de confiance | ACAO = origine exacte |
+| `has_role(_user_id, _role)` | Toute function interne | Base du RBAC |
+| `is_admin(_user_id)` | Policies RLS, Edge Functions | Évite récursion |
+| `can_dispatch_agent_job(_user_id)` | agent-dispatcher | Délégation admin |
+| `has_reading_credits(uid)` | Policies INSERT | Paywall enforcement |
+| `decrement_reading_credit(uid)` | Edge Functions | Atomic debit |
+| `award_karma(p_uid, p_action)` | Edge Functions | XP accumulation |
+| `get_email_leads_admin_safe()` | Admin UI | Masque tokens sensibles |
+| `get_my_subscription()` | Frontend | Masque stripe IDs |
+| `get_pending_agent_jobs(limit)` | Futur worker | Polling sécurisé |
+| `bootstrap_first_admin(email)` | bootstrap-admin EF | One-shot uniquement |
+
+### Vérification RLS par couche
+
+**Fail-closed confirmé** :
+- `agent_jobs` : DELETE policy `USING (false)` — immutable ✅
+- `admin_audit_logs` : DELETE/UPDATE `USING (false)` — immutable ✅
+- `ai_usage_daily` : INSERT/UPDATE/DELETE bloqués pour users ✅
+- `narrative_memories` : pas d'INSERT/UPDATE frontend ✅
+
+**Risque résiduel identifié** :
+- `email_leads` INSERT ne vérifie pas `user_id IS NULL` pour les anonymes → peut créer des leads orphelins (acceptable, contrôlé par `consent=true`)
+
+### Tests de non-régression sécurité
+
+Fichier : `supabase/functions/agent-dispatcher/index_test.ts` — **8 tests existants et vérifiés**
+
+| Test ID | Description | Attendu | Statut |
+|---|---|---|---|
+| ZT-01 | Pas de header Auth | 401 | ✅ Implémenté |
+| ZT-02 | JWT invalide | 401 | ✅ Implémenté |
+| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ Implémenté |
+| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ origine attaquant | ✅ Implémenté |
+| ZT-05 | job_type injection | Jamais 201 | ✅ Implémenté |
+| ZT-06 | Méthode GET | 405 | ✅ Implémenté |
+| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ Implémenté |
+| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ Implémenté |
 
 ---
 
