@@ -1,16 +1,31 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+// ── Zero Trust CORS allowlist — no wildcard ────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'https://tarotdinatoire.lovable.app',
+  'https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 // Matilda — warm, soothing mystical female voice
 const MYSTICAL_VOICE_ID = 'XrExE9yKIg1WjnnlVkGX';
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsH = buildCorsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsH });
   }
 
   try {
@@ -19,7 +34,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -33,7 +48,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -41,7 +56,7 @@ Deno.serve(async (req) => {
     if (!ELEVENLABS_API_KEY) {
       return new Response(JSON.stringify({ error: 'ElevenLabs API key not configured' }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -50,7 +65,7 @@ Deno.serve(async (req) => {
     if (!text || typeof text !== 'string') {
       return new Response(JSON.stringify({ error: 'Text is required' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -78,7 +93,7 @@ Deno.serve(async (req) => {
             similarity_boost: 0.80,
             style: 0.35,
             use_speaker_boost: true,
-            speed: 0.92, // Slightly slower — more mystical
+            speed: 0.92,
           },
         }),
       }
@@ -87,9 +102,9 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs error:', response.status, errorText);
-      return new Response(JSON.stringify({ error: 'TTS generation failed', details: errorText }), {
+      return new Response(JSON.stringify({ error: 'TTS generation failed' }), {
         status: response.status,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -98,7 +113,7 @@ Deno.serve(async (req) => {
     return new Response(audioBuffer, {
       status: 200,
       headers: {
-        ...corsHeaders,
+        ...corsH,
         'Content-Type': 'audio/mpeg',
         'Content-Length': audioBuffer.byteLength.toString(),
         'Cache-Control': 'private, max-age=3600',
@@ -106,10 +121,10 @@ Deno.serve(async (req) => {
     });
 
   } catch (err) {
-    console.error('TTS edge function error:', err);
+    console.error('TTS edge function error:', err instanceof Error ? err.message : 'unknown');
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...buildCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' },
     });
   }
 });

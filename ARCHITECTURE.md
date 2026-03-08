@@ -39,24 +39,24 @@
 
 ### 1.2 Edge Functions
 
-| Fonction | Domaine | CORS | Statut |
-|---|---|---|---|
-| `tarot-interpretation` | CORE | ✅ Allowlist | ✅ Production |
-| `daily-draw` | CORE | ✅ Allowlist | ✅ Production |
-| `card-insight` | CORE | ✅ Allowlist | ✅ Production |
-| `narrative-engine` | CORE | ✅ Allowlist | ✅ Production |
-| `psychological-reflection` | CORE | ✅ Allowlist | ✅ Production |
-| `synchronicity-engine` | CORE | ✅ Allowlist | ✅ Production |
-| `tarot-tts` | CORE | ✅ Allowlist | ✅ Production |
-| `og-share` | CORE | ✅ Allowlist | ✅ Production |
-| `public-config` | CORE | ✅ Allowlist | ✅ Production |
-| `check-subscription` | BILLING | ✅ Allowlist (fixed) | ✅ Production |
-| `create-checkout` | BILLING | ✅ Allowlist (fixed) | ✅ Production |
-| `customer-portal` | BILLING | ✅ Allowlist (fixed) | ✅ Production |
-| `stripe-webhook` | BILLING | ✅ Server-to-server | ✅ Production |
-| `unsubscribe` | BILLING | ✅ Allowlist | ✅ Production |
-| `bootstrap-admin` | ADMIN | ✅ Allowlist | ✅ One-shot |
-| **`agent-dispatcher`** | **AUTOMATION** | ✅ Allowlist | ✅ **Nouveau** |
+| Fonction | Domaine | CORS | Statut | Vérifié |
+|---|---|---|---|---|
+| `tarot-interpretation` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `daily-draw` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `card-insight` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `narrative-engine` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `psychological-reflection` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `synchronicity-engine` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `tarot-tts` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `og-share` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `public-config` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `check-subscription` | BILLING | ✅ Allowlist + bug corsHeaders corrigé | ✅ Production | ✅ Lu |
+| `create-checkout` | BILLING | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `customer-portal` | BILLING | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `stripe-webhook` | BILLING | ✅ Server-to-server | ✅ Production | ✅ Lu |
+| `unsubscribe` | BILLING | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `bootstrap-admin` | ADMIN | ✅ Allowlist | ✅ One-shot | ✅ Lu |
+| **`agent-dispatcher`** | **AUTOMATION** | ✅ Allowlist | ✅ Production | ✅ Lu |
 
 ### 1.3 Tables SQL
 
@@ -225,29 +225,74 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 
 ## BLOC 5 · ZERO TRUST — RBAC
 
-### Matrice d'accès
+### Matrice d'accès complète (vérifiée fichier par fichier)
 
-| Rôle | agent_jobs | tarot_cards | subscriptions | feature_flags | user_roles |
-|---|---|---|---|---|---|
-| `anon` | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `authenticated` | ❌ | SELECT | SELECT own | ❌ | SELECT own |
-| `admin` | ALL | ALL | ALL | SELECT/UPDATE | ALL |
-| `service_role` | ALL | ALL | ALL | ALL | ALL |
+| Table / Ressource | anon | authenticated (user) | admin | service_role |
+|---|---|---|---|---|
+| `profiles` | ❌ | SELECT/UPDATE/DELETE own | SELECT all | ALL |
+| `user_roles` | ❌ | SELECT own | ALL | ALL |
+| `subscriptions` | ❌ | SELECT/UPDATE own | SELECT/UPDATE all | ALL |
+| `tarot_cards` | SELECT | SELECT | ALL | ALL |
+| `tarot_spreads` | SELECT | SELECT | ALL | ALL |
+| `reading_sessions` | ❌ | SELECT/INSERT(credit)/DELETE own | ❌ | ALL |
+| `reading_results` | ❌ | SELECT/INSERT via session | ❌ | ALL |
+| `tarot_readings` | ❌ | SELECT/INSERT(credit)/UPDATE/DELETE own | SELECT all | ALL |
+| `daily_draws` | ❌ | ALL own | SELECT all | ALL |
+| `narrative_memories` | ❌ | SELECT/DELETE own — **NO INSERT/UPDATE** | SELECT all | ALL |
+| `synchronicity_insights` | ❌ | ALL own | ❌ | ALL |
+| `user_karma` | ❌ | SELECT/UPDATE/DELETE own — INSERT own | SELECT all | ALL |
+| `user_achievements` | ❌ | SELECT/INSERT/DELETE own — **NO UPDATE** | SELECT all | ALL |
+| `ai_usage_daily` | ❌ | SELECT own — **NO INSERT/UPDATE/DELETE** | SELECT all | ALL |
+| `email_leads` | INSERT(consent=true) | SELECT/UPDATE/DELETE own | SELECT/UPDATE all | ALL |
+| `shared_readings` | SELECT(not expired) | INSERT/DELETE own | ❌ | ALL |
+| `consent_logs` | INSERT(user_id=null) | SELECT/INSERT/DELETE own | SELECT all | ALL |
+| `analytics_events` | INSERT(allowlist) | SELECT/INSERT(allowlist)/DELETE own | SELECT all | ALL |
+| `feature_flags` | ❌ | ❌ | SELECT/UPDATE | ALL |
+| `ai_prompt_templates` | ❌ | ❌ | ALL | ALL |
+| `promo_codes` | ❌ | ❌ | ALL | ALL |
+| `admin_audit_logs` | ❌ | ❌ | SELECT/INSERT — **NO DELETE/UPDATE** | ALL |
+| **`agent_jobs`** | ❌ | ❌ | SELECT/INSERT/UPDATE — **NO DELETE** | ALL |
 
-### Tests de non-régression
+### Fonctions RPC SECURITY DEFINER (contournent RLS)
 
-Fichier : `supabase/functions/agent-dispatcher/index_test.ts`
-
-| Test ID | Description | Attendu |
+| Fonction | Appelant autorisé | Justification |
 |---|---|---|
-| ZT-01 | Pas de header Auth | 401 |
-| ZT-02 | JWT invalide | 401 |
-| ZT-03 | OPTIONS preflight | 200 + CORS headers |
-| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ origine attaquant |
-| ZT-05 | job_type injection | Jamais 201 |
-| ZT-06 | Méthode GET | 405 |
-| ZT-07 | Payload > 10 KB | Jamais 201 |
-| ZT-08 | Origine de confiance | ACAO = origine exacte |
+| `has_role(_user_id, _role)` | Toute function interne | Base du RBAC |
+| `is_admin(_user_id)` | Policies RLS, Edge Functions | Évite récursion |
+| `can_dispatch_agent_job(_user_id)` | agent-dispatcher | Délégation admin |
+| `has_reading_credits(uid)` | Policies INSERT | Paywall enforcement |
+| `decrement_reading_credit(uid)` | Edge Functions | Atomic debit |
+| `award_karma(p_uid, p_action)` | Edge Functions | XP accumulation |
+| `get_email_leads_admin_safe()` | Admin UI | Masque tokens sensibles |
+| `get_my_subscription()` | Frontend | Masque stripe IDs |
+| `get_pending_agent_jobs(limit)` | Futur worker | Polling sécurisé |
+| `bootstrap_first_admin(email)` | bootstrap-admin EF | One-shot uniquement |
+
+### Vérification RLS par couche
+
+**Fail-closed confirmé** :
+- `agent_jobs` : DELETE policy `USING (false)` — immutable ✅
+- `admin_audit_logs` : DELETE/UPDATE `USING (false)` — immutable ✅
+- `ai_usage_daily` : INSERT/UPDATE/DELETE bloqués pour users ✅
+- `narrative_memories` : pas d'INSERT/UPDATE frontend ✅
+
+**Risque résiduel identifié** :
+- `email_leads` INSERT ne vérifie pas `user_id IS NULL` pour les anonymes → peut créer des leads orphelins (acceptable, contrôlé par `consent=true`)
+
+### Tests de non-régression sécurité
+
+Fichier : `supabase/functions/agent-dispatcher/index_test.ts` — **8 tests existants et vérifiés**
+
+| Test ID | Description | Attendu | Statut |
+|---|---|---|---|
+| ZT-01 | Pas de header Auth | 401 | ✅ Implémenté |
+| ZT-02 | JWT invalide | 401 | ✅ Implémenté |
+| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ Implémenté |
+| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ origine attaquant | ✅ Implémenté |
+| ZT-05 | job_type injection | Jamais 201 | ✅ Implémenté |
+| ZT-06 | Méthode GET | 405 | ✅ Implémenté |
+| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ Implémenté |
+| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ Implémenté |
 
 ---
 
@@ -258,46 +303,65 @@ Fichier : `supabase/functions/agent-dispatcher/index_test.ts`
 ```
 src/
 ├── hooks/
-│   └── useAgentJobs.ts          ← NEW (AUTOMATION)
+│   └── useAgentJobs.ts          ← EXISTANT (vérifié 138 lignes)
 ├── pages/
 │   └── admin/
-│       └── AdminAgentJobs.tsx   ← NEW
+│       └── AdminAgentJobs.tsx   ← EXISTANT (vérifié 308 lignes)
 supabase/
 ├── functions/
-│   ├── agent-dispatcher/        ← NEW (AUTOMATION)
+│   ├── agent-dispatcher/        ← EXISTANT (vérifié 218 lignes)
 │   │   ├── index.ts
-│   │   └── index_test.ts        ← NEW (security tests)
-│   ├── tarot-interpretation/    ← CORS hardened
-│   ├── create-checkout/         ← CORS hardened
-│   ├── check-subscription/      ← CORS hardened
-│   ├── customer-portal/         ← CORS hardened
-│   └── stripe-webhook/          ← CORS hardened
-ARCHITECTURE.md                  ← NEW (ce fichier)
+│   │   └── index_test.ts        ← EXISTANT (8 tests ZT-01→ZT-08)
+│   ├── tarot-interpretation/    ← CORS hardened ✅
+│   ├── create-checkout/         ← CORS hardened ✅
+│   ├── check-subscription/      ← CORS hardened + bug corsHeaders corrigé ✅
+│   ├── customer-portal/         ← CORS hardened ✅
+│   ├── stripe-webhook/          ← CORS hardened ✅
+│   ├── tarot-tts/               ← CORS hardened 2026-03-08 ✅
+│   ├── public-config/           ← CORS hardened 2026-03-08 ✅
+│   ├── og-share/                ← CORS fallback corrigé 2026-03-08 ✅
+│   └── unsubscribe/             ← CORS hardened 2026-03-08 ✅
+ARCHITECTURE.md                  ← CE FICHIER (mis à jour 2026-03-08)
 ```
 
-### Migrations SQL exécutées
+### Migrations SQL exécutées et confirmées
 
-1. `create_agent_jobs_table` — table, enums, index, RLS, triggers
-2. `fix_shared_readings_rls` — correction USING(true) permissif
+1. `create_agent_jobs_table` — table, enums, index, RLS, triggers ✅ (confirmé via types.ts)
+2. `fix_shared_readings_rls` — correction USING(true) permissif ✅ (confirmé via DB schema)
 
-### Edge Functions à garder / supprimer
+### Edge Functions — état final vérifié
 
-**Garder** : toutes les fonctions listées en 1.2  
-**Supprimer** : aucune à ce stade (pas de doublon identifié)  
-**Ajouter** : `agent-dispatcher` ✅ déployé
+| Fonction | CORS | Wildcard | Statut |
+|---|---|---|---|
+| tarot-interpretation | buildCorsHeaders | ❌ | ✅ |
+| daily-draw | buildCorsHeaders | ❌ | ✅ |
+| card-insight | buildCorsHeaders | ❌ | ✅ |
+| narrative-engine | buildCorsHeaders | ❌ | ✅ |
+| psychological-reflection | buildCorsHeaders | ❌ | ✅ |
+| synchronicity-engine | buildCorsHeaders | ❌ | ✅ |
+| tarot-tts | buildCorsHeaders | ❌ | ✅ corrigé |
+| og-share | buildCorsHeaders | ❌ | ✅ corrigé |
+| public-config | buildCorsHeaders | ❌ | ✅ corrigé |
+| check-subscription | buildCorsHeaders | ❌ | ✅ corrigé (bug var) |
+| create-checkout | buildCorsHeaders | ❌ | ✅ |
+| customer-portal | buildCorsHeaders | ❌ | ✅ |
+| stripe-webhook | buildCorsHeaders | ❌ | ✅ |
+| unsubscribe | buildCorsHeaders | ❌ | ✅ corrigé |
+| bootstrap-admin | buildCorsHeaders | ❌ | ✅ |
+| agent-dispatcher | corsHeaders (allowlist) | ❌ | ✅ |
 
 ---
 
 ## Plan de déploiement
 
-| Étape | Action | Risque | Rollback |
-|---|---|---|---|
-| 1 | ✅ Migration `agent_jobs` | Faible (ajout pur) | DROP TABLE agent_jobs |
-| 2 | ✅ Fix RLS `shared_readings` | Faible | Remettre USING(true) |
-| 3 | ✅ CORS hardening 5 fonctions | Moyen : peut casser appels cross-origin légitimes | Remettre `*` temporairement |
-| 4 | ✅ Deploy `agent-dispatcher` | Faible (nouvelle route) | supabase functions delete |
-| 5 | ✅ Admin UI `/admin/agent-jobs` | Nul (admin only) | Retirer la route |
-| 6 | 🔲 Worker OpenClaw | Fort : à faire en isolation | Flag feature_flag |
+| Étape | Action | Risque | Rollback | Statut |
+|---|---|---|---|---|
+| 1 | Migration `agent_jobs` | Faible (ajout pur) | DROP TABLE agent_jobs | ✅ Fait |
+| 2 | Fix RLS `shared_readings` | Faible | Remettre USING(true) | ✅ Fait |
+| 3 | CORS hardening 16 fonctions | Moyen | Remettre `*` temporairement | ✅ Fait |
+| 4 | Deploy `agent-dispatcher` | Faible (nouvelle route) | supabase functions delete | ✅ Fait |
+| 5 | Admin UI `/admin/agent-jobs` | Nul (admin only) | Retirer la route | ✅ Fait |
+| 6 | Worker OpenClaw | Fort : à faire en isolation | Flag feature_flag | 🔲 À faire |
 
 ---
 
@@ -307,7 +371,9 @@ ARCHITECTURE.md                  ← NEW (ce fichier)
 |---|---|---|---|---|
 | R1 | `bootstrap-admin` toujours accessible si flag non consommé | Faible | Fort | Vérifier `admin_bootstrap_used = true` en production |
 | R2 | `tarot-tts` utilise ElevenLabs sans rate-limit côté DB | Moyen | Moyen | Ajouter quota dans `ai_usage_daily` |
-| R3 | Jobs `agent_jobs` jamais consommés (pas de worker) | Élevé | Faible | Implémenter worker ou cron dans Bloc 6 étape 6 |
-| R4 | `public-config` expose `admin_bootstrap_used` | Faible | Faible | Acceptable : valeur booléenne publique |
+| R3 | Jobs `agent_jobs` jamais consommés (pas de worker) | Élevé | Faible | Implémenter worker ou cron — Étape 6 |
+| R4 | `public-config` expose `admin_bootstrap_used` | Faible | Faible | Acceptable : valeur booléenne non sensible |
 | R5 | Refresh tokens non révoqués sur logout multi-device | Moyen | Moyen | Implémenter `signOut({ scope: 'global' })` |
 | R6 | Pas d'alerting sur jobs `failed/timeout` | Moyen | Moyen | Ajouter webhook Discord/Slack sur status change |
+| R7 | `.gitignore` ne couvre pas `.env` (read-only, non modifiable) | Faible | Faible | `.env` ne contient que `VITE_` keys publiques — acceptable |
+
