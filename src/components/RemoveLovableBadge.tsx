@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, forwardRef } from "react";
 
 /**
  * Composant qui supprime le badge "Edit with Lovable" en production.
  * Le badge est injecté par l'environnement Lovable et n'existe pas dans le code source.
  */
-export default function RemoveLovableBadge() {
+const RemoveLovableBadge = forwardRef<HTMLDivElement>(function RemoveLovableBadge(_, ref) {
   useEffect(() => {
     // Ne s'exécute qu'en production
     if (!import.meta.env.PROD) return;
@@ -27,7 +27,7 @@ export default function RemoveLovableBadge() {
       for (const el of all) {
         const text = (el.textContent || "").toLowerCase();
         if (!text.includes("edit with lovable") && !text.includes("edit in lovable")) continue;
-        
+
         const node = el instanceof HTMLElement ? el : null;
         if (!node) continue;
 
@@ -76,5 +76,7 @@ export default function RemoveLovableBadge() {
     };
   }, []);
 
-  return null;
-}
+  return <div ref={ref} style={{ display: 'none' }} aria-hidden="true" />;
+});
+
+export default RemoveLovableBadge;

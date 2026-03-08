@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState, forwardRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   ArrowRight, Sparkles, Shield, Lock, Stars,
@@ -278,6 +278,7 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
 // ─── Sticky Mobile CTA ────────────────────────────────────────────────────────
 function StickyMobileCTA({ href, label }: { href: string; label: string }) {
   const [show, setShow] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     const h = () => setShow(window.scrollY > 600);
     window.addEventListener('scroll', h, { passive: true });
@@ -292,15 +293,14 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
           className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-[env(safe-area-inset-bottom,1rem)] md:hidden"
           style={{ background: 'linear-gradient(to top, hsl(var(--mp-bg-900)), hsl(var(--mp-bg-900) / 0.95) 80%, transparent)' }}
         >
-          <Link to={href} className="block" tabIndex={-1}>
-            <button
-              className="w-full h-14 rounded-xl text-base font-semibold text-white transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 8px 30px hsl(var(--mp-brand-violet) / 0.4)` }}
-              aria-label={label}
-            >
-              {label}
-            </button>
-          </Link>
+          <button
+            onClick={() => navigate(href)}
+            className="w-full h-14 rounded-xl text-base font-semibold text-white transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 8px 30px hsl(var(--mp-brand-violet) / 0.4)` }}
+            aria-label={label}
+          >
+            {label}
+          </button>
           <p className="text-center text-xs text-white/35 mt-2">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
         </motion.div>
       )}
@@ -311,6 +311,7 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
 // ─── Header ───────────────────────────────────────────────────────────────────
 function LandingHeader({ ctaHref }: { ctaHref: string }) {
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', h, { passive: true });
@@ -335,15 +336,14 @@ function LandingHeader({ ctaHref }: { ctaHref: string }) {
             >
               Connexion
             </Link>
-            <Link to={ctaHref}>
-              <button
-                className="text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 4px 20px hsl(var(--mp-brand-violet) / 0.3)` }}
-                aria-label="Vivre l'expérience Tarot Dinatoire"
-              >
-                Vivre l'expérience
-              </button>
-            </Link>
+            <button
+              onClick={() => navigate(ctaHref)}
+              className="text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 4px 20px hsl(var(--mp-brand-violet) / 0.3)` }}
+              aria-label="Vivre l'expérience Tarot Dinatoire"
+            >
+              Vivre l'expérience
+            </button>
           </nav>
         </div>
       </div>
@@ -352,10 +352,11 @@ function LandingHeader({ ctaHref }: { ctaHref: string }) {
 }
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
-function LandingFooter() {
+const LandingFooter = forwardRef<HTMLElement>(function LandingFooter(_, ref) {
   const year = new Date().getFullYear();
   return (
     <footer
+      ref={ref}
       className="relative z-10 border-t"
       style={{ borderColor: 'hsl(var(--mp-surface-border))', backgroundColor: 'hsl(var(--mp-bg-900))' }}
       role="contentinfo"
@@ -393,11 +394,12 @@ function LandingFooter() {
       </div>
     </footer>
   );
-}
+});
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function Landing() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const shouldReduce = useReducedMotion();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -451,7 +453,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 1 — HERO
       ══════════════════════════════════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire">
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire" style={{ position: 'relative' }}>
         <StarfieldCanvas />
         <Orb size={600} color="radial-gradient(circle, hsl(265 55% 40% / 0.35), transparent)" x="0%" y="-5%" delay={0} />
         <Orb size={400} color="radial-gradient(circle, hsl(42 70% 45% / 0.15), transparent)" x="60%" y="55%" delay={3} />
@@ -525,15 +527,14 @@ export default function Landing() {
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }}
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center"
             >
-              <Link to={ctaHref}>
-                <MysticButton
+              <MysticButton
                   size="lg"
                   rightIcon={<ArrowRight className="h-5 w-5" />}
                   className="text-base px-8 w-full sm:w-auto"
+                  onClick={() => navigate(ctaHref)}
                 >
                   {ctaLabel}
                 </MysticButton>
-              </Link>
               <a
                 href="#rituel"
                 className="text-sm text-white/50 hover:text-white/80 transition-colors underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 rounded"
@@ -761,11 +762,9 @@ export default function Landing() {
                 <BenefitRow icon={Heart} title="Il se souvient de tout" desc="Votre profil psychologique évolue à chaque session. Il est unique. Il est vôtre." />
                 <BenefitRow icon={BookOpen} title="Il s'affine avec le temps" desc="Chaque journal lui donne plus de précision. La seule app qui s'améliore en vous connaissant mieux." />
               </div>
-              <Link to={ctaHref}>
-                <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
+              <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />} onClick={() => navigate(ctaHref)}>
                   Commencer maintenant
                 </MysticButton>
-              </Link>
             </motion.div>
           </div>
         </div>
@@ -908,11 +907,9 @@ export default function Landing() {
                 ))}
               </ul>
 
-              <Link to={ctaHref} className="block">
-                <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />}>
+              <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => navigate(ctaHref)}>
                   {ctaLabel}
                 </MysticButton>
-              </Link>
             </div>
 
             {/* Trust signals */}
@@ -965,11 +962,9 @@ export default function Landing() {
             <p className="text-white/40 text-sm sm:text-base leading-relaxed mb-10 max-w-md mx-auto">
               C'est exactement là que Tarot Dinatoire entre en jeu.
             </p>
-            <Link to={ctaHref}>
-              <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12">
-                Commencer mon premier rituel
-              </MysticButton>
-            </Link>
+            <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12" onClick={() => navigate(ctaHref)}>
+              Commencer mon premier rituel
+            </MysticButton>
             <p className="text-white/25 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
           </SectionReveal>
         </div>
