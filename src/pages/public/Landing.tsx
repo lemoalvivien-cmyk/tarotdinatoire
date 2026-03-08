@@ -552,16 +552,15 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 40% 8% / 0.7), transparent)' }} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-3xl mx-auto text-center">
-            <Eyebrow>Ce n'est pas du tarot ordinaire</Eyebrow>
+            <Eyebrow>Rupture de catégorie</Eyebrow>
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white leading-tight mb-8">
-              Le tarot, enfin traité comme<br className="hidden sm:block" /> une expérience premium.
+              Le marché du tarot est saturé<br className="hidden sm:block" /> de médiocrité. Pas ici.
             </h2>
             <GoldDivider />
             <p className="text-white/50 text-lg leading-relaxed mt-6 max-w-xl mx-auto">
-              Le marché regorge de tirages rapides, d'interpretations génériques, d'ésotérisme copié-collé.
-              Tarot Dinatoire fait autre chose :{' '}
-              <span className="text-white/80">il construit une relation avec vous</span>,
-              tirage après tirage, semaine après semaine.
+              Tirages génériques, interprétations recyclées, ésotérisme de supermarché.
+              Tarot Dinatoire n'est pas dans cette catégorie.{' '}
+              <span className="text-white/80">Il construit une relation avec vous</span> — une véritable mémoire de qui vous êtes, tirage après tirage.
             </p>
           </SectionReveal>
 
