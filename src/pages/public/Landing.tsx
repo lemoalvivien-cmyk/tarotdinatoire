@@ -454,12 +454,12 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
               className="font-serif text-[2.8rem] leading-[1.08] sm:text-6xl lg:text-7xl font-semibold text-white"
             >
-              Plus qu'un tirage.{' '}
+              Ce n'est pas un tirage.{' '}
               <span
                 className="block mt-1"
                 style={{ background: `linear-gradient(135deg, ${gold}, hsl(265 60% 72%))`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
               >
-                Une expérience qui vous attrape.
+                C'est un miroir qui se souvient.
               </span>
             </motion.h1>
 
