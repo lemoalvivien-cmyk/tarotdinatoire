@@ -51,3 +51,6 @@ verify_jwt = false
 [functions.agent-worker]
 verify_jwt = false
 
+[functions.generate-insight]
+verify_jwt = false
+
