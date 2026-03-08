@@ -526,15 +526,14 @@ export default function Landing() {
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }}
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center"
             >
-              <Link to={ctaHref}>
-                <MysticButton
+              <MysticButton
                   size="lg"
                   rightIcon={<ArrowRight className="h-5 w-5" />}
                   className="text-base px-8 w-full sm:w-auto"
+                  onClick={() => navigate(ctaHref)}
                 >
                   {ctaLabel}
                 </MysticButton>
-              </Link>
               <a
                 href="#rituel"
                 className="text-sm text-white/50 hover:text-white/80 transition-colors underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 rounded"
