@@ -827,10 +827,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           <SectionReveal className="max-w-lg mx-auto text-center">
             <Eyebrow>L'offre de lancement</Eyebrow>
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white mb-3 leading-tight">
-              Votre oracle personnel
+              Tout l'oracle.<br />Pour moins que rien.
             </h2>
             <p className="text-white/40 mb-10 leading-relaxed">
-              Un abonnement. Un rituel quotidien. Une relation qui dure.
+              3,90€ par mois. Sans engagement. L'intégralité de l'expérience — dès le premier jour.
             </p>
 
             <div
