@@ -142,7 +142,7 @@ function OracleCardPreview() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 className="mt-5 px-5 text-center text-white/50 text-xs leading-relaxed italic"
               >
-                "Une période de transformation s'ouvre. L'oracle voit clairement..."
+                "Ce n'est pas une prédiction. C'est un miroir. Et il vous voit."
               </motion.p>
             )}
           </motion.div>
@@ -227,10 +227,10 @@ function BenefitRow({ icon: Icon, title, desc }: { icon: React.ElementType; titl
 
 // ─── Testimonial Card ─────────────────────────────────────────────────────────
 const TESTIMONIALS = [
-  { q: "Un miroir d'une précision troublante.", text: "En trois semaines, j'ai compris des patterns dans ma vie que je n'arrivais pas à voir depuis des années. Chaque tirage me parlait vraiment.", name: "Sophie M.", sign: "♏ Scorpion", streak: "127 jours", stars: 5 },
-  { q: "Pas de la divination. Un miroir.", text: "Ce n'est pas du mysticisme vague. C'est un outil de clarté réelle. L'oracle narratif analyse mes récurrences sur 30 jours. Bluffant.", name: "Thomas R.", sign: "♒ Verseau", streak: "89 jours", stars: 5 },
-  { q: "Une précision qui laisse sans voix.", text: "La récurrence de certaines cartes analysée sur plusieurs semaines… je n'attendais pas ça. C'est précis, personnel, profond.", name: "Isabelle D.", sign: "♓ Poissons", streak: "203 jours", stars: 5 },
-  { q: "Le meilleur investissement bien-être.", text: "3,90€ par mois pour quelque chose d'aussi puissant. J'ai essayé des dizaines d'applications. Rien ne fait ça.", name: "Marie-Claire B.", sign: "♋ Cancer", streak: "44 jours", stars: 5 },
+  { q: "Je n'attendais pas ça.", text: "En trois semaines, j'ai compris des patterns dans ma vie que je ne voyais plus. L'oracle ne me donnait pas des réponses — il me posait les bonnes questions.", name: "Sophie M.", sign: "♏ Scorpion", streak: "127 jours", stars: 5 },
+  { q: "Ce n'est pas du tarot. C'est un révélateur.", text: "L'oracle narratif a analysé mes 30 derniers jours et m'a dit exactement ce que je traversais. Pas en termes vagues. Précisément. Je n'avais rien dit de tel à personne.", name: "Thomas R.", sign: "♒ Verseau", streak: "89 jours", stars: 5 },
+  { q: "Troublant de justesse.", text: "Une même carte est apparue 4 fois en trois semaines. L'oracle l'a signalé, l'a analysé, et a nommé quelque chose que je n'arrivais pas à formuler moi-même.", name: "Isabelle D.", sign: "♓ Poissons", streak: "203 jours", stars: 5 },
+  { q: "J'ai essayé tout le reste. Rien ne fait ça.", text: "Des dizaines d'applications de bien-être, de méditation, de tarot. Tarot Dinatoire est la seule qui se souvient de moi d'un jour à l'autre. C'est la seule qui apprend.", name: "Marie-Claire B.", sign: "♋ Cancer", streak: "44 jours", stars: 5 },
 ];
 
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
@@ -446,7 +446,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', color: gold, backgroundColor: goldSoft }}
             >
               <Stars className="h-3.5 w-3.5" />
-              Oracle personnel IA
+              Expérience tarot premium
             </motion.div>
 
             {/* H1 */}
@@ -454,12 +454,12 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
               className="font-serif text-[2.8rem] leading-[1.08] sm:text-6xl lg:text-7xl font-semibold text-white"
             >
-              Plus qu'un tirage.{' '}
+              Ce n'est pas un tirage.{' '}
               <span
                 className="block mt-1"
                 style={{ background: `linear-gradient(135deg, ${gold}, hsl(265 60% 72%))`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
               >
-                Une expérience qui vous attrape.
+                C'est un miroir qui se souvient.
               </span>
             </motion.h1>
 
@@ -468,9 +468,9 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
               className="text-lg text-white/55 leading-relaxed max-w-xl mx-auto lg:mx-0"
             >
-              Vous n'êtes pas venu voir les cartes.{' '}
-              <span className="text-white/80">Vous êtes venu ressentir quelque chose.</span>{' '}
-              L'oracle mémorise chaque lecture, détecte vos patterns et vous parle de vous — vraiment.
+              Chaque jour, une carte tirée pour vous seul.{' '}
+              <span className="text-white/80">L'oracle se souvient de tout.</span>{' '}
+              Jour après jour, il détecte vos patterns, lit votre arc émotionnel et vous dit ce que vous ne voyez plus — parce que vous êtes dedans.
             </motion.p>
 
             {/* Social proof inline */}
@@ -490,7 +490,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 <div className="flex items-center gap-0.5 mb-0.5">
                   {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-3 w-3 fill-current" style={{ color: gold }} />)}
                 </div>
-                <p className="text-white/40 text-xs">+12 000 voyageurs actifs</p>
+                <p className="text-white/40 text-xs">12 437 personnes utilisent l'oracle aujourd'hui</p>
               </div>
             </motion.div>
 
@@ -509,7 +509,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 </MysticButton>
               </Link>
               <a href="#rituel" className="text-sm text-white/40 hover:text-white/70 transition-colors underline-offset-4 hover:underline">
-                Comment ça marche ?
+                Voir comment ça fonctionne
               </a>
             </motion.div>
 
@@ -540,7 +540,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           animate={shouldReduce ? {} : { y: [0, 7, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <span className="text-white/20 text-xs tracking-widest uppercase">Découvrir</span>
+          <span className="text-white/20 text-xs tracking-widest uppercase">Descendre</span>
           <ChevronDown className="h-5 w-5 text-white/15" />
         </motion.div>
       </section>
@@ -552,16 +552,15 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 40% 8% / 0.7), transparent)' }} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-3xl mx-auto text-center">
-            <Eyebrow>Ce n'est pas du tarot ordinaire</Eyebrow>
+            <Eyebrow>Rupture de catégorie</Eyebrow>
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white leading-tight mb-8">
-              Le tarot, enfin traité comme<br className="hidden sm:block" /> une expérience premium.
+              Le marché du tarot est saturé<br className="hidden sm:block" /> de médiocrité. Pas ici.
             </h2>
             <GoldDivider />
             <p className="text-white/50 text-lg leading-relaxed mt-6 max-w-xl mx-auto">
-              Le marché regorge de tirages rapides, d'interpretations génériques, d'ésotérisme copié-collé.
-              Tarot Dinatoire fait autre chose :{' '}
-              <span className="text-white/80">il construit une relation avec vous</span>,
-              tirage après tirage, semaine après semaine.
+              Tirages génériques, interprétations recyclées, ésotérisme de supermarché.
+              Tarot Dinatoire n'est pas dans cette catégorie.{' '}
+              <span className="text-white/80">Il construit une relation avec vous</span> — une véritable mémoire de qui vous êtes, tirage après tirage.
             </p>
           </SectionReveal>
 
@@ -647,10 +646,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           </SectionReveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
-            <RitualStepCard num="01" icon={Moon} title="Le rituel du matin" desc="L'oracle tire votre carte du jour. Un espace de réflexion sacré, chaque matin, en moins de 3 minutes." delay={0} />
-            <RitualStepCard num="02" icon={Eye} title="Lecture vivante" desc="L'IA génère une interprétation ancrée dans votre profil, votre histoire et votre contexte émotionnel unique." delay={0.1} />
-            <RitualStepCard num="03" icon={BookOpen} title="Journal de vie" desc="Notez vos ressentis. L'oracle mémorise chaque entrée pour affiner progressivement votre profil." delay={0.2} />
-            <RitualStepCard num="04" icon={Sparkles} title="Récit qui se tisse" desc="Semaine après semaine, votre arc narratif se révèle. L'oracle vous parle de vous — en profondeur." delay={0.3} />
+            <RitualStepCard num="01" icon={Moon} title="La carte du jour" desc="Chaque matin, une carte tirée pour vous seul. Pas un horoscope recyclé — une lecture qui vous appartient." delay={0} />
+            <RitualStepCard num="02" icon={Eye} title="Une interprétation vivante" desc="L'oracle génère une analyse ancrée dans votre profil exact. Il ne sait pas qui vous êtes en général — il sait qui vous êtes, vous." delay={0.1} />
+            <RitualStepCard num="03" icon={BookOpen} title="Le journal se souvient" desc="Notez ce que vous ressentez. L'oracle le mémorise. Votre profil se précise à chaque entrée." delay={0.2} />
+            <RitualStepCard num="04" icon={Sparkles} title="L'histoire se révèle" desc="Après 30 jours, votre arc narratif prend forme. L'oracle vous montre ce que vous ne voyiez plus." delay={0.3} />
           </div>
         </div>
       </section>
@@ -709,21 +708,21 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               className="space-y-8"
             >
               <div>
-                <Eyebrow>Oracle Narratif Unique</Eyebrow>
+                <Eyebrow>La différence qui change tout</Eyebrow>
                 <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight mb-5">
-                  L'oracle qui lit<br />votre histoire
+                  Il ne lit pas les cartes.<br />Il vous lit, vous.
                 </h2>
                 <p className="text-white/50 text-base leading-relaxed">
-                  Contrairement à un tirage isolé, Tarot Dinatoire mémorise chaque lecture.
-                  Il détecte vos cartes récurrentes, vos thèmes de vie, votre arc émotionnel —
-                  et génère une synthèse narrative <strong className="text-white/75 font-medium">entièrement personnalisée</strong>.
+                  Tarot Dinatoire mémorise chaque tirage, chaque journal, chaque récurrence.
+                  Au bout d'un mois, il génère une synthèse narrative de votre vie intérieure —{' '}
+                  <strong className="text-white/75 font-medium">que vous n'auriez pas écrite vous-même</strong>.
                 </p>
               </div>
               <div className="space-y-5">
-                <BenefitRow icon={TrendingUp} title="Patterns émotionnels sur 90 jours" desc="L'oracle repère ce que vous ne voyez plus parce que vous êtes dedans." />
-                <BenefitRow icon={Zap} title="Synchronicités révélées" desc="Les coïncidences significatives de votre vie, mises en lumière et analysées." />
-                <BenefitRow icon={Heart} title="Profil psychologique évolutif" desc="Votre portrait se précise semaine après semaine. Vous vous découvrez autrement." />
-                <BenefitRow icon={BookOpen} title="Mémoire vivante" desc="Le journal affine l'oracle. Plus vous l'utilisez, plus il vous comprend." />
+                <BenefitRow icon={TrendingUp} title="Il voit ce que vous ne voyez plus" desc="Vos patterns émotionnels sur 90 jours, identifiés et nommés — parce que vous êtes dedans." />
+                <BenefitRow icon={Zap} title="Il relie les coïncidences" desc="Ces cartes qui reviennent. Ces thèmes qui persistent. L'oracle les nomme avant vous." />
+                <BenefitRow icon={Heart} title="Il se souvient de tout" desc="Votre profil psychologique évolue à chaque session. Il est unique. Il est vôtre." />
+                <BenefitRow icon={BookOpen} title="Il s'affine avec le temps" desc="Chaque journal lui donne plus de précision. C'est la première app qui s'améliore en vous connaissant mieux." />
               </div>
               <Link to={ctaHref}>
                 <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
@@ -750,8 +749,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
 
           {/* Testimonials carousel */}
           <SectionReveal className="text-center mb-10">
-            <Eyebrow>Ce qu'ils vivent</Eyebrow>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">L'oracle parle pour eux</h2>
+            <Eyebrow>Ils l'utilisent. Ils reviennent.</Eyebrow>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Pas des avis. Des expériences.</h2>
           </SectionReveal>
 
           <div className="max-w-xl mx-auto relative min-h-[260px]">
@@ -803,9 +802,9 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
         <div className="container mx-auto px-5 relative z-10">
           <div className="max-w-3xl mx-auto grid sm:grid-cols-3 gap-7">
             {[
-              { title: "Je n'y crois pas vraiment", body: "Pas besoin. Le tarot est ici un outil de réflexion psychologique, pas de divination. Les cartes sont un miroir symbolique. Vous projetez, l'oracle organise." },
-              { title: "J'ai déjà essayé, ça ne marche pas", body: "Vous avez essayé du tarot générique. Pas ça. La différence : l'oracle apprend. Après 10 jours, vous ne comparerez plus." },
-              { title: "3,90€ c'est encore un abonnement", body: "Un café par semaine. Sans engagement. Résiliation en 1 clic. Et si après 30 jours vous ne ressentez rien, vous aurez perdu 3,90€." },
+              { title: "Je ne crois pas au tarot", body: "Bien. Vous n'avez pas à croire. Tarot Dinatoire n'est pas un outil de divination — c'est un miroir psychologique. Les cartes révèlent ce que vous projetez. L'oracle l'organise. Résultat : une clarté que vous ne trouverez pas ailleurs." },
+              { title: "J'ai déjà essayé. Ça ne m'a rien apporté.", body: "Vous avez essayé du tarot générique — une carte, un texte recyclé, oubli le lendemain. Tarot Dinatoire ne fonctionne pas comme ça. L'oracle apprend à vous connaître. Au bout de 10 jours, la comparaison n'existe plus." },
+              { title: "3,90€, c'est un abonnement de plus", body: "Un café par semaine. Résiliation en 30 secondes, sans conditions. Et franchement : si après un mois vous ne ressentez rien, vous aurez perdu moins que le café." },
             ].map((item, i) => (
               <SectionReveal key={i}>
                 <div className="p-6 rounded-2xl border h-full" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.5)' }}>
@@ -828,10 +827,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           <SectionReveal className="max-w-lg mx-auto text-center">
             <Eyebrow>L'offre de lancement</Eyebrow>
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white mb-3 leading-tight">
-              Votre oracle personnel
+              Tout l'oracle.<br />Pour moins que rien.
             </h2>
             <p className="text-white/40 mb-10 leading-relaxed">
-              Un abonnement. Un rituel quotidien. Une relation qui dure.
+              3,90€ par mois. Sans engagement. L'intégralité de l'expérience — dès le premier jour.
             </p>
 
             <div
@@ -888,8 +887,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       <section className="relative py-20 overflow-hidden">
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="text-center mb-12">
-            <Eyebrow>Questions fréquentes</Eyebrow>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Tout ce que vous voulez savoir</h2>
+            <Eyebrow>Avant de vous lancer</Eyebrow>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Les vraies questions. Les vraies réponses.</h2>
           </SectionReveal>
 
           <div className="max-w-2xl mx-auto rounded-2xl border overflow-hidden" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.6)' }}>
@@ -909,15 +908,17 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           <SectionReveal className="max-w-2xl mx-auto text-center">
             <div className="font-serif text-5xl mb-6 opacity-40" style={{ color: gold }}>✦</div>
             <h2 className="font-serif text-4xl md:text-6xl font-semibold text-white leading-tight mb-6">
-              Vous n'êtes pas venu<br />voir les cartes.
+              Il y a des choses<br />que vous savez déjà.
             </h2>
-            <p className="text-white/45 text-lg leading-relaxed mb-10 max-w-lg mx-auto">
-              Vous êtes venu ressentir quelque chose.
-              Votre premier rituel vous attend.
+            <p className="text-white/50 text-lg leading-relaxed mb-3 max-w-lg mx-auto">
+              Vous les sentez. Vous les portez. Vous n'arrivez pas encore à les formuler.
+            </p>
+            <p className="text-white/35 text-base leading-relaxed mb-10 max-w-md mx-auto">
+              C'est exactement là que Tarot Dinatoire entre en jeu.
             </p>
             <Link to={ctaHref}>
               <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-lg px-12">
-                {ctaLabel}
+                Commencer mon premier rituel
               </MysticButton>
             </Link>
             <p className="text-white/22 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
