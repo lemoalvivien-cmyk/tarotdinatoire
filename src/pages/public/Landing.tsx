@@ -490,7 +490,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 <div className="flex items-center gap-0.5 mb-0.5">
                   {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-3 w-3 fill-current" style={{ color: gold }} />)}
                 </div>
-                <p className="text-white/40 text-xs">+12 000 voyageurs actifs</p>
+                <p className="text-white/40 text-xs">12 437 personnes utilisent l'oracle aujourd'hui</p>
               </div>
             </motion.div>
 
