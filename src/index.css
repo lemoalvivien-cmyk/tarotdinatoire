@@ -4,6 +4,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Float keyframe — fallback animation for TarotCard3D CSS mode ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(0.5deg); }
+  66%       { transform: translateY(-4px) rotate(-0.3deg); }
+}
+
+
+
 /* ========================================
    Hide Lovable Badge in Production
    ======================================== */
