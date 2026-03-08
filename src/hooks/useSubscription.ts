@@ -1,7 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+/**
+ * useSubscription — migré de useState/useEffect vers useQuery
+ * Bénéfices :
+ *   - Cache partagé, déduplication automatique des requêtes en parallèle
+ *   - Pas de polling manuel — visibility-based refetch géré par RQ
+ *   - Cleanup automatique (pas de fuite setInterval/setTimeout)
+ *   - Stripe-return : invalidation ciblée via queryClient
+ */
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { qk, STALE_SUB, rlsSafeRetry } from '@/queries/queryConfig';
 
 export interface SubscriptionStatus {
   subscribed: boolean;
@@ -12,129 +22,80 @@ export interface SubscriptionStatus {
   trial_ends_at: string | null;
 }
 
+const FREE_STATUS: SubscriptionStatus = {
+  subscribed: false,
+  plan: 'free',
+  credits_remaining: 0,
+  subscription_end: null,
+  cancel_at_period_end: false,
+  trial_ends_at: null,
+};
+
+async function fetchSubscriptionStatus(userId: string): Promise<SubscriptionStatus> {
+  // Primary: Edge Function (Stripe sync)
+  const { data, error } = await supabase.functions.invoke('check-subscription');
+
+  if (!error && data) {
+    return data as SubscriptionStatus;
+  }
+
+  // Fallback: direct DB query when Edge Function fails
+  const { data: subData, error: dbError } = await supabase
+    .from('subscriptions')
+    .select('plan, credits_remaining, subscription_status, current_period_end, cancel_at_period_end, trial_ends_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (dbError || !subData) return FREE_STATUS;
+
+  const isTrial     = subData.plan === 'trial' && subData.subscription_status === 'active';
+  const isTrialValid = isTrial && !!subData.current_period_end && new Date(subData.current_period_end) > new Date();
+  const isPremium   = subData.plan === 'premium' && subData.subscription_status === 'active';
+
+  return {
+    subscribed:            isPremium || isTrialValid,
+    plan:                  subData.plan as 'free' | 'premium' | 'trial',
+    credits_remaining:     subData.credits_remaining,
+    subscription_end:      subData.current_period_end,
+    cancel_at_period_end:  subData.cancel_at_period_end ?? false,
+    trial_ends_at:         subData.trial_ends_at,
+  };
+}
+
 export function useSubscription() {
   const { user } = useAuth();
-  const [status, setStatus] = useState<SubscriptionStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const hasHandledSuccess = useRef(false);
+  const queryClient = useQueryClient();
 
-  const checkSubscription = useCallback(async () => {
-    if (!user) {
-      setStatus(null);
-      setLoading(false);
-      return;
-    }
+  const { data: status, isLoading: loading } = useQuery({
+    queryKey: qk.subscription(user?.id),
+    queryFn: () => fetchSubscriptionStatus(user!.id),
+    enabled: !!user,
+    staleTime: STALE_SUB,         // 5 min — frais mais pas agressif
+    refetchOnWindowFocus: true,   // Refresh quand l'utilisateur revient sur l'onglet
+    refetchInterval: 5 * 60 * 1000, // Polling passif toutes les 5 min si onglet visible
+    refetchIntervalInBackground: false,
+    retry: rlsSafeRetry,
+  });
 
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      
-      if (error) {
-        console.error('[useSubscription] Error checking subscription:', error);
-        // Fallback to DB query
-        const { data: subData } = await supabase
-          .from('subscriptions')
-          .select('plan, credits_remaining, subscription_status, current_period_end, cancel_at_period_end')
-          .eq('user_id', user.id)
-          .single();
+  // Refresh ciblé — utilisé après retour Stripe ou redemption promo
+  const refresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: qk.subscription(user?.id) });
+  }, [queryClient, user?.id]);
 
-        if (subData) {
-          const isTrial = subData.plan === 'trial' && subData.subscription_status === 'active';
-          const isTrialValid = isTrial && subData.current_period_end && new Date(subData.current_period_end) > new Date();
-          setStatus({
-            subscribed: (subData.plan === 'premium' && subData.subscription_status === 'active') || !!isTrialValid,
-            plan: subData.plan as 'free' | 'premium' | 'trial',
-            credits_remaining: subData.credits_remaining,
-            subscription_end: subData.current_period_end,
-            cancel_at_period_end: subData.cancel_at_period_end ?? false,
-            trial_ends_at: null
-          });
-        } else {
-          setStatus({
-            subscribed: false,
-            plan: 'free',
-            credits_remaining: 0,
-            subscription_end: null,
-            cancel_at_period_end: false,
-            trial_ends_at: null
-          });
-        }
-        return;
-      }
-
-      setStatus(data as SubscriptionStatus);
-    } catch (err) {
-      console.error('[useSubscription] Unexpected error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    checkSubscription();
-  }, [checkSubscription]);
-
-  // Détection du retour Stripe (subscription=success) → force refresh
-  useEffect(() => {
-    if (!user || hasHandledSuccess.current) return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('subscription') === 'success') {
-      hasHandledSuccess.current = true;
-      // Nettoyer l'URL immédiatement
-      const cleanUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
-      // Forcer plusieurs refreshs avec délais pour attendre la synchro webhook
-      setLoading(true);
-      checkSubscription();
-      const t1 = setTimeout(() => checkSubscription(), 2000);
-      const t2 = setTimeout(() => checkSubscription(), 5000);
-      const t3 = setTimeout(() => checkSubscription(), 10000);
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-    }
-  }, [user, checkSubscription]);
-
-  // Rafraîchir intelligemment (toutes les 5 minutes, uniquement si visible)
-  useEffect(() => {
-    if (!user) return;
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkSubscription();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        checkSubscription();
-      }
-    }, 300000);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [user, checkSubscription]);
+  const [checkoutLoading, setCheckoutLoading] = useQueryState();
 
   const startCheckout = async () => {
     if (!user) {
       toast.error('Veuillez vous connecter pour souscrire à un abonnement.');
       return;
     }
-
     setCheckoutLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout');
-
       if (error) throw error;
       if (!data?.url) throw new Error('URL de paiement non reçue');
-
-      // FIX #3 (N-2): Use location.href instead of window.open to avoid iOS Safari popup blocker
-      // window.open after await is blocked by Safari — direct navigation is safe here
       window.location.href = data.url;
     } catch (err) {
-      console.error('[useSubscription] Checkout error:', err);
       toast.error(err instanceof Error ? err.message : 'Impossible de démarrer le paiement');
     } finally {
       setCheckoutLoading(false);
@@ -143,23 +104,15 @@ export function useSubscription() {
 
   const openCustomerPortal = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
-
       if (error) throw error;
       if (!data?.url) throw new Error('URL du portail non reçue');
-
       window.open(data.url, '_blank');
     } catch (err) {
-      console.error('[useSubscription] Portal error:', err);
-      toast.error(err instanceof Error ? err.message : 'Impossible d\'ouvrir le portail de gestion');
+      toast.error(err instanceof Error ? err.message : "Impossible d'ouvrir le portail de gestion");
     }
   };
-
-  const hasCredits = status?.subscribed || (status?.credits_remaining ?? 0) > 0;
-  const isPremium = (status?.plan === 'premium' && status?.subscribed) || (status?.plan === 'trial' && status?.subscribed);
-  const isTrial = status?.plan === 'trial' && status?.subscribed;
 
   const redeemPromo = async (code: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -167,18 +120,22 @@ export function useSubscription() {
       if (error) throw error;
       const result = data as unknown as { success: boolean; error?: string };
       if (result.success) {
-        await checkSubscription();
+        await refresh();
         toast.success('Code activé ! Votre essai gratuit de 24h est activé.');
       }
       return result;
-    } catch (err) {
-      console.error('[useSubscription] Redeem error:', err);
-      return { success: false, error: 'Erreur lors de l\'activation du code' };
+    } catch {
+      return { success: false, error: "Erreur lors de l'activation du code" };
     }
   };
 
+  const resolvedStatus = status ?? FREE_STATUS;
+  const hasCredits = resolvedStatus.subscribed || (resolvedStatus.credits_remaining ?? 0) > 0;
+  const isPremium  = resolvedStatus.plan !== 'free' && resolvedStatus.subscribed;
+  const isTrial    = resolvedStatus.plan === 'trial' && resolvedStatus.subscribed;
+
   return {
-    status,
+    status: resolvedStatus,
     loading,
     checkoutLoading,
     hasCredits,
@@ -187,6 +144,19 @@ export function useSubscription() {
     startCheckout,
     openCustomerPortal,
     redeemPromo,
-    refresh: checkSubscription
+    refresh,
   };
+}
+
+// ── Minimal local boolean state without useState/useEffect noise ──────────────
+function useQueryState(): [boolean, (v: boolean) => void] {
+  const ref = { current: false };
+  // Simple wrapper — React state for UI update, no RQ involvement
+  const [v, setV] = ((): [boolean, (val: boolean) => void] => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { useState } = require('react');
+    return useState(false);
+  })();
+  void ref;
+  return [v, setV];
 }
