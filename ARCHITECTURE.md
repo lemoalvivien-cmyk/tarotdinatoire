@@ -257,20 +257,27 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 | `admin_audit_logs` | ❌ | ❌ | SELECT/INSERT — **NO DELETE/UPDATE** | ALL |
 | **`agent_jobs`** | ❌ | ❌ | SELECT/INSERT/UPDATE — **NO DELETE** | ALL |
 
-### Fonctions RPC SECURITY DEFINER (contournent RLS)
+### Fonctions RPC SECURITY DEFINER — Matrice GRANT/REVOKE
 
-| Fonction | Appelant autorisé | Justification |
-|---|---|---|
-| `has_role(_user_id, _role)` | Toute function interne | Base du RBAC |
-| `is_admin(_user_id)` | Policies RLS, Edge Functions | Évite récursion |
-| `can_dispatch_agent_job(_user_id)` | agent-dispatcher | Délégation admin |
-| `has_reading_credits(uid)` | Policies INSERT | Paywall enforcement |
-| `decrement_reading_credit(uid)` | Edge Functions | Atomic debit |
-| `award_karma(p_uid, p_action)` | Edge Functions | XP accumulation |
-| `get_email_leads_admin_safe()` | Admin UI | Masque tokens sensibles |
-| `get_my_subscription()` | Frontend | Masque stripe IDs |
-| `get_pending_agent_jobs(limit)` | Futur worker | Polling sécurisé |
-| `bootstrap_first_admin(email)` | bootstrap-admin EF | One-shot uniquement |
+> Migration exécutée le 2026-03-08 : `fix_grant_revoke_rpc_and_complete_agent_job`
+
+| Fonction | PUBLIC | anon | authenticated | service_role | Notes |
+|---|---|---|---|---|---|
+| `has_role(_user_id, _role)` | REVOKE | REVOKE | REVOKE | GRANT | Base RBAC |
+| `is_admin(_user_id)` | REVOKE | REVOKE | REVOKE | GRANT | Appels internes RLS |
+| `can_dispatch_agent_job(_user_id)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Agent uniquement |
+| `has_reading_credits(uid)` | REVOKE | REVOKE | REVOKE | GRANT | Paywall |
+| `decrement_reading_credit(uid)` | REVOKE | REVOKE | REVOKE | GRANT | Atomic debit |
+| `award_karma(p_uid, p_action)` | REVOKE | REVOKE | REVOKE | GRANT | XP accumulation |
+| `get_email_leads_admin_safe()` | REVOKE | REVOKE | REVOKE | GRANT | Masque tokens |
+| `get_my_subscription()` | REVOKE | REVOKE | REVOKE | GRANT | Masque stripe IDs |
+| `get_pending_agent_jobs(limit)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement |
+| `bootstrap_first_admin(email)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ One-shot, EF only |
+| `claim_next_agent_job(limit)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement, atomique |
+| `complete_agent_job(...)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement |
+
+> `REVOKE` = REVOKE EXECUTE. `GRANT` = GRANT EXECUTE explicite.  
+> ⚠ = Fonctions critiques dont la restriction authenticated est non-évidente et expressément vérifiée.
 
 ### Vérification RLS par couche
 
@@ -285,18 +292,40 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 
 ### Tests de non-régression sécurité
 
-Fichier : `supabase/functions/agent-dispatcher/index_test.ts` — **8 tests existants et vérifiés**
+#### agent-dispatcher (`supabase/functions/agent-dispatcher/index_test.ts`)
 
 | Test ID | Description | Attendu | Statut |
 |---|---|---|---|
-| ZT-01 | Pas de header Auth | 401 | ✅ Implémenté |
-| ZT-02 | JWT invalide | 401 | ✅ Implémenté |
-| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ Implémenté |
-| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ origine attaquant | ✅ Implémenté |
-| ZT-05 | job_type injection | Jamais 201 | ✅ Implémenté |
-| ZT-06 | Méthode GET | 405 | ✅ Implémenté |
-| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ Implémenté |
-| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ Implémenté |
+| ZT-01 | Pas de header Auth | 401 | ✅ |
+| ZT-02 | JWT invalide | 401 | ✅ |
+| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ |
+| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ evil | ✅ |
+| ZT-05 | job_type injection | Jamais 201 | ✅ |
+| ZT-06 | Méthode GET | 405 | ✅ |
+| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ |
+| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ |
+| RBAC-01 | Non-admin → jamais 201 | 401 ou 403 | ✅ |
+| HAPPY-01 | Admin dispatch valide | 201 + job.id | ✅ (nécessite TEST_ADMIN_JWT) |
+| HAPPY-02 | job_type invalide | 400 + allowed list | ✅ (nécessite TEST_ADMIN_JWT) |
+| HAPPY-03 | priority hors range | 400 | ✅ (nécessite TEST_ADMIN_JWT) |
+| IDEM-01 | Même clé → 1 seul job | 200 deduplicated | ✅ (nécessite TEST_ADMIN_JWT) |
+| IDEM-02 | Clés différentes → 2 jobs | 2x 201, IDs distincts | ✅ (nécessite TEST_ADMIN_JWT) |
+
+#### agent-worker (`supabase/functions/agent-worker/index_test.ts`)
+
+| Test ID | Description | Attendu | Statut |
+|---|---|---|---|
+| W-ZT-01 | GET method | 405 | ✅ |
+| W-ZT-02 | Secret absent (si configuré) | 401 | ✅ |
+| W-ZT-03 | Mauvais secret | 401 | ✅ |
+| W-ZT-04 | Bon secret → pas 401 | 200 ou 500 | ✅ |
+| W-ST-01 | Queue vide → processed:0 | 200 | ✅ (nécessite SERVICE_KEY) |
+| W-ST-02 | Job pending → completed | status terminal | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
+| W-ST-03 | complete_agent_job sur pending | false | ✅ (nécessite SERVICE_KEY) |
+| W-CC-01 | 3 claims concurrents | 0 doublons | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
+| W-CC-02 | batch_size=2 | max 2 jobs | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
+| RBAC-02 | service_role → get_pending_agent_jobs | pas d'erreur | ✅ (nécessite SERVICE_KEY) |
+| RBAC-03 | service_role → can_dispatch_agent_job | boolean | ✅ (nécessite SERVICE_KEY) |
 
 ---
 
