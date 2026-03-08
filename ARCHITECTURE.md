@@ -1,6 +1,9 @@
 # TarotDinatoire — Architecture & Security Reference
 
-> Version: 2.0 · Date: 2026-03-08 · Auteur: Architecte Système Senior / SecOps
+> Version: 3.0 · Date: 2026-03-08 · Auteur: Architecte Système Senior / SecOps
+>
+> **VÉRITÉ D'ÉTAT** : Ce document reflète uniquement ce qui est réellement dans le repo.
+> Toute mention de "stub", "⚠", ou "À faire" est intentionnelle et vérifiable.
 
 ---
 
