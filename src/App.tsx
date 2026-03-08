@@ -113,6 +113,8 @@ const App = () => (
         <TooltipProvider>
           <Sonner />
           <BrowserRouter>
+            {/* Enregistre le callback navigate pour AuthContext.signOut */}
+            <NavigateBridge />
             <MaintenanceGuard>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
