@@ -248,7 +248,7 @@ export function CardBack({ size = 'md', glow = false, className }: CardBackProps
       className={cn(
         'rounded-xl overflow-hidden border shadow-lg transition-shadow duration-300',
         sizeClasses[size],
-        glow ? 'border-yellow-400/50 shadow-yellow-400/20' : 'border-white/20',
+        glow ? 'border-mp-brand-gold/50 shadow-mp-glow-g' : 'border-white/20',
         className
       )}
     >
