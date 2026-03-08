@@ -386,8 +386,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
     return () => clearInterval(t);
   }, []);
 
-  const ctaHref = user ? '/app' : '/auth';
-  const ctaLabel = user ? 'Accéder à mon oracle' : 'Vivre l'expérience';
+    const ctaHref = user ? '/app' : '/auth';
+    const ctaLabel = user ? 'Acc\u00e9der \u00e0 mon oracle' : 'Vivre l\u2019exp\u00e9rience';
 
   const FAQ_ITEMS = [
     { q: "Est-ce vraiment différent d'une application de tarot classique ?", a: "Oui. Tarot Dinatoire mémorise chaque tirage pour construire votre profil unique. L'oracle analyse vos récurrences, détecte vos patterns émotionnels et génère un récit narratif sur vos 30-90 derniers jours. Aucune app de tarot ne fait ça." },
