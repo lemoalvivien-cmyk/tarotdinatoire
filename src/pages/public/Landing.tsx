@@ -282,7 +282,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
   }, []);
 
   const ctaHref = user ? '/app' : '/auth';
-  const ctaLabel = user ? 'Accéder à mon oracle' : 'Commencer gratuitement';
+  const ctaLabel = user ? 'Accéder à mon oracle' : 'Commencer — 3,90€/mois';
 
   return (
     <div
