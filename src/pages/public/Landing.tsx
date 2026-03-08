@@ -446,7 +446,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', color: gold, backgroundColor: goldSoft }}
             >
               <Stars className="h-3.5 w-3.5" />
-              Oracle personnel IA
+              Expérience tarot premium
             </motion.div>
 
             {/* H1 */}
