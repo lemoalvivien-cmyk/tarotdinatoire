@@ -749,8 +749,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
 
           {/* Testimonials carousel */}
           <SectionReveal className="text-center mb-10">
-            <Eyebrow>Ce qu'ils vivent</Eyebrow>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">L'oracle parle pour eux</h2>
+            <Eyebrow>Ils l'utilisent. Ils reviennent.</Eyebrow>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Pas des avis. Des expériences.</h2>
           </SectionReveal>
 
           <div className="max-w-xl mx-auto relative min-h-[260px]">
