@@ -243,7 +243,7 @@ export default function AdminAgentJobs() {
                 </div>
               ) : (
                 <motion.ul
-                  variants={staggerContainer}
+                  variants={staggerContainer(0.05)}
                   initial="hidden"
                   animate="visible"
                   className="divide-y divide-border"
