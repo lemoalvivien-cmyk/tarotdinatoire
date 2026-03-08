@@ -11,7 +11,8 @@ import {
   ScrollText,
   FlaskConical,
   Image as ImageIcon,
-  ClipboardCheck
+  ClipboardCheck,
+  Bot
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -117,10 +118,16 @@ export default function AdminDashboard() {
                 <span className="text-xs">Tests Edge</span>
               </Link>
             </Button>
-            <Button asChild variant="outline" className="h-auto py-3 flex flex-col gap-1.5 border-green-500/50 text-green-600 hover:bg-green-500/10">
+            <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
               <Link to="/admin/prod-check">
                 <ClipboardCheck className="h-4 w-4" />
                 <span className="text-xs">Prod Check</span>
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-auto py-3 flex flex-col gap-1.5 text-muted-foreground">
+              <Link to="/admin/agent-jobs">
+                <Bot className="h-4 w-4" />
+                <span className="text-xs">Agent Jobs</span>
               </Link>
             </Button>
           </div>

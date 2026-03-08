@@ -1,11 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// FIX #9: Full CORS headers matching supabase-js client headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// ── BLOC 2 · CORS HARDENED — Zero Trust allowlist, no wildcard ──
+const ALLOWED_ORIGINS = [
+  "https://tarotdinatoire.lovable.app",
+  "https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app",
+  "http://localhost:5173",
+  "http://localhost:8080",
+];
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed =
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
+
+// Legacy alias kept for compatibility with the rest of the file
+const corsHeaders = buildCorsHeaders(null);
 
 interface CardInput {
   card_id: string;
@@ -108,8 +124,11 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number; res
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  const reqCorsHeaders = buildCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: reqCorsHeaders });
   }
 
   try {
@@ -118,7 +137,6 @@ serve(async (req) => {
     const rateLimit = checkRateLimit(rateLimitKey);
     
     if (!rateLimit.allowed) {
-      console.warn(`[RateLimit] Blocked IP: ${rateLimitKey}`);
       return new Response(
         JSON.stringify({ 
           error: "Trop de requêtes",
@@ -128,7 +146,7 @@ serve(async (req) => {
         { 
           status: 429, 
           headers: { 
-            ...corsHeaders, 
+            ...reqCorsHeaders, 
             "Content-Type": "application/json",
             "Retry-After": String(Math.ceil(rateLimit.resetIn / 1000))
           } 

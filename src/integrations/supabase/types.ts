@@ -44,6 +44,66 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_jobs: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          error_message: string | null
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          job_type: Database["public"]["Enums"]["agent_job_type"]
+          max_attempts: number
+          payload: Json
+          priority: number
+          result: Json | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["agent_job_status"]
+          timeout_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          job_type: Database["public"]["Enums"]["agent_job_type"]
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          result?: Json | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["agent_job_status"]
+          timeout_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          job_type?: Database["public"]["Enums"]["agent_job_type"]
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          result?: Json | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["agent_job_status"]
+          timeout_seconds?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_prompt_templates: {
         Row: {
           content: string
@@ -888,6 +948,7 @@ export type Database = {
         Args: { allowed_email: string }
         Returns: boolean
       }
+      can_dispatch_agent_job: { Args: { _user_id: string }; Returns: boolean }
       compute_karma_level: {
         Args: { p_xp: number }
         Returns: {
@@ -942,6 +1003,20 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_pending_agent_jobs: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          created_by: string
+          id: string
+          job_type: Database["public"]["Enums"]["agent_job_type"]
+          max_attempts: number
+          payload: Json
+          priority: number
+          timeout_seconds: number
+        }[]
+      }
       get_subscription_status: { Args: { uid: string }; Returns: Json }
       get_synchronicity_patterns: {
         Args: { limit_days?: number; uid: string }
@@ -964,6 +1039,19 @@ export type Database = {
       redeem_promo_code: { Args: { p_code: string }; Returns: Json }
     }
     Enums: {
+      agent_job_status:
+        | "pending"
+        | "running"
+        | "completed"
+        | "failed"
+        | "timeout"
+        | "cancelled"
+      agent_job_type:
+        | "ui_qa_check"
+        | "content_synthesis"
+        | "data_verification"
+        | "admin_assist_review"
+        | "security_drift_check"
       app_role: "admin" | "user"
       card_type: "major" | "minor"
     }
@@ -1093,6 +1181,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agent_job_status: [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "timeout",
+        "cancelled",
+      ],
+      agent_job_type: [
+        "ui_qa_check",
+        "content_synthesis",
+        "data_verification",
+        "admin_assist_review",
+        "security_drift_check",
+      ],
       app_role: ["admin", "user"],
       card_type: ["major", "minor"],
     },

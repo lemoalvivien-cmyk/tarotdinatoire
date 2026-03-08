@@ -64,6 +64,7 @@ const AdminLeads          = lazy(() => import("./pages/admin/AdminLeads"));
 const AdminStats          = lazy(() => import("./pages/admin/AdminStats"));
 const AdminProdChecklist  = lazy(() => import("./pages/admin/AdminProdChecklist"));
 const AdminImportDeck     = lazy(() => import("./pages/admin/AdminImportDeck"));
+const AdminAgentJobs      = lazy(() => import("./pages/admin/AdminAgentJobs"));
 
 // ─── QueryClient ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -154,6 +155,7 @@ const App = () => (
                   <Route path="/admin/stats" element={<AdminRoute><AdminStats /></AdminRoute>} />
                   <Route path="/admin/prod-check" element={<AdminRoute><AdminProdChecklist /></AdminRoute>} />
                   <Route path="/admin/import-deck" element={<AdminRoute><AdminImportDeck /></AdminRoute>} />
+                  <Route path="/admin/agent-jobs" element={<AdminRoute><AdminAgentJobs /></AdminRoute>} />
 
                   {/* ═══ LEGACY REDIRECTS ══════════════════════════════════════ */}
                   <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />

@@ -3,10 +3,11 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // ═══════════════════════════════════════════════════════════════
-// CORS HEADERS
+// CORS — Stripe webhook is server-to-server; no browser origin
 // ═══════════════════════════════════════════════════════════════
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  // Stripe sends from their servers — no browser origin needed
+  "Access-Control-Allow-Origin": "https://tarotdinatoire.lovable.app",
   "Access-Control-Allow-Headers": "stripe-signature, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
