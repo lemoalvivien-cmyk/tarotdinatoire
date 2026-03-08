@@ -311,6 +311,7 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
 // ─── Header ───────────────────────────────────────────────────────────────────
 function LandingHeader({ ctaHref }: { ctaHref: string }) {
   const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', h, { passive: true });
@@ -335,15 +336,14 @@ function LandingHeader({ ctaHref }: { ctaHref: string }) {
             >
               Connexion
             </Link>
-            <Link to={ctaHref}>
-              <button
-                className="text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 4px 20px hsl(var(--mp-brand-violet) / 0.3)` }}
-                aria-label="Vivre l'expérience Tarot Dinatoire"
-              >
-                Vivre l'expérience
-              </button>
-            </Link>
+            <button
+              onClick={() => navigate(ctaHref)}
+              className="text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 4px 20px hsl(var(--mp-brand-violet) / 0.3)` }}
+              aria-label="Vivre l'expérience Tarot Dinatoire"
+            >
+              Vivre l'expérience
+            </button>
           </nav>
         </div>
       </div>
