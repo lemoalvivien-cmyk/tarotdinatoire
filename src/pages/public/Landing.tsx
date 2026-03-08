@@ -646,10 +646,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           </SectionReveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
-            <RitualStepCard num="01" icon={Moon} title="Le rituel du matin" desc="L'oracle tire votre carte du jour. Un espace de réflexion sacré, chaque matin, en moins de 3 minutes." delay={0} />
-            <RitualStepCard num="02" icon={Eye} title="Lecture vivante" desc="L'IA génère une interprétation ancrée dans votre profil, votre histoire et votre contexte émotionnel unique." delay={0.1} />
-            <RitualStepCard num="03" icon={BookOpen} title="Journal de vie" desc="Notez vos ressentis. L'oracle mémorise chaque entrée pour affiner progressivement votre profil." delay={0.2} />
-            <RitualStepCard num="04" icon={Sparkles} title="Récit qui se tisse" desc="Semaine après semaine, votre arc narratif se révèle. L'oracle vous parle de vous — en profondeur." delay={0.3} />
+            <RitualStepCard num="01" icon={Moon} title="La carte du jour" desc="Chaque matin, une carte tirée pour vous seul. Pas un horoscope recyclé — une lecture qui vous appartient." delay={0} />
+            <RitualStepCard num="02" icon={Eye} title="Une interprétation vivante" desc="L'oracle génère une analyse ancrée dans votre profil exact. Il ne sait pas qui vous êtes en général — il sait qui vous êtes, vous." delay={0.1} />
+            <RitualStepCard num="03" icon={BookOpen} title="Le journal se souvient" desc="Notez ce que vous ressentez. L'oracle le mémorise. Votre profil se précise à chaque entrée." delay={0.2} />
+            <RitualStepCard num="04" icon={Sparkles} title="L'histoire se révèle" desc="Après 30 jours, votre arc narratif prend forme. L'oracle vous montre ce que vous ne voyiez plus." delay={0.3} />
           </div>
         </div>
       </section>
