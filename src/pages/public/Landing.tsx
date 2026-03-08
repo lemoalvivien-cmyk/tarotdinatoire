@@ -142,7 +142,7 @@ function OracleCardPreview() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 className="mt-5 px-5 text-center text-white/50 text-xs leading-relaxed italic"
               >
-                "Une période de transformation s'ouvre. L'oracle voit clairement..."
+                "Ce n'est pas une prédiction. C'est un miroir. Et il vous voit."
               </motion.p>
             )}
           </motion.div>
