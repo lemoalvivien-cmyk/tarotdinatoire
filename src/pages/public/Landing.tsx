@@ -452,7 +452,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 1 — HERO
       ══════════════════════════════════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire">
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire" style={{ position: 'relative' }}>
         <StarfieldCanvas />
         <Orb size={600} color="radial-gradient(circle, hsl(265 55% 40% / 0.35), transparent)" x="0%" y="-5%" delay={0} />
         <Orb size={400} color="radial-gradient(circle, hsl(42 70% 45% / 0.15), transparent)" x="60%" y="55%" delay={3} />
