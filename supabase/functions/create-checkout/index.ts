@@ -27,8 +27,10 @@ const logStep = (step: string, details?: unknown) => {
 const STRIPE_PRICE_ID = "price_1Sv34KAlhNOBX5AskMHXDC29";
 
 serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  const corsH = buildCorsHeaders(origin);
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsH });
   }
 
   try {
