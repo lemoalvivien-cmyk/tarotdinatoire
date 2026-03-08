@@ -866,6 +866,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_embeddings: {
+        Row: {
+          card_id: string
+          created_at: string
+          draw_date: string
+          draw_id: string
+          embedding: string
+          energy_score: number
+          id: string
+          orientation: string
+          themes: string[]
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          draw_date?: string
+          draw_id: string
+          embedding: string
+          energy_score?: number
+          id?: string
+          orientation?: string
+          themes?: string[]
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          draw_date?: string
+          draw_id?: string
+          embedding?: string
+          energy_score?: number
+          id?: string
+          orientation?: string
+          themes?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_karma: {
         Row: {
           created_at: string
@@ -983,6 +1022,23 @@ export type Database = {
         }[]
       }
       decrement_reading_credit: { Args: { uid: string }; Returns: undefined }
+      find_similar_draws: {
+        Args: {
+          p_embedding: string
+          p_exclude_id?: string
+          p_limit?: number
+          p_user_id: string
+        }
+        Returns: {
+          card_id: string
+          draw_date: string
+          draw_id: string
+          energy_score: number
+          orientation: string
+          similarity: number
+          themes: string[]
+        }[]
+      }
       get_card_patterns: {
         Args: { limit_days?: number; uid: string }
         Returns: Json
