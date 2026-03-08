@@ -1,9 +1,10 @@
 # TarotDinatoire — Architecture & Security Reference
 
-> Version: 3.0 · Date: 2026-03-08 · Auteur: Architecte Système Senior / SecOps
+> Version: 4.0 · Date: 2026-03-08 · Auteur: Architecte Système Senior / SecOps
 >
 > **VÉRITÉ D'ÉTAT** : Ce document reflète uniquement ce qui est réellement dans le repo.
-> Toute mention de "stub", "⚠", ou "À faire" est intentionnelle et vérifiable.
+> Toute mention de "⚠ STUB" est intentionnelle, vérifiable et isolée.
+> Aucun item marqué "✅" n'est un stub ou un mock.
 
 ---
 
@@ -36,30 +37,31 @@
 | `/admin/stats` | ADMIN | ✅ Production |
 | `/admin/prod-check` | ADMIN | ✅ Production |
 | `/admin/import-deck` | ADMIN | ✅ Production |
-| `/admin/agent-jobs` | **AUTOMATION** | ✅ **Nouveau** |
+| `/admin/agent-jobs` | **AUTOMATION** | ✅ Production |
 | `/spreads`, `/cards`, `/share/:id` | CORE/PUBLIC | ✅ Production |
 | `/legal/*`, `/status`, `/disclaimer` | LEGAL | ✅ Production |
 
 ### 1.2 Edge Functions
 
-| Fonction | Domaine | CORS | Statut | Vérifié |
-|---|---|---|---|---|
-| `tarot-interpretation` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `daily-draw` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `card-insight` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `narrative-engine` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `psychological-reflection` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `synchronicity-engine` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `tarot-tts` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
-| `og-share` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
-| `public-config` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
-| `check-subscription` | BILLING | ✅ Allowlist + bug corsHeaders corrigé | ✅ Production | ✅ Lu |
-| `create-checkout` | BILLING | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `customer-portal` | BILLING | ✅ Allowlist | ✅ Production | ✅ Lu |
-| `stripe-webhook` | BILLING | ✅ Server-to-server | ✅ Production | ✅ Lu |
-| `unsubscribe` | BILLING | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
-| `bootstrap-admin` | ADMIN | ✅ Allowlist | ✅ One-shot | ✅ Lu |
-| **`agent-dispatcher`** | **AUTOMATION** | ✅ Allowlist | ✅ Production | ✅ Lu |
+| Fonction | Domaine | CORS | Statut |
+|---|---|---|---|
+| `tarot-interpretation` | CORE | ✅ Allowlist | ✅ Production |
+| `daily-draw` | CORE | ✅ Allowlist | ✅ Production |
+| `card-insight` | CORE | ✅ Allowlist | ✅ Production |
+| `narrative-engine` | CORE | ✅ Allowlist | ✅ Production |
+| `psychological-reflection` | CORE | ✅ Allowlist | ✅ Production |
+| `synchronicity-engine` | CORE | ✅ Allowlist | ✅ Production |
+| `tarot-tts` | CORE | ✅ Allowlist | ✅ Production |
+| `og-share` | CORE | ✅ Allowlist | ✅ Production |
+| `public-config` | CORE | ✅ Allowlist | ✅ Production |
+| `check-subscription` | BILLING | ✅ Allowlist | ✅ Production |
+| `create-checkout` | BILLING | ✅ Allowlist | ✅ Production |
+| `customer-portal` | BILLING | ✅ Allowlist | ✅ Production |
+| `stripe-webhook` | BILLING | ✅ Server-to-server | ✅ Production |
+| `unsubscribe` | BILLING | ✅ Allowlist | ✅ Production |
+| `bootstrap-admin` | ADMIN | ✅ Allowlist | ✅ One-shot |
+| **`agent-dispatcher`** | **AUTOMATION** | ✅ Allowlist | ✅ Production |
+| **`agent-worker`** | **AUTOMATION** | N/A (no browser) | ✅ **Fail-closed** |
 
 ### 1.3 Tables SQL
 
@@ -87,7 +89,7 @@
 | `ai_prompt_templates` | ADMIN | ✅ Admin-only | |
 | `promo_codes` | BILLING | ✅ Admin-only | |
 | `admin_audit_logs` | ADMIN | ✅ No DELETE/UPDATE | Immutable |
-| **`agent_jobs`** | **AUTOMATION** | ✅ **Admin-only, no DELETE** | **Nouveau** |
+| **`agent_jobs`** | **AUTOMATION** | ✅ **Admin-only, no DELETE** | Idempotency scoped par (created_by, key) |
 
 ### 1.4 Variables d'environnement
 
@@ -102,52 +104,15 @@
 | `ADMIN_BOOTSTRAP_EMAIL` | One-shot bootstrap | **Never frontend** |
 | `LOVABLE_API_KEY` | AI gateway | **Never frontend** |
 | `ELEVENLABS_API_KEY` | TTS | **Never frontend** |
+| `WORKER_SECRET` | Worker auth | **Obligatoire. Absent → 500 immédiat.** |
+| `OPENCLAW_API_URL` | OpenClaw API | **Never frontend. Absent → mode stub.** |
+| `OPENCLAW_API_KEY` | OpenClaw API | **Never frontend. Absent → mode stub.** |
 | `VITE_SUPABASE_URL` | Frontend | ✅ Public |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Frontend | ✅ Public (anon) |
 
 ---
 
-## BLOC 2 · REMÉDIATION IMMÉDIATE — DIFFS
-
-### 2.1 CORS wildcard → allowlist
-
-**Avant** (dans `create-checkout`, `check-subscription`, `customer-portal`, `stripe-webhook`, `tarot-interpretation`) :
-```typescript
-const corsHeaders = { "Access-Control-Allow-Origin": "*", ... };
-```
-
-**Après** — appliqué sur toutes les fonctions :
-```typescript
-const ALLOWED_ORIGINS = [
-  "https://tarotdinatoire.lovable.app",
-  "https://id-preview--...lovable.app",
-  "http://localhost:5173",
-  "http://localhost:8080",
-];
-function buildCorsHeaders(origin: string | null): Record<string, string> {
-  const allowed = origin && ALLOWED_ORIGINS.includes(origin)
-    ? origin : ALLOWED_ORIGINS[0];
-  return { "Access-Control-Allow-Origin": allowed, ... };
-}
-// Dans le handler :
-const corsH = buildCorsHeaders(req.headers.get("Origin"));
-```
-
-**Justification** : le wildcard `*` avec `Authorization` est bloqué par les navigateurs modernes mais laisse une surface d'exposition sur les appels cross-origin non-credentieled (SSRF, open-relay).
-
-### 2.2 RLS permissive corrigée
-
-**Table** : `shared_readings`  
-**Avant** : `USING (true)` sur UPDATE → n'importe qui peut incrémenter les compteurs.  
-**Après** : `USING (auth.role() = 'service_role' OR auth.uid() = user_id)`
-
-### 2.3 Logs sensibles
-
-Les `console.log` avec `email` et `userId` dans les fonctions BILLING ont été retenus car nécessaires pour le debugging Stripe, mais aucun token/secret n'est loggué. En production, les logs sont automatiquement filtrés par `esbuild.drop: ['console']`.
-
----
-
-## BLOC 3 · ARCHITECTURE CIBLE — 5 DOMAINES
+## BLOC 2 · ARCHITECTURE CIBLE — 5 DOMAINES
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -172,64 +137,124 @@ Les `console.log` avec `email` et `userId` dans les fonctions BILLING ont été 
                  ┌──────────────────────────┐ │  (no JWT)
                  │       BILLING domain     │ │
                  │                          │ ▼
-                 │ stripe-webhook           │ ┌──────────────────┐
-                 │ check-subscription       │ │ AUTOMATION domain│
-                 │ create-checkout          │ │                  │
-                 │ customer-portal          │ │ agent-dispatcher │
-                 │ subscriptions            │ │ agent_jobs table │
-                 │ promo_codes              │ │                  │
-                 └──────────────────────────┘ │ ⚠ NO direct     │
-                                              │ frontend→OpenClaw│
-                                              └──────────────────┘
+                 │ stripe-webhook           │ ┌──────────────────────────────┐
+                 │ check-subscription       │ │      AUTOMATION domain       │
+                 │ create-checkout          │ │                              │
+                 │ customer-portal          │ │  agent-dispatcher (JWT+RBAC) │
+                 │ subscriptions            │ │  agent_jobs (DB)             │
+                 │ promo_codes              │ │  agent-worker (WORKER_SECRET)│
+                 └──────────────────────────┘ │                              │
+                                              │  ⚠ JAMAIS Frontend→OpenClaw │
+                                              │  ⚠ JAMAIS Worker sans secret │
+                                              └──────────────────────────────┘
 ```
 
 ### Flux critiques
 
-**Lecture IA** : `Frontend → tarot-interpretation (Edge) → AI Gateway → DB`  
+**Lecture IA** : `Frontend → Edge Function → AI Gateway → DB`
 Jamais : `Frontend → AI Gateway` directement.
 
-**Abonnement** : `Frontend → create-checkout → Stripe → stripe-webhook → subscriptions table`
+**Abonnement** : `Frontend → create-checkout → Stripe → stripe-webhook → subscriptions`
 
-**Agent job** : `Admin → agent-dispatcher (Edge, JWT+RBAC) → agent_jobs → agent-worker (Edge, WORKER_SECRET)`  
-Worker exécute via `OpenClawJobExecutor` (adapter pattern).  
+**Agent job** :
+```
+Admin UI → agent-dispatcher (JWT + RBAC check) → agent_jobs (DB, status=pending)
+                                                          ↓
+                              agent-worker (WORKER_SECRET) → claim atomique
+                                                          ↓
+                                              OpenClawJobExecutor
+                                              (adapter pattern, stubs isolés)
+                                                          ↓
+                                              complete_agent_job (service_role)
+```
 Jamais : `Frontend → OpenClaw` directement.
+Jamais : `Worker sans WORKER_SECRET configuré`.
 
 ---
 
-## BLOC 4 · INTÉGRATION OPENCLAW
+## BLOC 3 · INTÉGRATION OPENCLAW — ÉTAT RÉEL
 
-### Table `agent_jobs`
+### Couche d'abstraction (agent-worker/index.ts)
 
-```sql
--- Enums stricts (allowlist enforcement au niveau SQL)
-CREATE TYPE agent_job_type AS ENUM (
-  'ui_qa_check', 'content_synthesis', 'data_verification',
-  'admin_assist_review', 'security_drift_check'
-);
-CREATE TYPE agent_job_status AS ENUM (
-  'pending', 'running', 'completed', 'failed', 'timeout', 'cancelled'
-);
+```
+OpenClawClient
+  ├── isConnected: boolean (OPENCLAW_API_URL && OPENCLAW_API_KEY présents)
+  ├── mode RÉEL   → fetch(`${OPENCLAW_API_URL}/v1/actions/${action}`, ...)
+  └── mode STUB   → { _stub: true, action, context_keys, note }
+
+OpenClawJobExecutor
+  ├── execute(job) → dispatch vers handler par job_type
+  ├── runUiQaCheck()          → OpenClawClient.execute("ui_qa_check", ...)
+  ├── runContentSynthesis()   → OpenClawClient.execute("content_synthesis", ...)
+  ├── runDataVerification()   → DB query directe (aucune API externe)
+  ├── runAdminAssistReview()  → OpenClawClient.execute("admin_assist_review", ...)
+  └── runSecurityDriftCheck() → OpenClawClient.execute("security_drift_check", ...)
 ```
 
-### Timeouts par type
+### État réel par job_type
 
-| Job Type | Timeout | Max Retries | Raison |
+| job_type | Implémentation | Statut | Activation |
 |---|---|---|---|
-| `ui_qa_check` | 30s | 2 | Réponse rapide attendue |
-| `content_synthesis` | 90s | 3 | LLM potentiellement lent |
-| `data_verification` | 60s | 3 | DB query intensive |
-| `admin_assist_review` | 45s | 2 | Analyse partielle OK |
-| `security_drift_check` | 120s | **1** | Fail-closed, pas de retry |
+| `ui_qa_check` | OpenClawClient.execute | ⚠ **STUB** | Configurer `OPENCLAW_API_URL` + `OPENCLAW_API_KEY` |
+| `content_synthesis` | OpenClawClient.execute | ⚠ **STUB** | Configurer `OPENCLAW_API_URL` + `OPENCLAW_API_KEY` |
+| `data_verification` | DB query agent_jobs stats | ✅ **RÉEL** | Aucune dépendance externe |
+| `admin_assist_review` | OpenClawClient.execute | ⚠ **STUB** | Configurer `OPENCLAW_API_URL` + `OPENCLAW_API_KEY` |
+| `security_drift_check` | OpenClawClient.execute | ⚠ **STUB** (max_attempts=1) | Configurer `OPENCLAW_API_URL` + `OPENCLAW_API_KEY` |
+
+> **Note importante** : Un result contenant `_stub: true` indique que l'OpenClaw API n'est pas configurée.
+> Ce champ est présent dans le résultat stocké en DB (`agent_jobs.result`) pour traçabilité.
+> Pour basculer en mode réel : configurer les deux secrets `OPENCLAW_API_URL` et `OPENCLAW_API_KEY`.
+
+### Sécurité worker (FAIL-CLOSED)
+
+```
+Invocation agent-worker
+         │
+         ▼
+  WORKER_SECRET configuré ?
+         │
+     Non → 500 "Worker not configured"  ← FAIL-CLOSED, AUCUN mode dev ouvert
+         │
+     Oui ▼
+  x-worker-secret header correct ?
+         │
+     Non → 401 "Unauthorized"
+         │
+     Oui ▼
+  Claim atomique (FOR UPDATE SKIP LOCKED)
+         │
+         ▼
+  Execute job → complete_agent_job
+```
 
 ### Idempotency
 
-Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon → HTTP 200 avec le job existant, pas de création.
+```
+Index UNIQUE PARTIEL : (created_by, idempotency_key) WHERE idempotency_key IS NOT NULL
+
+✅ Admin A + key="k1" → job #1 créé
+✅ Admin A + key="k1" → 200 deduplicated (même admin, même clé)
+✅ Admin B + key="k1" → job #2 créé (admin différent → pas de collision)
+✅ Admin A + key="k2" → job #3 créé (clé différente)
+```
+
+**Raison du changement** : l'ancienne contrainte globale sur `idempotency_key` empêchait deux admins différents d'utiliser la même clé. La contrainte partielle scopée par `created_by` est sémantiquement correcte.
+
+### Timeouts et retries
+
+| Job Type | Timeout | Max Retries | Politique |
+|---|---|---|---|
+| `ui_qa_check` | 30s | 2 | Retry sur failure, pas sur timeout |
+| `content_synthesis` | 90s | 3 | Retry sur failure, pas sur timeout |
+| `data_verification` | 60s | 3 | Retry sur failure, pas sur timeout |
+| `admin_assist_review` | 45s | 2 | Retry sur failure, pas sur timeout |
+| `security_drift_check` | 120s | **1** | **Fail-closed, aucun retry** |
 
 ---
 
-## BLOC 5 · ZERO TRUST — RBAC
+## BLOC 4 · ZERO TRUST — RBAC
 
-### Matrice d'accès complète (vérifiée fichier par fichier)
+### Matrice d'accès tables
 
 | Table / Ressource | anon | authenticated (user) | admin | service_role |
 |---|---|---|---|---|
@@ -244,7 +269,7 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 | `daily_draws` | ❌ | ALL own | SELECT all | ALL |
 | `narrative_memories` | ❌ | SELECT/DELETE own — **NO INSERT/UPDATE** | SELECT all | ALL |
 | `synchronicity_insights` | ❌ | ALL own | ❌ | ALL |
-| `user_karma` | ❌ | SELECT/UPDATE/DELETE own — INSERT own | SELECT all | ALL |
+| `user_karma` | ❌ | SELECT/UPDATE/DELETE own | SELECT all | ALL |
 | `user_achievements` | ❌ | SELECT/INSERT/DELETE own — **NO UPDATE** | SELECT all | ALL |
 | `ai_usage_daily` | ❌ | SELECT own — **NO INSERT/UPDATE/DELETE** | SELECT all | ALL |
 | `email_leads` | INSERT(consent=true) | SELECT/UPDATE/DELETE own | SELECT/UPDATE all | ALL |
@@ -259,13 +284,15 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 
 ### Fonctions RPC SECURITY DEFINER — Matrice GRANT/REVOKE
 
-> Migration exécutée le 2026-03-08 : `fix_grant_revoke_rpc_and_complete_agent_job`
+> Migrations exécutées :
+> - `fix_grant_revoke_rpc_and_complete_agent_job` (2026-03-08)
+> - `idempotency_scoped_by_created_by` (2026-03-08)
 
 | Fonction | PUBLIC | anon | authenticated | service_role | Notes |
 |---|---|---|---|---|---|
 | `has_role(_user_id, _role)` | REVOKE | REVOKE | REVOKE | GRANT | Base RBAC |
 | `is_admin(_user_id)` | REVOKE | REVOKE | REVOKE | GRANT | Appels internes RLS |
-| `can_dispatch_agent_job(_user_id)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Agent uniquement |
+| `can_dispatch_agent_job(_user_id)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Dispatcher uniquement |
 | `has_reading_credits(uid)` | REVOKE | REVOKE | REVOKE | GRANT | Paywall |
 | `decrement_reading_credit(uid)` | REVOKE | REVOKE | REVOKE | GRANT | Atomic debit |
 | `award_karma(p_uid, p_action)` | REVOKE | REVOKE | REVOKE | GRANT | XP accumulation |
@@ -276,56 +303,64 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 | `claim_next_agent_job(limit)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement, atomique |
 | `complete_agent_job(...)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement |
 
-> `REVOKE` = REVOKE EXECUTE. `GRANT` = GRANT EXECUTE explicite.  
-> ⚠ = Fonctions critiques dont la restriction authenticated est non-évidente et expressément vérifiée.
+> ⚠ = Fonctions critiques dont la restriction `authenticated` est non-évidente et expressément vérifiée par les tests RBAC-01 à RBAC-04.
 
-### Vérification RLS par couche
+### Fail-closed confirmé
 
-**Fail-closed confirmé** :
 - `agent_jobs` : DELETE policy `USING (false)` — immutable ✅
 - `admin_audit_logs` : DELETE/UPDATE `USING (false)` — immutable ✅
 - `ai_usage_daily` : INSERT/UPDATE/DELETE bloqués pour users ✅
 - `narrative_memories` : pas d'INSERT/UPDATE frontend ✅
+- `agent-worker` : WORKER_SECRET absent → 500 immédiat ✅
 
-**Risque résiduel identifié** :
-- `email_leads` INSERT ne vérifie pas `user_id IS NULL` pour les anonymes → peut créer des leads orphelins (acceptable, contrôlé par `consent=true`)
+---
 
-### Tests de non-régression sécurité
+## BLOC 5 · TESTS DE NON-RÉGRESSION
 
-#### agent-dispatcher (`supabase/functions/agent-dispatcher/index_test.ts`)
+### Suite complète — agent-worker/index_test.ts
 
-| Test ID | Description | Attendu | Statut |
+| Test ID | Description | Attendu | Prérequis |
 |---|---|---|---|
-| ZT-01 | Pas de header Auth | 401 | ✅ |
-| ZT-02 | JWT invalide | 401 | ✅ |
-| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ |
-| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ evil | ✅ |
-| ZT-05 | job_type injection | Jamais 201 | ✅ |
-| ZT-06 | Méthode GET | 405 | ✅ |
-| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ |
-| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ |
-| RBAC-01 | Non-admin → jamais 201 | 401 ou 403 | ✅ |
-| HAPPY-01 | Admin dispatch valide | 201 + job.id | ✅ (nécessite TEST_ADMIN_JWT) |
-| HAPPY-02 | job_type invalide | 400 + allowed list | ✅ (nécessite TEST_ADMIN_JWT) |
-| HAPPY-03 | priority hors range | 400 | ✅ (nécessite TEST_ADMIN_JWT) |
-| IDEM-01 | Même clé → 1 seul job | 200 deduplicated | ✅ (nécessite TEST_ADMIN_JWT) |
-| IDEM-02 | Clés différentes → 2 jobs | 2x 201, IDs distincts | ✅ (nécessite TEST_ADMIN_JWT) |
+| W-FC-01 | GET method | 405 | Aucun |
+| W-FC-02 | Sans x-worker-secret | 401 ou 500 | Aucun |
+| W-FC-03 | Mauvais secret | 401 ou 500 | Aucun |
+| W-FC-04 | Bon secret, queue vide | 200 | WORKER_SECRET |
+| RBAC-01 | authenticated → bootstrap_first_admin | ≠ 200 | TEST_ADMIN_JWT |
+| RBAC-02 | authenticated → get_pending_agent_jobs | ≠ 200 | TEST_ADMIN_JWT |
+| RBAC-03 | authenticated → can_dispatch_agent_job | ≠ 200 | TEST_ADMIN_JWT |
+| RBAC-04 | authenticated → claim_next_agent_job | ≠ 200 | TEST_ADMIN_JWT |
+| RBAC-05 | service_role → get_pending_agent_jobs | 200 | SERVICE_KEY |
+| RBAC-06 | service_role → can_dispatch_agent_job | 200 | SERVICE_KEY |
+| HAPPY-01 | Admin dispatch valide | 201 + job.id | TEST_ADMIN_JWT |
+| HAPPY-02 | job_type invalide | 400 + allowed | TEST_ADMIN_JWT |
+| HAPPY-03 | priority hors range | 400 | TEST_ADMIN_JWT |
+| IDEM-01 | Même (admin, clé) → dédupliqué | 200 + deduplicated | TEST_ADMIN_JWT |
+| IDEM-02 | Clés différentes → 2 jobs | 2x 201, IDs distincts | TEST_ADMIN_JWT |
+| STATE-01 | claim → job running | status=running | SERVICE_KEY + TEST_ADMIN_JWT |
+| STATE-02 | complete running → true | true | SERVICE_KEY + TEST_ADMIN_JWT |
+| STATE-03 | complete non-running → false | false | SERVICE_KEY + TEST_ADMIN_JWT |
+| STATE-04 | worker execute job | 200, status terminal | WORKER_SECRET + TEST_ADMIN_JWT |
+| CONC-01 | 3 claims, 1 job → 1 seul claim | claimedOurJob ≤ 1 | SERVICE_KEY + TEST_ADMIN_JWT |
+| CONC-02 | N jobs, N claims → 0 doublons | uniqueIds.size = N | SERVICE_KEY + TEST_ADMIN_JWT |
 
-#### agent-worker (`supabase/functions/agent-worker/index_test.ts`)
+### Suite complète — agent-dispatcher/index_test.ts
 
-| Test ID | Description | Attendu | Statut |
-|---|---|---|---|
-| W-ZT-01 | GET method | 405 | ✅ |
-| W-ZT-02 | Secret absent (si configuré) | 401 | ✅ |
-| W-ZT-03 | Mauvais secret | 401 | ✅ |
-| W-ZT-04 | Bon secret → pas 401 | 200 ou 500 | ✅ |
-| W-ST-01 | Queue vide → processed:0 | 200 | ✅ (nécessite SERVICE_KEY) |
-| W-ST-02 | Job pending → completed | status terminal | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
-| W-ST-03 | complete_agent_job sur pending | false | ✅ (nécessite SERVICE_KEY) |
-| W-CC-01 | 3 claims concurrents | 0 doublons | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
-| W-CC-02 | batch_size=2 | max 2 jobs | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
-| RBAC-02 | service_role → get_pending_agent_jobs | pas d'erreur | ✅ (nécessite SERVICE_KEY) |
-| RBAC-03 | service_role → can_dispatch_agent_job | boolean | ✅ (nécessite SERVICE_KEY) |
+| Test ID | Description | Attendu |
+|---|---|---|
+| ZT-01 | Pas de header Auth | 401 |
+| ZT-02 | JWT invalide | 401 |
+| ZT-03 | OPTIONS preflight | 200 + CORS headers |
+| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ evil |
+| ZT-05 | job_type injection | Jamais 201 |
+| ZT-06 | Méthode GET | 405 |
+| ZT-07 | Payload > 10 KB | Jamais 201 |
+| ZT-08 | Origine de confiance | ACAO = origine exacte |
+| RBAC-01 | Non-admin → jamais 201 | 401 ou 403 |
+| HAPPY-01 | Admin dispatch valide | 201 + job.id |
+| HAPPY-02 | job_type invalide | 400 + allowed list |
+| HAPPY-03 | priority hors range | 400 |
+| IDEM-01 | Même clé → 1 seul job | 200 deduplicated |
+| IDEM-02 | Clés différentes → 2 jobs | 2x 201, IDs distincts |
 
 ---
 
@@ -336,28 +371,20 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 ```
 src/
 ├── hooks/
-│   └── useAgentJobs.ts          ← EXISTANT ✅
+│   └── useAgentJobs.ts          ✅ Existe
 ├── pages/
 │   └── admin/
-│       └── AdminAgentJobs.tsx   ← EXISTANT ✅
+│       └── AdminAgentJobs.tsx   ✅ Existe
 supabase/
 ├── functions/
 │   ├── agent-dispatcher/
-│   │   ├── index.ts             ← EXISTANT ✅ (CORS allowlist, RBAC, payload guard)
-│   │   └── index_test.ts        ← EXISTANT ✅ (14 tests: ZT + RBAC + HAPPY + IDEM)
+│   │   ├── index.ts             ✅ CORS allowlist, RBAC, idempotency scoped
+│   │   └── index_test.ts        ✅ 14 tests: ZT + RBAC + HAPPY + IDEM
 │   ├── agent-worker/
-│   │   ├── index.ts             ← EXISTANT ✅ (OpenClawJobExecutor + adapter pattern)
-│   │   └── index_test.ts        ← EXISTANT ✅ (11 tests: W-ZT + W-ST + W-CC + RBAC)
-│   ├── tarot-interpretation/    ← CORS hardened ✅
-│   ├── create-checkout/         ← CORS hardened ✅
-│   ├── check-subscription/      ← CORS hardened + bug corsHeaders corrigé ✅
-│   ├── customer-portal/         ← CORS hardened ✅
-│   ├── stripe-webhook/          ← CORS hardened ✅
-│   ├── tarot-tts/               ← CORS hardened ✅
-│   ├── public-config/           ← CORS hardened ✅
-│   ├── og-share/                ← CORS fallback corrigé ✅
-│   └── unsubscribe/             ← CORS hardened ✅
-ARCHITECTURE.md                  ← CE FICHIER v3.0
+│   │   ├── index.ts             ✅ FAIL-CLOSED, OpenClawJobExecutor, stubs isolés
+│   │   └── index_test.ts        ✅ 20 tests: FC + RBAC + HAPPY + IDEM + STATE + CONC
+│   └── [16 autres fonctions CORS hardened]
+ARCHITECTURE.md                  ← CE FICHIER v4.0
 ```
 
 ### Migrations SQL exécutées et confirmées
@@ -365,57 +392,23 @@ ARCHITECTURE.md                  ← CE FICHIER v3.0
 1. `create_agent_jobs_table` — table, enums, index, RLS, triggers ✅
 2. `fix_shared_readings_rls` — correction USING(true) permissif ✅
 3. `fix_grant_revoke_rpc_and_complete_agent_job` — REVOKE/GRANT service_role + ROW_COUNT fix ✅
+4. `idempotency_scoped_by_created_by` — index unique partiel (created_by, idempotency_key) WHERE NOT NULL ✅
 
-### État réel des handlers OpenClaw par job_type
+### Plan de déploiement
 
-| job_type | Implémentation réelle | Dépendance externe |
+| Étape | Action | Statut |
 |---|---|---|
-| `ui_qa_check` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
-| `content_synthesis` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
-| `data_verification` | ✅ RÉEL — query DB agent_jobs stats | Aucune (service_role DB) |
-| `admin_assist_review` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
-| `security_drift_check` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
-
-> Pour activer les stubs : configurer `OPENCLAW_API_URL` et `OPENCLAW_API_KEY` dans les secrets.
-> Le `OpenClawClient` dans `agent-worker/index.ts` bascule automatiquement en mode réel.
-
-### Edge Functions — état final vérifié
-
-| Fonction | CORS | Wildcard | Statut |
-|---|---|---|---|
-| tarot-interpretation | buildCorsHeaders | ❌ | ✅ |
-| daily-draw | buildCorsHeaders | ❌ | ✅ |
-| card-insight | buildCorsHeaders | ❌ | ✅ |
-| narrative-engine | buildCorsHeaders | ❌ | ✅ |
-| psychological-reflection | buildCorsHeaders | ❌ | ✅ |
-| synchronicity-engine | buildCorsHeaders | ❌ | ✅ |
-| tarot-tts | buildCorsHeaders | ❌ | ✅ |
-| og-share | buildCorsHeaders | ❌ | ✅ |
-| public-config | buildCorsHeaders | ❌ | ✅ |
-| check-subscription | buildCorsHeaders | ❌ | ✅ |
-| create-checkout | buildCorsHeaders | ❌ | ✅ |
-| customer-portal | buildCorsHeaders | ❌ | ✅ |
-| stripe-webhook | buildCorsHeaders | ❌ | ✅ |
-| unsubscribe | buildCorsHeaders | ❌ | ✅ |
-| bootstrap-admin | corsHeaders allowlist | ❌ | ✅ |
-| agent-dispatcher | corsHeaders allowlist | ❌ | ✅ |
-| agent-worker | N/A (no browser) | N/A | ✅ |
-
----
-
-## Plan de déploiement
-
-| Étape | Action | Risque | Rollback | Statut |
-|---|---|---|---|---|
-| 1 | Migration `agent_jobs` | Faible | DROP TABLE agent_jobs | ✅ Fait |
-| 2 | Fix RLS `shared_readings` | Faible | Remettre USING(true) | ✅ Fait |
-| 3 | CORS hardening 16 fonctions | Moyen | Remettre `*` temporairement | ✅ Fait |
-| 4 | Deploy `agent-dispatcher` | Faible | supabase functions delete | ✅ Fait |
-| 5 | Admin UI `/admin/agent-jobs` | Nul | Retirer la route | ✅ Fait |
-| 6 | GRANT/REVOKE RPC + complete_agent_job fix | Faible | Remettre GRANT PUBLIC | ✅ Fait |
-| 7 | Deploy `agent-worker` | Faible | supabase functions delete | ✅ Fait |
-| 8 | Brancher OpenClaw API réelle | Moyen | Laisser stubs actifs | 🔲 Requiert OPENCLAW_API_URL |
-| 9 | Configurer cron scheduler | Moyen | Désactiver le trigger | 🔲 À faire |
+| 1 | Migration `agent_jobs` | ✅ Exécutée |
+| 2 | Fix RLS `shared_readings` | ✅ Exécutée |
+| 3 | CORS hardening 16 fonctions | ✅ Exécutée |
+| 4 | Deploy `agent-dispatcher` | ✅ Deployée |
+| 5 | Admin UI `/admin/agent-jobs` | ✅ Existante |
+| 6 | GRANT/REVOKE RPC + complete_agent_job fix | ✅ Exécutée |
+| 7 | Deploy `agent-worker` fail-closed | ✅ Deployée |
+| 8 | Idempotency scoped par (created_by, key) | ✅ Exécutée |
+| 9 | Configurer `WORKER_SECRET` | 🔲 **Requis avant toute invocation** |
+| 10 | Brancher OpenClaw API réelle | 🔲 Requiert OPENCLAW_API_URL + OPENCLAW_API_KEY |
+| 11 | Configurer cron scheduler | 🔲 À faire |
 
 ---
 
@@ -423,11 +416,10 @@ ARCHITECTURE.md                  ← CE FICHIER v3.0
 
 | ID | Risque | Probabilité | Impact | Mitigation |
 |---|---|---|---|---|
-| R1 | `bootstrap-admin` accessible si flag non consommé | Faible | Fort | Vérifier `admin_bootstrap_used = true` en production |
-| R2 | `tarot-tts` utilise ElevenLabs sans rate-limit côté DB | Moyen | Moyen | Ajouter quota dans `ai_usage_daily` |
-| R3 | Handlers OpenClaw sont des stubs (OPENCLAW_API_URL non configuré) | Élevé | Moyen | Configurer OPENCLAW_API_URL + OPENCLAW_API_KEY |
-| R4 | Worker non déclenché automatiquement (pas de cron configuré) | Élevé | Moyen | Configurer un scheduler Supabase ou cron externe |
-| R5 | Refresh tokens non révoqués sur logout multi-device | Moyen | Moyen | Implémenter `signOut({ scope: 'global' })` |
-| R6 | Pas d'alerting sur jobs `failed/timeout` | Moyen | Moyen | Ajouter webhook Discord/Slack sur status change |
-| R7 | Tests HAPPY/IDEM/CC nécessitent TEST_ADMIN_JWT non versionné | Faible | Faible | Documenter dans README pour CI |
-
+| R1 | `WORKER_SECRET` non configuré → worker inopérant | Élevé (nouveau déploiement) | Fort | Configurer le secret avant la première invocation. Le 500 explicite signale l'absence. |
+| R2 | Handlers OpenClaw sont des stubs (OPENCLAW_API_URL non configuré) | Élevé | Moyen | Configurer OPENCLAW_API_URL + OPENCLAW_API_KEY. `_stub:true` dans result signale l'état. |
+| R3 | Worker non déclenché automatiquement (pas de cron configuré) | Élevé | Moyen | Configurer un scheduler Supabase ou cron externe. |
+| R4 | Tests HAPPY/STATE/CONC nécessitent TEST_ADMIN_JWT non versionné | Faible | Faible | Documenter dans README pour CI. Tests skippés proprement si absent. |
+| R5 | Pas d'alerting sur jobs `failed/timeout` | Moyen | Moyen | Ajouter webhook Discord/Slack sur status change. |
+| R6 | Refresh tokens non révoqués sur logout multi-device | Moyen | Moyen | Implémenter `signOut({ scope: 'global' })`. |
+| R7 | `bootstrap-admin` accessible si flag non consommé | Faible | Fort | Vérifier `admin_bootstrap_used = true` en production. |
