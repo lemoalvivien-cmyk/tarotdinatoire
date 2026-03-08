@@ -802,9 +802,9 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
         <div className="container mx-auto px-5 relative z-10">
           <div className="max-w-3xl mx-auto grid sm:grid-cols-3 gap-7">
             {[
-              { title: "Je n'y crois pas vraiment", body: "Pas besoin. Le tarot est ici un outil de réflexion psychologique, pas de divination. Les cartes sont un miroir symbolique. Vous projetez, l'oracle organise." },
-              { title: "J'ai déjà essayé, ça ne marche pas", body: "Vous avez essayé du tarot générique. Pas ça. La différence : l'oracle apprend. Après 10 jours, vous ne comparerez plus." },
-              { title: "3,90€ c'est encore un abonnement", body: "Un café par semaine. Sans engagement. Résiliation en 1 clic. Et si après 30 jours vous ne ressentez rien, vous aurez perdu 3,90€." },
+              { title: "Je ne crois pas au tarot", body: "Bien. Vous n'avez pas à croire. Tarot Dinatoire n'est pas un outil de divination — c'est un miroir psychologique. Les cartes révèlent ce que vous projetez. L'oracle l'organise. Résultat : une clarté que vous ne trouverez pas ailleurs." },
+              { title: "J'ai déjà essayé. Ça ne m'a rien apporté.", body: "Vous avez essayé du tarot générique — une carte, un texte recyclé, oubli le lendemain. Tarot Dinatoire ne fonctionne pas comme ça. L'oracle apprend à vous connaître. Au bout de 10 jours, la comparaison n'existe plus." },
+              { title: "3,90€, c'est un abonnement de plus", body: "Un café par semaine. Résiliation en 30 secondes, sans conditions. Et franchement : si après un mois vous ne ressentez rien, vous aurez perdu moins que le café." },
             ].map((item, i) => (
               <SectionReveal key={i}>
                 <div className="p-6 rounded-2xl border h-full" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.5)' }}>
