@@ -107,7 +107,7 @@ serve(async (req) => {
           cancel_at_period_end: false,
           trial_ends_at: null
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        { headers: { ...corsH, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
