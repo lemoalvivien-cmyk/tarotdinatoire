@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { useTarotCards } from '@/hooks/useTarotCards';
 import { slugToCard, nameToSlug } from '@/utils/cardSlugUtils';
 import { getCardFaceUrl } from '@/utils/tarotImageHelpers';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import {
   ChevronLeft, ChevronRight, RefreshCw, Star, RotateCcw,
   Sparkles, BookOpen, Moon, Sun, ArrowLeft
@@ -52,19 +54,30 @@ interface DailyInsight {
 }
 
 function useDailyInsight(cardId: string | undefined) {
+  const { session } = useAuth();
   return useQuery({
     queryKey: ['card-insight', cardId],
     queryFn: async () => {
       if (!cardId) return null;
+      // Require auth — card-insight now verifies JWT
+      if (!session?.access_token) return null;
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const url = `https://${projectId}.supabase.co/functions/v1/card-insight?card_id=${encodeURIComponent(cardId)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? 'Limite atteinte — réessaie dans une heure.');
+        return null;
+      }
+      if (res.status === 401) return null; // not logged in, silently skip
       if (!res.ok) throw new Error('Failed to fetch insight');
       return res.json() as Promise<{ insight: DailyInsight; orientation: string; date: string }>;
     },
     staleTime: 1000 * 60 * 60, // 1 hour
-    enabled: !!cardId,
-    retry: 1,
+    enabled: !!cardId && !!session?.access_token,
+    retry: false,
   });
 }
 
