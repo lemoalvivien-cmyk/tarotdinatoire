@@ -151,9 +151,11 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "ui-vendor": ["lucide-react", "framer-motion"],
+          "react-vendor":  ["react", "react-dom", "react-router-dom"],
+          "ui-vendor":     ["lucide-react", "framer-motion"],
           "supabase-vendor": ["@supabase/supabase-js"],
+          // Three.js isolé en chunk séparé — lazy-loaded seulement sur /app/new
+          "three-vendor":  ["three", "@react-three/fiber", "@react-three/drei"],
         },
       },
     },
