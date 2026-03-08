@@ -190,7 +190,8 @@ Jamais : `Frontend → AI Gateway` directement.
 
 **Abonnement** : `Frontend → create-checkout → Stripe → stripe-webhook → subscriptions table`
 
-**Agent job** : `Admin → agent-dispatcher (Edge, JWT+RBAC) → agent_jobs → [futur worker]`  
+**Agent job** : `Admin → agent-dispatcher (Edge, JWT+RBAC) → agent_jobs → agent-worker (Edge, WORKER_SECRET)`  
+Worker exécute via `OpenClawJobExecutor` (adapter pattern).  
 Jamais : `Frontend → OpenClaw` directement.
 
 ---
