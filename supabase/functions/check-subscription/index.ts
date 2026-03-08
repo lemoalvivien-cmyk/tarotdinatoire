@@ -190,7 +190,7 @@ serve(async (req) => {
           cancel_at_period_end: false,
           trial_ends_at: subData.trial_ends_at
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+        { headers: { ...corsH, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
