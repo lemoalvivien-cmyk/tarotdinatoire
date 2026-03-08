@@ -48,3 +48,6 @@ verify_jwt = false
 [functions.agent-dispatcher]
 verify_jwt = false
 
+[functions.agent-worker]
+verify_jwt = false
+

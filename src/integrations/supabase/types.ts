@@ -949,6 +949,29 @@ export type Database = {
         Returns: boolean
       }
       can_dispatch_agent_job: { Args: { _user_id: string }; Returns: boolean }
+      claim_next_agent_job: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          created_by: string
+          id: string
+          job_type: Database["public"]["Enums"]["agent_job_type"]
+          max_attempts: number
+          payload: Json
+          priority: number
+          timeout_seconds: number
+        }[]
+      }
+      complete_agent_job: {
+        Args: {
+          p_error_message?: string
+          p_job_id: string
+          p_result?: Json
+          p_status: Database["public"]["Enums"]["agent_job_status"]
+        }
+        Returns: boolean
+      }
       compute_karma_level: {
         Args: { p_xp: number }
         Returns: {
