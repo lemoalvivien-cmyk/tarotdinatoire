@@ -6,11 +6,12 @@ import { PromoCodeInput } from '@/components/subscription/PromoCodeInput';
 
 const features = [
   'Tirages illimités',
-  'Interprétations approfondies par nos tarologues',
+  'Interprétations approfondies par l\'IA',
   'Sauvegarde dans les favoris',
-  'Export PDF de vos tirages',
-  'Historique complet',
-  'Accès à tous les spreads'
+  'Journal de vie & réflexions psychologiques',
+  'Historique complet de vos tirages',
+  'Accès à tous les spreads avancés',
+  'Profil énergétique & synchronicités',
 ];
 
 interface PaywallOverlayProps {

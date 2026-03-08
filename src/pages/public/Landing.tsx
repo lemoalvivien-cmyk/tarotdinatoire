@@ -111,11 +111,14 @@ function StarfieldCanvas() {
     resize();
     init();
     animId = requestAnimationFrame(draw);
-    window.addEventListener('resize', () => { resize(); init(); });
+
+    // FIX M-07: store the handler reference to correctly remove it on cleanup
+    const handleResize = () => { resize(); init(); };
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('resize', () => { resize(); init(); });
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 

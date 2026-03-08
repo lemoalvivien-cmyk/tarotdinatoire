@@ -263,9 +263,10 @@ export default function NewReading() {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
 
-    // Check credits before proceeding
+    // Check credits before proceeding — MUST reset ref on early return
     if (!hasCredits) {
       setShowPaywall(true);
+      isSubmittingRef.current = false;
       return;
     }
 
