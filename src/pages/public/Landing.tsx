@@ -468,9 +468,9 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
               className="text-lg text-white/55 leading-relaxed max-w-xl mx-auto lg:mx-0"
             >
-              Vous n'êtes pas venu voir les cartes.{' '}
-              <span className="text-white/80">Vous êtes venu ressentir quelque chose.</span>{' '}
-              L'oracle mémorise chaque lecture, détecte vos patterns et vous parle de vous — vraiment.
+              Chaque jour, une carte tirée pour vous seul.{' '}
+              <span className="text-white/80">L'oracle se souvient de tout.</span>{' '}
+              Jour après jour, il détecte vos patterns, lit votre arc émotionnel et vous dit ce que vous ne voyez plus — parce que vous êtes dedans.
             </motion.p>
 
             {/* Social proof inline */}
