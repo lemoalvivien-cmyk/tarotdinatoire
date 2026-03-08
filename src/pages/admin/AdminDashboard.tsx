@@ -11,7 +11,8 @@ import {
   ScrollText,
   FlaskConical,
   Image as ImageIcon,
-  ClipboardCheck
+  ClipboardCheck,
+  Bot
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
