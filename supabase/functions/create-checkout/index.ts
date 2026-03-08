@@ -2,21 +2,35 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// ── Zero Trust CORS allowlist — no wildcard ────────────────────
+const ALLOWED_ORIGINS = [
+  "https://tarotdinatoire.lovable.app",
+  "https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app",
+  "http://localhost:5173",
+  "http://localhost:8080",
+];
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-const STRIPE_PRICE_ID = "price_1Sv34KAlhNOBX5AskMHXDC29"; // 3.90€/mois
+const STRIPE_PRICE_ID = "price_1Sv34KAlhNOBX5AskMHXDC29";
 
 serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  const corsH = buildCorsHeaders(origin);
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsH });
   }
 
   try {
@@ -88,44 +102,36 @@ serve(async (req) => {
 
     if (existingSubscriptions.data.length > 0) {
       logStep("User already has active subscription");
-      return new Response(
+    return new Response(
         JSON.stringify({ error: "Vous avez déjà un abonnement actif" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        { headers: { ...corsH, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
     // Créer la session Checkout
-    const origin = req.headers.get("origin") || "https://tarotdinatoire.lovable.app";
+    const checkoutOrigin = req.headers.get("origin") || "https://tarotdinatoire.lovable.app";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      line_items: [
-        {
-          price: STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
       mode: "subscription",
-      success_url: `${origin}/app?subscription=success`,
-      cancel_url: `${origin}/app?subscription=canceled`,
-      metadata: {
-        user_id: user.id
-      },
+      success_url: `${checkoutOrigin}/app?subscription=success`,
+      cancel_url: `${checkoutOrigin}/app?subscription=canceled`,
+      metadata: { user_id: user.id },
       locale: "fr",
       allow_promotion_codes: true,
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created", { sessionId: session.id });
 
     return new Response(
       JSON.stringify({ url: session.url }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      { headers: { ...corsH, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...corsH, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });
