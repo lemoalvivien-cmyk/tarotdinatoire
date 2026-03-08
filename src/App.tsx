@@ -113,6 +113,7 @@ const App = () => (
                   {/* ═══ PUBLIC ═══════════════════════════════════════════════ */}
                   <Route path="/" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="/status" element={<Status />} />
                   <Route path="/tirages" element={<Spreads />} />
