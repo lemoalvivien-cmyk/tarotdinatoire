@@ -962,11 +962,9 @@ export default function Landing() {
             <p className="text-white/40 text-sm sm:text-base leading-relaxed mb-10 max-w-md mx-auto">
               C'est exactement là que Tarot Dinatoire entre en jeu.
             </p>
-            <Link to={ctaHref}>
-              <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12">
-                Commencer mon premier rituel
-              </MysticButton>
-            </Link>
+            <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12" onClick={() => navigate(ctaHref)}>
+              Commencer mon premier rituel
+            </MysticButton>
             <p className="text-white/25 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
           </SectionReveal>
         </div>
