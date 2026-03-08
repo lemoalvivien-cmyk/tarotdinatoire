@@ -87,11 +87,6 @@ const allPaths = [
 ];
 validateRoutes(allPaths);
 
-if (import.meta.env.DEV) {
-  console.log('[ROUTE DUMP] Canonical routes:');
-  console.table(Object.entries(CANONICAL_ROUTES).map(([key, path]) => ({ key, path })));
-}
-
 // ─── Suspense fallback ────────────────────────────────────────────────────────
 function PageLoader() {
   return (
@@ -99,6 +94,16 @@ function PageLoader() {
       <LoadingScreen message="Chargement…" />
     </div>
   );
+}
+
+// ─── Pont de navigation pour AuthContext (hors BrowserRouter) ─────────────────
+// Enregistre le callback navigate vers '/' dès que le router est monté
+function NavigateBridge() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigateCallback(() => navigate('/', { replace: true }));
+  }, [navigate]);
+  return null;
 }
 
 const App = () => (
