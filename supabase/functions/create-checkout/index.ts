@@ -102,44 +102,36 @@ serve(async (req) => {
 
     if (existingSubscriptions.data.length > 0) {
       logStep("User already has active subscription");
-      return new Response(
+    return new Response(
         JSON.stringify({ error: "Vous avez déjà un abonnement actif" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        { headers: { ...corsH, "Content-Type": "application/json" }, status: 400 }
       );
     }
 
     // Créer la session Checkout
-    const origin = req.headers.get("origin") || "https://tarotdinatoire.lovable.app";
+    const checkoutOrigin = req.headers.get("origin") || "https://tarotdinatoire.lovable.app";
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      line_items: [
-        {
-          price: STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
       mode: "subscription",
-      success_url: `${origin}/app?subscription=success`,
-      cancel_url: `${origin}/app?subscription=canceled`,
-      metadata: {
-        user_id: user.id
-      },
+      success_url: `${checkoutOrigin}/app?subscription=success`,
+      cancel_url: `${checkoutOrigin}/app?subscription=canceled`,
+      metadata: { user_id: user.id },
       locale: "fr",
       allow_promotion_codes: true,
     });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created", { sessionId: session.id });
 
     return new Response(
       JSON.stringify({ url: session.url }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      { headers: { ...corsH, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...corsH, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

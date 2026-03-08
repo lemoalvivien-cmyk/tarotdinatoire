@@ -215,14 +215,14 @@ serve(async (req) => {
         cancel_at_period_end: false,
         trial_ends_at: null
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      { headers: { ...corsH, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...corsH, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });
