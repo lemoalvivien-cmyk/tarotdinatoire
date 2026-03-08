@@ -1,11 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Cache-Control': 'public, max-age=30', // Cache for 30 seconds
-};
+// public-config is intentionally public (no auth) — but CORS still restricted
+const ALLOWED_ORIGINS = [
+  'https://tarotdinatoire.lovable.app',
+  'https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Cache-Control': 'public, max-age=30',
+  };
+}
 
 // App version - update this with each release
 const APP_VERSION = '0.1.0-beta';
