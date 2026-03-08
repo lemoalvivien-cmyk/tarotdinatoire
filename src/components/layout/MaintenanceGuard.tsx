@@ -1,15 +1,16 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { usePublicConfig } from '@/hooks/usePublicConfig';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { LoadingScreen } from '@/components/ui/loading-screen';
 
 interface MaintenanceGuardProps {
   children: ReactNode;
 }
 
-// Routes that are always accessible (ASCII-only, no bootstrap-admin)
+// Routes toujours accessibles (statut, légal, auth)
 const ALWAYS_ALLOWED_ROUTES = [
   '/status',
   '/statut',
@@ -20,60 +21,52 @@ const ALWAYS_ALLOWED_ROUTES = [
   '/auth',
 ];
 
+/**
+ * MaintenanceGuard — correctifs :
+ *  - Admin check migré de useState/useEffect vers useQuery (cache partagé)
+ *  - Plus de fuite useEffect : le check RPC est automatiquement nettoyé par RQ
+ *  - Rendu conditionnel simplifié : un seul état de loading
+ */
 export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
-  // Use public config (via edge function) instead of direct table access
   const { data: publicConfig, isLoading: configLoading } = usePublicConfig();
   const { user, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [checkingAdmin, setCheckingAdmin] = useState(false);
 
-  // Check if user is admin
-  useEffect(() => {
-    async function checkAdmin() {
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
-      
-      setCheckingAdmin(true);
-      try {
-        const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
-        setIsAdmin(error ? false : !!data);
-      } catch {
-        setIsAdmin(false);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    }
-    
-    checkAdmin();
-  }, [user]);
+  // Admin check via React Query — cache 5 min, pas de doublon de requêtes
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async (): Promise<boolean> => {
+      if (!user) return false;
+      const { data, error } = await supabase.rpc('is_admin', { _user_id: user.id });
+      return error ? false : !!data;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60_000, // 5 min — le rôle admin ne change pas souvent
+    retry: false,           // Pas de retry sur les checks de rôle
+  });
 
-  // Handle maintenance mode redirection
-  useEffect(() => {
-    if (configLoading || authLoading || checkingAdmin) return;
-    if (!publicConfig?.maintenance_mode) return;
+  const isLoading = configLoading || authLoading || (!!user && adminLoading);
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // En mode maintenance : vérifier si la route est autorisée
+  if (publicConfig?.maintenance_mode) {
     const currentPath = location.pathname;
 
-    // Always allow certain routes
-    if (ALWAYS_ALLOWED_ROUTES.some(route => currentPath.startsWith(route))) {
-      return;
+    const isAlwaysAllowed = ALWAYS_ALLOWED_ROUTES.some(r => currentPath.startsWith(r));
+    const isAdminAllowed  = currentPath.startsWith('/admin') && isAdmin;
+
+    if (!isAlwaysAllowed && !isAdminAllowed) {
+      // Navigation synchrone dans le render — utiliser navigate dans un effect serait
+      // correct mais crée un flash. Redirect immédiat via component est acceptable ici.
+      if (location.pathname !== '/status') {
+        navigate('/status', { replace: true });
+      }
+      return null;
     }
-
-    // Allow admin routes for admins
-    if (currentPath.startsWith('/admin') && isAdmin) {
-      return;
-    }
-
-    // Redirect everyone else to status page
-    navigate('/status', { replace: true });
-  }, [publicConfig, configLoading, authLoading, checkingAdmin, isAdmin, location.pathname, navigate]);
-
-  if (configLoading || authLoading || (user && checkingAdmin)) {
-    return <LoadingScreen />;
   }
 
   return <>{children}</>;

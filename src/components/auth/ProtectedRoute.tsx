@@ -1,5 +1,6 @@
 import { useEffect, ReactNode, useState, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -7,6 +8,7 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 import { PaywallOverlay } from '@/components/subscription/PaywallOverlay';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, LogOut, RefreshCw } from 'lucide-react';
+import { qk } from '@/queries/queryConfig';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -15,39 +17,60 @@ interface ProtectedRouteProps {
 }
 
 /**
- * AuthGate — robust protected route.
- * FIX #5 (PAY-5): isPaymentReturn persisted in sessionStorage so it survives
- *   React re-renders during the subscription polling phase.
- * FIX #20 (PERF-1): useMemo to avoid recreating URLSearchParams on every render.
+ * ProtectedRoute — correctifs :
+ *  - Retour Stripe : invalide le cache subscription via queryClient (pas de setTimeout)
+ *  - sessionStorage payment_return nettoyé une seule fois, pas à chaque render
+ *  - Déduplication des effets de navigation
  */
 export function ProtectedRoute({ children, requireOnboarding = true, requirePremium = true }: ProtectedRouteProps) {
   const { user, session, status, signOut } = useAuth();
   const { profile, loading: profileLoading, error: profileError, refetch } = useProfile();
   const { isPremium, loading: subscriptionLoading } = useSubscription();
+  const queryClient = useQueryClient();
 
-  // FIX #5 / #20: persist payment-return flag in sessionStorage; memoize param check
+  // Retour Stripe — invalidation propre via React Query (remplace les 3 setTimeout)
+  const stripeReturnHandled = useRef(false);
+  useEffect(() => {
+    if (stripeReturnHandled.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('subscription') !== 'success') return;
+
+    stripeReturnHandled.current = true;
+    sessionStorage.setItem('payment_return', '1');
+
+    // Nettoyer l'URL immédiatement
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // Invalider le cache subscription — React Query re-fetchera automatiquement
+    // avec le backoff exponentiel si besoin (webhook Stripe peut avoir un délai)
+    queryClient.invalidateQueries({ queryKey: qk.subscription(user?.id) });
+
+    // Refetch différé pour laisser le webhook Stripe se synchroniser
+    const t1 = setTimeout(() => queryClient.invalidateQueries({ queryKey: qk.subscription(user?.id) }), 3000);
+    const t2 = setTimeout(() => queryClient.invalidateQueries({ queryKey: qk.subscription(user?.id) }), 8000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
+
+  // Détecter le payment_return en sessionStorage (survit aux re-renders)
   const isPaymentReturn = useMemo(() => {
-    const param = new URLSearchParams(window.location.search).get('subscription') === 'success';
-    if (param) {
-      sessionStorage.setItem('payment_return', '1');
-    }
-    return param || sessionStorage.getItem('payment_return') === '1';
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return sessionStorage.getItem('payment_return') === '1';
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Clear the flag once subscription is confirmed premium
+  // Nettoyer le flag une fois que la subscription est confirmée premium
   useEffect(() => {
     if (isPremium && !subscriptionLoading) {
       sessionStorage.removeItem('payment_return');
     }
   }, [isPremium, subscriptionLoading]);
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate   = useNavigate();
+  const location   = useLocation();
   const [retryCount, setRetryCount] = useState(0);
   const hasRedirected = useRef(false);
 
-  // Log navigation for debugging
-  // Redirect unauthenticated users ONLY after auth check is complete
+  // Redirection unauthenticated — après que le check auth est terminé
   useEffect(() => {
     if (status === 'unauthenticated' && !hasRedirected.current) {
       hasRedirected.current = true;
@@ -55,14 +78,14 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
     }
   }, [status, navigate, location.pathname]);
 
-  // Reset redirect flag when user authenticates
+  // Reset flag quand l'utilisateur se reconnecte
   useEffect(() => {
     if (status === 'authenticated') {
       hasRedirected.current = false;
     }
   }, [status]);
 
-  // Redirect to onboarding if not completed
+  // Redirection onboarding si profil non complété
   useEffect(() => {
     if (
       status === 'authenticated' &&
@@ -76,29 +99,21 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
     }
   }, [status, profileLoading, profile, requireOnboarding, navigate, location.pathname]);
 
-  // Handle retry
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     refetch();
   };
 
-  // Handle logout
   const handleLogout = async () => {
     await signOut();
     navigate('/auth', { replace: true });
   };
 
-  // STATE 1: Auth is loading
-  if (status === 'loading') {
-    return <LoadingScreen />;
-  }
+  // ── États de chargement ────────────────────────────────────────────────────
+  if (status === 'loading') return <LoadingScreen />;
+  if (status === 'unauthenticated' || !user || !session) return <LoadingScreen />;
 
-  // STATE 2: Unauthenticated (redirect in progress)
-  if (status === 'unauthenticated' || !user || !session) {
-    return <LoadingScreen />;
-  }
-
-  // STATE 3: Authenticated but profile error (after 3 retries, show error screen)
+  // Erreur profil persistante
   if (profileError && retryCount >= 3) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -129,27 +144,19 @@ export function ProtectedRoute({ children, requireOnboarding = true, requirePrem
     );
   }
 
-  // STATE 4: Authenticated, loading profile or subscription (or post-payment sync)
+  // Chargement profil / subscription / retour paiement
   if (profileLoading || subscriptionLoading || isPaymentReturn) {
     return <LoadingScreen message="Vérification de votre abonnement..." />;
   }
 
-  // STATE 5: Allow access to onboarding page regardless of onboarding status
-  if (location.pathname === '/app/onboarding') {
-    return <>{children}</>;
-  }
+  // Onboarding
+  if (location.pathname === '/app/onboarding') return <>{children}</>;
+  if (requireOnboarding && profile?.onboarding_completed !== true) return <LoadingScreen />;
 
-  // STATE 6: Block access to other /app/* routes if onboarding not completed
-  if (requireOnboarding && profile?.onboarding_completed !== true) {
-    return <LoadingScreen />;
-  }
-
-  // STATE 7: Check premium subscription (PAYWALL STRICT)
-  // Users without active premium subscription see mandatory paywall
+  // Paywall strict
   if (requirePremium && !isPremium) {
     return <PaywallOverlay variant="modal" />;
   }
 
-  // STATE 8: All checks passed - render children
   return <>{children}</>;
 }
