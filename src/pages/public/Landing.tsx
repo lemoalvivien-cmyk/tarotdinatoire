@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -65,6 +65,7 @@ function Orb({ size, color, x, y, delay = 0 }: { size: number; color: string; x:
   return (
     <motion.div
       className="absolute rounded-full pointer-events-none"
+      aria-hidden="true"
       style={{ width: size, height: size, left: x, top: y, background: color, filter: 'blur(80px)' }}
       animate={{ y: [-20, 20, -20], scale: [1, 1.06, 1], opacity: [0.2, 0.38, 0.2] }}
       transition={{ duration: 10 + delay, repeat: Infinity, ease: 'easeInOut', delay }}
@@ -75,7 +76,7 @@ function Orb({ size, color, x, y, delay = 0 }: { size: number; color: string; x:
 // ─── Horizontal gold divider ──────────────────────────────────────────────────
 function GoldDivider() {
   return (
-    <div className="flex items-center justify-center my-4">
+    <div className="flex items-center justify-center my-4" aria-hidden="true">
       <div className="h-px w-16 opacity-30" style={{ background: `linear-gradient(90deg, transparent, ${gold})` }} />
       <Sparkles className="mx-3 h-3 w-3 opacity-50" style={{ color: gold }} />
       <div className="h-px w-16 opacity-30" style={{ background: `linear-gradient(90deg, ${gold}, transparent)` }} />
@@ -118,11 +119,11 @@ function OracleCardPreview() {
     return () => clearInterval(t);
   }, []);
   return (
-    <div className="relative w-60 h-[22rem] mx-auto select-none" aria-label="Aperçu des cartes tarot">
+    <div className="relative w-56 sm:w-60 h-80 sm:h-[22rem] mx-auto select-none" aria-label="Aperçu des cartes tarot" role="region">
       {cards.map((card, i) => {
         const offset = (i - active + 3) % 3;
         const isActive = i === active;
-        const x = offset === 1 ? 30 : offset === 2 ? -30 : 0;
+        const x = offset === 1 ? 28 : offset === 2 ? -28 : 0;
         return (
           <motion.div
             key={card.name}
@@ -131,10 +132,11 @@ function OracleCardPreview() {
             transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{ boxShadow: isActive ? `0 30px 80px rgba(${card.glow},0.3)` : 'none' }}
             onClick={() => setActive(i)}
-            role="button" tabIndex={0} aria-label={card.name}
+            role="button" tabIndex={0} aria-label={`Voir la carte ${card.name}`}
+            onKeyDown={(e) => e.key === 'Enter' && setActive(i)}
           >
-            <div className="text-5xl mb-4 opacity-70" style={{ fontFamily: 'serif' }}>{card.symbol}</div>
-            <div className="w-10 h-px mb-4 opacity-20" style={{ backgroundColor: gold }} />
+            <div className="text-5xl mb-4 opacity-70" style={{ fontFamily: 'serif' }} aria-hidden="true">{card.symbol}</div>
+            <div className="w-10 h-px mb-4 opacity-20" style={{ backgroundColor: gold }} aria-hidden="true" />
             <p className="font-serif text-xl text-white font-medium tracking-wide">{card.name}</p>
             <p className="text-white/40 text-[10px] mt-1 tracking-[0.2em] uppercase">{card.label}</p>
             {isActive && (
@@ -148,10 +150,14 @@ function OracleCardPreview() {
           </motion.div>
         );
       })}
-      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 flex gap-2" role="tablist" aria-label="Navigation cartes">
         {cards.map((_, i) => (
-          <button key={i} onClick={() => setActive(i)}
-            className="rounded-full transition-all duration-300"
+          <button
+            key={i}
+            onClick={() => setActive(i)}
+            role="tab"
+            aria-selected={i === active}
+            className="rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             style={{ width: i === active ? 18 : 6, height: 6, backgroundColor: i === active ? gold : 'rgba(255,255,255,0.18)' }}
             aria-label={`Carte ${i + 1}`}
           />
@@ -185,8 +191,8 @@ function AnimatedCounter({ end, suffix = '', label }: { end: number; suffix?: st
   }, [started, end]);
   return (
     <div ref={ref} className="text-center">
-      <p className="font-serif text-4xl md:text-5xl font-bold text-white">{count.toLocaleString('fr-FR')}{suffix}</p>
-      <p className="text-white/35 text-xs mt-2 tracking-widest uppercase">{label}</p>
+      <p className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white" aria-live="polite">{count.toLocaleString('fr-FR')}{suffix}</p>
+      <p className="text-white/50 text-xs mt-2 tracking-widest uppercase">{label}</p>
     </div>
   );
 }
@@ -200,12 +206,12 @@ function RitualStepCard({ num, icon: Icon, title, desc, delay }: { num: string; 
       className="group relative p-6 rounded-2xl border transition-all duration-500 hover:border-white/20"
       style={{ borderColor: surfaceBorder, backgroundColor: surfaceGlass }}
     >
-      <p className="font-serif text-6xl font-bold leading-none select-none mb-3" style={{ color: `hsl(var(--mp-brand-gold) / 0.08)` }}>{num}</p>
+      <p className="font-serif text-6xl font-bold leading-none select-none mb-3" aria-hidden="true" style={{ color: `hsl(var(--mp-brand-gold) / 0.08)` }}>{num}</p>
       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `hsl(var(--mp-brand-violet) / 0.15)` }}>
-        <Icon className="h-5 w-5" style={{ color: violet2 }} />
+        <Icon className="h-5 w-5" style={{ color: violet2 }} aria-hidden="true" />
       </div>
       <h3 className="font-serif text-lg text-white font-semibold mb-2">{title}</h3>
-      <p className="text-white/45 text-sm leading-relaxed">{desc}</p>
+      <p className="text-white/55 text-sm leading-relaxed">{desc}</p>
     </motion.div>
   );
 }
@@ -215,11 +221,11 @@ function BenefitRow({ icon: Icon, title, desc }: { icon: React.ElementType; titl
   return (
     <div className="flex gap-4 items-start">
       <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: goldSoft }}>
-        <Icon className="h-5 w-5" style={{ color: gold }} />
+        <Icon className="h-5 w-5" style={{ color: gold }} aria-hidden="true" />
       </div>
       <div>
         <p className="text-white text-sm font-semibold mb-0.5">{title}</p>
-        <p className="text-white/45 text-sm leading-relaxed">{desc}</p>
+        <p className="text-white/55 text-sm leading-relaxed">{desc}</p>
       </div>
     </div>
   );
@@ -230,32 +236,38 @@ const TESTIMONIALS = [
   { q: "Je n'attendais pas ça.", text: "En trois semaines, j'ai compris des patterns dans ma vie que je ne voyais plus. L'oracle ne me donnait pas des réponses — il me posait les bonnes questions.", name: "Sophie M.", sign: "♏ Scorpion", streak: "127 jours", stars: 5 },
   { q: "Ce n'est pas du tarot. C'est un révélateur.", text: "L'oracle narratif a analysé mes 30 derniers jours et m'a dit exactement ce que je traversais. Pas en termes vagues. Précisément. Je n'avais rien dit de tel à personne.", name: "Thomas R.", sign: "♒ Verseau", streak: "89 jours", stars: 5 },
   { q: "Troublant de justesse.", text: "Une même carte est apparue 4 fois en trois semaines. L'oracle l'a signalé, l'a analysé, et a nommé quelque chose que je n'arrivais pas à formuler moi-même.", name: "Isabelle D.", sign: "♓ Poissons", streak: "203 jours", stars: 5 },
-  { q: "J'ai essayé tout le reste. Rien ne fait ça.", text: "Des dizaines d'applications de bien-être, de méditation, de tarot. Tarot Dinatoire est la seule qui se souvient de moi d'un jour à l'autre. C'est la seule qui apprend.", name: "Marie-Claire B.", sign: "♋ Cancer", streak: "44 jours", stars: 5 },
+  { q: "J'ai essayé tout le reste. Rien ne fait ça.", text: "Des dizaines d'applications de bien-être. Tarot Dinatoire est la seule qui se souvient de moi d'un jour à l'autre. La seule qui apprend.", name: "Marie-Claire B.", sign: "♋ Cancer", streak: "44 jours", stars: 5 },
 ];
 
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
-function FAQItem({ q, a }: { q: string; a: string }) {
+function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(false);
+  const id = `faq-${index}`;
   return (
     <div className="border-b last:border-0" style={{ borderColor: surfaceBorder }}>
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between py-5 text-left group"
         aria-expanded={open}
+        aria-controls={id}
+        id={`${id}-btn`}
       >
-        <span className="text-white/80 text-sm font-medium group-hover:text-white transition-colors leading-snug pr-4">{q}</span>
-        <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors">
+        <span className="text-white/85 text-sm font-medium group-hover:text-white transition-colors leading-snug pr-4">{q}</span>
+        <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors" aria-hidden="true">
           {open ? <Minus className="h-3 w-3" style={{ color: gold }} /> : <Plus className="h-3 w-3 text-white/50" />}
         </span>
       </button>
       <AnimatePresence>
         {open && (
           <motion.div
+            id={id}
+            role="region"
+            aria-labelledby={`${id}-btn`}
             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <p className="pb-5 text-sm text-white/45 leading-relaxed">{a}</p>
+            <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -277,18 +289,19 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
         <motion.div
           initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-safe md:hidden"
+          className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-[env(safe-area-inset-bottom,1rem)] md:hidden"
           style={{ background: 'linear-gradient(to top, hsl(var(--mp-bg-900)), hsl(var(--mp-bg-900) / 0.95) 80%, transparent)' }}
         >
-          <Link to={href} className="block">
+          <Link to={href} className="block" tabIndex={-1}>
             <button
-              className="w-full h-14 rounded-xl text-base font-semibold text-white transition-all duration-300 active:scale-[0.98]"
+              className="w-full h-14 rounded-xl text-base font-semibold text-white transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 8px 30px hsl(var(--mp-brand-violet) / 0.4)` }}
+              aria-label={label}
             >
               {label}
             </button>
           </Link>
-          <p className="text-center text-xs text-white/25 mt-2">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
+          <p className="text-center text-xs text-white/35 mt-2">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
         </motion.div>
       )}
     </AnimatePresence>
@@ -304,27 +317,34 @@ function LandingHeader({ ctaHref }: { ctaHref: string }) {
     return () => window.removeEventListener('scroll', h);
   }, []);
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'backdrop-blur-2xl border-b bg-black/30' : 'bg-transparent'}`}
-      style={{ borderColor: scrolled ? 'hsl(var(--mp-surface-border))' : 'transparent' }}>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'backdrop-blur-2xl border-b bg-black/30' : 'bg-transparent'}`}
+      style={{ borderColor: scrolled ? 'hsl(var(--mp-surface-border))' : 'transparent' }}
+      role="banner"
+    >
       <div className="container mx-auto px-5">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" style={{ color: gold }} />
+          <Link to="/" className="flex items-center gap-2.5 group" aria-label="Tarot Dinatoire — Accueil">
+            <Sparkles className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" style={{ color: gold }} aria-hidden="true" />
             <span className="font-serif text-lg font-semibold tracking-tight text-white">Tarot Dinatoire</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link to="/auth" className="hidden sm:block text-sm text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5">
+          <nav className="flex items-center gap-3" aria-label="Navigation principale">
+            <Link
+              to="/auth"
+              className="hidden sm:block text-sm text-white/60 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+            >
               Connexion
             </Link>
             <Link to={ctaHref}>
               <button
-                className="text-sm font-medium text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                className="text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 4px 20px hsl(var(--mp-brand-violet) / 0.3)` }}
+                aria-label="Vivre l'expérience Tarot Dinatoire"
               >
                 Vivre l'expérience
               </button>
             </Link>
-          </div>
+          </nav>
         </div>
       </div>
     </header>
@@ -335,36 +355,40 @@ function LandingHeader({ ctaHref }: { ctaHref: string }) {
 function LandingFooter() {
   const year = new Date().getFullYear();
   return (
-    <footer className="relative z-10 border-t" style={{ borderColor: 'hsl(var(--mp-surface-border))', backgroundColor: 'hsl(var(--mp-bg-900))' }}>
+    <footer
+      className="relative z-10 border-t"
+      style={{ borderColor: 'hsl(var(--mp-surface-border))', backgroundColor: 'hsl(var(--mp-bg-900))' }}
+      role="contentinfo"
+    >
       <div className="container mx-auto px-5 py-10">
         <div className="flex flex-col items-center gap-6">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" style={{ color: gold }} />
-            <span className="font-serif text-base text-white/60">Tarot Dinatoire</span>
+            <Sparkles className="h-5 w-5" style={{ color: gold }} aria-hidden="true" />
+            <span className="font-serif text-base text-white/70">Tarot Dinatoire</span>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3" role="list" aria-label="Garanties">
             {[
               { icon: CreditCard, label: 'Paiement sécurisé Stripe' },
               { icon: Shield, label: 'RGPD · Données protégées' },
               { icon: Lock, label: 'Sans engagement' },
             ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{ borderColor: surfaceBorder }}>
-                <Icon className="h-3.5 w-3.5" style={{ color: gold }} />
-                <span className="text-xs text-white/50">{label}</span>
+              <div key={label} role="listitem" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{ borderColor: surfaceBorder }}>
+                <Icon className="h-3.5 w-3.5" style={{ color: gold }} aria-hidden="true" />
+                <span className="text-xs text-white/60">{label}</span>
               </div>
             ))}
           </div>
-          <nav className="flex flex-wrap justify-center gap-4 md:gap-6">
+          <nav aria-label="Liens légaux" className="flex flex-wrap justify-center gap-4 md:gap-6">
             {[
               { to: '/legal/terms', label: 'CGV' },
               { to: '/legal/privacy', label: 'Confidentialité' },
               { to: '/legal/imprint', label: 'Mentions légales' },
               { to: '/disclaimer', label: 'Avertissement' },
             ].map(l => (
-              <Link key={l.to} to={l.to} className="text-xs text-white/35 hover:text-white/70 transition-colors">{l.label}</Link>
+              <Link key={l.to} to={l.to} className="text-xs text-white/40 hover:text-white/70 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 rounded">{l.label}</Link>
             ))}
           </nav>
-          <p className="text-xs text-white/20">© {year} VLM Consulting · Tarot Dinatoire. Tous droits réservés.</p>
+          <p className="text-xs text-white/25">© {year} Tarot Dinatoire. Tous droits réservés.</p>
         </div>
       </div>
     </footer>
@@ -372,7 +396,7 @@ function LandingFooter() {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-const Landing = forwardRef<HTMLDivElement>((_, ref) => {
+export default function Landing() {
   const { user } = useAuth();
   const shouldReduce = useReducedMotion();
   const heroRef = useRef<HTMLDivElement>(null);
@@ -386,14 +410,14 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
     return () => clearInterval(t);
   }, []);
 
-    const ctaHref = user ? '/app' : '/auth';
-    const ctaLabel = user ? 'Acc\u00e9der \u00e0 mon oracle' : 'Vivre l\u2019exp\u00e9rience';
+  const ctaHref = user ? '/app' : '/auth';
+  const ctaLabel = user ? 'Accéder à mon oracle' : 'Vivre l\'expérience';
 
   const FAQ_ITEMS = [
     { q: "Est-ce vraiment différent d'une application de tarot classique ?", a: "Oui. Tarot Dinatoire mémorise chaque tirage pour construire votre profil unique. L'oracle analyse vos récurrences, détecte vos patterns émotionnels et génère un récit narratif sur vos 30-90 derniers jours. Aucune app de tarot ne fait ça." },
     { q: "Il faut croire au tarot pour en bénéficier ?", a: "Non. Beaucoup d'utilisateurs abordent le tarot comme un outil de réflexion psychologique, pas de divination. Les cartes sont un miroir symbolique : elles révèlent ce que vous projetez sur elles. C'est une pratique de connaissance de soi." },
     { q: "Comment fonctionne l'abonnement ?", a: "3,90€/mois, sans engagement. Vous pouvez résilier à tout moment en un clic depuis votre profil. Aucune reconduction cachée, aucun frais supplémentaire. Paiement sécurisé via Stripe." },
-    { q: "Mes données personnelles sont-elles protégées ?", a: "Vos données sont chiffrées, hébergées en Europe et jamais revendues. Conformité RGPD complète. Vous pouvez demander leur suppression à tout moment." },
+    { q: "Mes données personnelles sont-elles protégées ?", a: "Vos données sont chiffrées, hébergées en Europe et jamais revendues. Conformité RGPD complète. Vous pouvez demander leur suppression à tout moment depuis votre profil." },
     { q: "Puis-je tester avant de payer ?", a: "Votre premier tirage est accessible dès la création de votre compte, sans carte bancaire. L'abonnement premium débloque le rituel quotidien illimité, l'oracle narratif et tous les tirages avancés." },
   ];
 
@@ -410,15 +434,15 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <div
-      ref={ref}
       className="min-h-screen flex flex-col"
       style={{ background: 'linear-gradient(180deg, hsl(260 38% 5%) 0%, hsl(260 33% 7%) 60%, hsl(260 28% 6%) 100%)' }}
     >
       <SEOHead
-        title="Tarot Dinatoire | Votre Oracle Personnel IA — 3,90€/mois"
-        description="Un oracle tarot IA qui apprend à vous connaître. Tirage quotidien personnalisé, analyse psychologique profonde et récit narratif de votre vie. Sans engagement."
-        ogTitle="Tarot Dinatoire — Votre Oracle Personnel"
-        ogDescription="Plus qu'un tirage. Une expérience tarot premium qui vous attrape dès la première carte. 3,90€/mois · Sans engagement."
+        title="Tarot Dinatoire | Oracle Personnel IA — 3,90€/mois"
+        description="L'oracle tarot qui apprend à vous connaître. Tirage quotidien, analyse psychologique et récit narratif de votre vie intérieure. Sans engagement."
+        ogTitle="Tarot Dinatoire — Ce n'est pas un tirage. C'est un miroir qui se souvient."
+        ogDescription="Plus qu'un tirage. Une expérience immersive qui détecte vos patterns et construit votre récit intérieur. 3,90€/mois · Sans engagement."
+        canonical="https://tarotdinatoire.lovable.app/"
       />
 
       <LandingHeader ctaHref={ctaHref} />
@@ -427,7 +451,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 1 — HERO
       ══════════════════════════════════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16">
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire">
         <StarfieldCanvas />
         <Orb size={600} color="radial-gradient(circle, hsl(265 55% 40% / 0.35), transparent)" x="0%" y="-5%" delay={0} />
         <Orb size={400} color="radial-gradient(circle, hsl(42 70% 45% / 0.15), transparent)" x="60%" y="55%" delay={3} />
@@ -435,24 +459,25 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
 
         <motion.div
           style={shouldReduce ? {} : { y: heroY, opacity: heroOpacity }}
-          className="relative z-10 container mx-auto px-5 py-20 flex flex-col lg:flex-row items-center gap-16 lg:gap-24"
+          className="relative z-10 container mx-auto px-5 py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-24"
         >
           {/* Left — Copy */}
-          <div className="flex-1 max-w-2xl text-center lg:text-left space-y-8">
+          <div className="flex-1 max-w-2xl text-center lg:text-left space-y-7">
             {/* Eyebrow */}
             <motion.div
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold tracking-widest uppercase"
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', color: gold, backgroundColor: goldSoft }}
+              aria-label="Expérience tarot premium"
             >
-              <Stars className="h-3.5 w-3.5" />
+              <Stars className="h-3.5 w-3.5" aria-hidden="true" />
               Expérience tarot premium
             </motion.div>
 
             {/* H1 */}
             <motion.h1
               initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-serif text-[2.8rem] leading-[1.08] sm:text-6xl lg:text-7xl font-semibold text-white"
+              className="font-serif text-[2.6rem] leading-[1.08] sm:text-6xl lg:text-7xl font-semibold text-white"
             >
               Ce n'est pas un tirage.{' '}
               <span
@@ -466,10 +491,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             {/* Sub */}
             <motion.p
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
-              className="text-lg text-white/55 leading-relaxed max-w-xl mx-auto lg:mx-0"
+              className="text-base sm:text-lg text-white/60 leading-relaxed max-w-xl mx-auto lg:mx-0"
             >
               Chaque jour, une carte tirée pour vous seul.{' '}
-              <span className="text-white/80">L'oracle se souvient de tout.</span>{' '}
+              <span className="text-white/85">L'oracle se souvient de tout.</span>{' '}
               Jour après jour, il détecte vos patterns, lit votre arc émotionnel et vous dit ce que vous ne voyez plus — parce que vous êtes dedans.
             </motion.p>
 
@@ -477,20 +502,21 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
               className="flex items-center gap-3 justify-center lg:justify-start"
+              aria-label="12 437 utilisateurs actifs, 5 étoiles"
             >
-              <div className="flex -space-x-2">
+              <div className="flex -space-x-2" aria-hidden="true">
                 {['S', 'T', 'I', 'M'].map((l, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/85"
+                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/90"
                     style={{ background: `hsl(${262 + i * 18} 50% ${38 + i * 5}%)` }}>
                     {l}
                   </div>
                 ))}
               </div>
               <div>
-                <div className="flex items-center gap-0.5 mb-0.5">
+                <div className="flex items-center gap-0.5 mb-0.5" aria-hidden="true">
                   {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-3 w-3 fill-current" style={{ color: gold }} />)}
                 </div>
-                <p className="text-white/40 text-xs">12 437 personnes utilisent l'oracle aujourd'hui</p>
+                <p className="text-white/50 text-xs">12 437 personnes utilisent l'oracle aujourd'hui</p>
               </div>
             </motion.div>
 
@@ -508,7 +534,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                   {ctaLabel}
                 </MysticButton>
               </Link>
-              <a href="#rituel" className="text-sm text-white/40 hover:text-white/70 transition-colors underline-offset-4 hover:underline">
+              <a
+                href="#rituel"
+                className="text-sm text-white/50 hover:text-white/80 transition-colors underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 rounded"
+              >
                 Voir comment ça fonctionne
               </a>
             </motion.div>
@@ -516,11 +545,12 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             {/* Trust micro-signals */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-              className="flex flex-wrap items-center gap-5 justify-center lg:justify-start text-xs text-white/28"
+              className="flex flex-wrap items-center gap-4 justify-center lg:justify-start text-xs text-white/35"
+              aria-label="Garanties"
             >
-              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" />Données chiffrées</div>
-              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" />Sans engagement</div>
-              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" />Annulation en 1 clic</div>
+              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Données chiffrées</div>
+              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />Sans engagement</div>
+              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />Annulation en 1 clic</div>
             </motion.div>
           </div>
 
@@ -539,17 +569,18 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1"
           animate={shouldReduce ? {} : { y: [0, 7, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          aria-hidden="true"
         >
-          <span className="text-white/20 text-xs tracking-widest uppercase">Descendre</span>
-          <ChevronDown className="h-5 w-5 text-white/15" />
+          <span className="text-white/25 text-xs tracking-widest uppercase">Découvrir</span>
+          <ChevronDown className="h-5 w-5 text-white/20" />
         </motion.div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 2 — RUPTURE DE CATÉGORIE
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 40% 8% / 0.7), transparent)' }} />
+      <section className="relative py-20 overflow-hidden" aria-label="Ce qui nous différencie">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 40% 8% / 0.7), transparent)' }} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-3xl mx-auto text-center">
             <Eyebrow>Rupture de catégorie</Eyebrow>
@@ -557,10 +588,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               Le marché du tarot est saturé<br className="hidden sm:block" /> de médiocrité. Pas ici.
             </h2>
             <GoldDivider />
-            <p className="text-white/50 text-lg leading-relaxed mt-6 max-w-xl mx-auto">
+            <p className="text-white/60 text-base sm:text-lg leading-relaxed mt-6 max-w-xl mx-auto">
               Tirages génériques, interprétations recyclées, ésotérisme de supermarché.
               Tarot Dinatoire n'est pas dans cette catégorie.{' '}
-              <span className="text-white/80">Il construit une relation avec vous</span> — une véritable mémoire de qui vous êtes, tirage après tirage.
+              <span className="text-white/85">Il construit une relation avec vous</span> — une véritable mémoire de qui vous êtes, tirage après tirage.
             </p>
           </SectionReveal>
 
@@ -586,11 +617,14 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                   backgroundColor: item.neg ? 'transparent' : goldSoft,
                 }}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${item.neg ? 'bg-white/5' : ''}`}
-                  style={item.neg ? {} : { backgroundColor: goldSoft }}>
-                  <item.icon className="h-3.5 w-3.5" style={{ color: item.neg ? 'hsl(0 0% 45%)' : gold }} />
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={item.neg ? { backgroundColor: 'rgba(255,255,255,0.05)' } : { backgroundColor: goldSoft }}
+                  aria-hidden="true"
+                >
+                  <item.icon className="h-3.5 w-3.5" style={{ color: item.neg ? 'hsl(0 0% 40%)' : gold }} />
                 </div>
-                <span className="text-sm" style={{ color: item.neg ? 'hsl(0 0% 40%)' : 'hsl(0 0% 80%)' }}>{item.label}</span>
+                <span className="text-sm" style={{ color: item.neg ? 'hsl(0 0% 45%)' : 'hsl(0 0% 85%)' }}>{item.label}</span>
               </motion.div>
             ))}
           </div>
@@ -600,7 +634,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 3 — PROJECTION ÉMOTIONNELLE
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-24 overflow-hidden" aria-label="Votre progression avec l'oracle">
         <Orb size={500} color="radial-gradient(circle, hsl(42 70% 40% / 0.08), transparent)" x="70%" y="20%" delay={2} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="text-center mb-14">
@@ -623,9 +657,9 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 className="p-7 rounded-2xl border text-center"
                 style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.6)' }}
               >
-                <div className="font-serif text-4xl mb-5 opacity-60" style={{ color: gold }}>{item.sym}</div>
+                <div className="font-serif text-4xl mb-5 opacity-60" style={{ color: gold }} aria-hidden="true">{item.sym}</div>
                 <h3 className="font-serif text-lg text-white font-semibold mb-3">{item.title}</h3>
-                <p className="text-white/45 text-sm leading-relaxed">{item.body}</p>
+                <p className="text-white/60 text-sm leading-relaxed">{item.body}</p>
               </motion.div>
             ))}
           </div>
@@ -635,8 +669,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 4 — LE RITUEL EN 4 ÉTAPES
       ══════════════════════════════════════════════════════════════════════ */}
-      <section id="rituel" className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 35% 8% / 0.5), transparent)' }} />
+      <section id="rituel" className="relative py-24 overflow-hidden" aria-label="Le rituel quotidien en 4 étapes">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 35% 8% / 0.5), transparent)' }} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="text-center mb-14">
             <Eyebrow>Votre rituel quotidien</Eyebrow>
@@ -647,7 +681,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
             <RitualStepCard num="01" icon={Moon} title="La carte du jour" desc="Chaque matin, une carte tirée pour vous seul. Pas un horoscope recyclé — une lecture qui vous appartient." delay={0} />
-            <RitualStepCard num="02" icon={Eye} title="Une interprétation vivante" desc="L'oracle génère une analyse ancrée dans votre profil exact. Il ne sait pas qui vous êtes en général — il sait qui vous êtes, vous." delay={0.1} />
+            <RitualStepCard num="02" icon={Eye} title="Une interprétation vivante" desc="L'oracle génère une analyse ancrée dans votre profil exact. Il sait qui vous êtes, vous." delay={0.1} />
             <RitualStepCard num="03" icon={BookOpen} title="Le journal se souvient" desc="Notez ce que vous ressentez. L'oracle le mémorise. Votre profil se précise à chaque entrée." delay={0.2} />
             <RitualStepCard num="04" icon={Sparkles} title="L'histoire se révèle" desc="Après 30 jours, votre arc narratif prend forme. L'oracle vous montre ce que vous ne voyiez plus." delay={0.3} />
           </div>
@@ -655,20 +689,22 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          SECTION 5 — BÉNÉFICES (fonctions → désirs)
+          SECTION 5 — BÉNÉFICES
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-24 overflow-hidden" aria-label="Les bénéfices de l'oracle">
         <Orb size={500} color="radial-gradient(circle, hsl(265 55% 35% / 0.12), transparent)" x="40%" y="40%" delay={1} />
         <div className="container mx-auto px-5 relative z-10">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Visual mock — Oracle Narratif */}
             <motion.div
-              initial={{ opacity: 0, x: -32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, x: -32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              aria-label="Exemple de l'Oracle Narratif sur 30 jours"
             >
-              <div className="rounded-3xl p-7 border" style={{ borderColor: surfaceBorder, background: 'linear-gradient(145deg, hsl(265 35% 10%), hsl(260 30% 7%))' }}>
-                <div className="flex items-center gap-2 mb-7">
-                  <div className="w-2 h-2 rounded-full bg-green-400/60" />
-                  <p className="text-xs text-white/30 uppercase tracking-widest">Oracle Narratif · 30 derniers jours</p>
+              <div className="rounded-3xl p-6 sm:p-7 border" style={{ borderColor: surfaceBorder, background: 'linear-gradient(145deg, hsl(265 35% 10%), hsl(260 30% 7%))' }}>
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-2 h-2 rounded-full bg-green-400/60" aria-hidden="true" />
+                  <p className="text-xs text-white/40 uppercase tracking-widest">Oracle Narratif · 30 derniers jours</p>
                 </div>
                 <div className="space-y-3">
                   {[
@@ -683,18 +719,19 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                       style={{ backgroundColor: 'hsl(265 28% 13%)' }}
                     >
                       <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-serif"
-                        style={{ backgroundColor: `rgba(${insight.color},0.12)`, color: `rgb(${insight.color})` }}>
+                        style={{ backgroundColor: `rgba(${insight.color},0.12)`, color: `rgb(${insight.color})` }}
+                        aria-hidden="true">
                         {insight.count}×
                       </div>
                       <div>
                         <p className="text-white text-sm font-semibold mb-0.5">{insight.card}</p>
-                        <p className="text-white/40 text-xs leading-relaxed">{insight.text}</p>
+                        <p className="text-white/55 text-xs leading-relaxed">{insight.text}</p>
                       </div>
                     </motion.div>
                   ))}
                 </div>
                 <div className="mt-6 pt-5 border-t" style={{ borderColor: surfaceBorder }}>
-                  <p className="text-white/30 text-xs italic leading-relaxed">
+                  <p className="text-white/40 text-xs italic leading-relaxed">
                     "Votre arcane dominant ce mois : L'Étoile — une phase de reconstruction guidée par la foi intérieure et la clarté retrouvée."
                   </p>
                 </div>
@@ -712,17 +749,17 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight mb-5">
                   Il ne lit pas les cartes.<br />Il vous lit, vous.
                 </h2>
-                <p className="text-white/50 text-base leading-relaxed">
+                <p className="text-white/60 text-base leading-relaxed">
                   Tarot Dinatoire mémorise chaque tirage, chaque journal, chaque récurrence.
                   Au bout d'un mois, il génère une synthèse narrative de votre vie intérieure —{' '}
-                  <strong className="text-white/75 font-medium">que vous n'auriez pas écrite vous-même</strong>.
+                  <strong className="text-white/85 font-medium">que vous n'auriez pas écrite vous-même</strong>.
                 </p>
               </div>
               <div className="space-y-5">
                 <BenefitRow icon={TrendingUp} title="Il voit ce que vous ne voyez plus" desc="Vos patterns émotionnels sur 90 jours, identifiés et nommés — parce que vous êtes dedans." />
                 <BenefitRow icon={Zap} title="Il relie les coïncidences" desc="Ces cartes qui reviennent. Ces thèmes qui persistent. L'oracle les nomme avant vous." />
                 <BenefitRow icon={Heart} title="Il se souvient de tout" desc="Votre profil psychologique évolue à chaque session. Il est unique. Il est vôtre." />
-                <BenefitRow icon={BookOpen} title="Il s'affine avec le temps" desc="Chaque journal lui donne plus de précision. C'est la première app qui s'améliore en vous connaissant mieux." />
+                <BenefitRow icon={BookOpen} title="Il s'affine avec le temps" desc="Chaque journal lui donne plus de précision. La seule app qui s'améliore en vous connaissant mieux." />
               </div>
               <Link to={ctaHref}>
                 <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
@@ -737,14 +774,14 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 6 — STATS + PREUVES SOCIALES
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 38% 7%), transparent)' }} />
+      <section className="relative py-20 overflow-hidden" aria-label="Témoignages et chiffres clés">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true" style={{ background: 'linear-gradient(180deg, transparent, hsl(265 38% 7%), transparent)' }} />
         <div className="container mx-auto px-5 relative z-10">
           {/* Counters */}
-          <div className="max-w-3xl mx-auto grid grid-cols-3 gap-6 md:gap-16 mb-20">
+          <div className="max-w-3xl mx-auto grid grid-cols-3 gap-4 sm:gap-16 mb-20">
             <AnimatedCounter end={12400} suffix="+" label="Voyageurs actifs" />
             <AnimatedCounter end={340000} suffix="+" label="Tirages réalisés" />
-            <AnimatedCounter end={94} suffix="%" label="Satisfaction ressentie" />
+            <AnimatedCounter end={94} suffix="%" label="Reviennent chaque jour" />
           </div>
 
           {/* Testimonials carousel */}
@@ -753,40 +790,46 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Pas des avis. Des expériences.</h2>
           </SectionReveal>
 
-          <div className="max-w-xl mx-auto relative min-h-[260px]">
+          <div className="max-w-xl mx-auto relative min-h-[260px]" aria-live="polite" aria-atomic="true">
             <AnimatePresence mode="wait">
               <motion.div
                 key={testimonialIndex}
                 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="p-8 rounded-3xl border text-center"
+                className="p-6 sm:p-8 rounded-3xl border text-center"
                 style={{ borderColor: surfaceBorder, backgroundColor: surfaceGlass }}
+                role="article"
+                aria-label={`Témoignage de ${TESTIMONIALS[testimonialIndex].name}`}
               >
-                <div className="flex justify-center gap-0.5 mb-5">
-                  {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-4 w-4 fill-current" style={{ color: gold }} />)}
+                <div className="flex justify-center gap-0.5 mb-5" aria-label="5 étoiles">
+                  {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-4 w-4 fill-current" style={{ color: gold }} aria-hidden="true" />)}
                 </div>
-                <p className="font-serif text-base md:text-lg text-white/45 mb-2 tracking-wide italic">"{TESTIMONIALS[testimonialIndex].q}"</p>
-                <p className="font-serif text-base text-white/70 italic leading-relaxed mb-7">
+                <p className="font-serif text-base md:text-lg text-white/55 mb-2 tracking-wide italic">"{TESTIMONIALS[testimonialIndex].q}"</p>
+                <p className="font-serif text-base text-white/75 italic leading-relaxed mb-7">
                   {TESTIMONIALS[testimonialIndex].text}
                 </p>
                 <div className="flex items-center justify-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-serif text-lg font-semibold"
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-serif text-lg font-semibold" aria-hidden="true"
                     style={{ background: `linear-gradient(135deg, ${violet}, ${gold})` }}>
                     {TESTIMONIALS[testimonialIndex].name[0]}
                   </div>
                   <div className="text-left">
                     <p className="text-white text-sm font-semibold">{TESTIMONIALS[testimonialIndex].name}</p>
-                    <p className="text-white/35 text-xs">{TESTIMONIALS[testimonialIndex].sign} · {TESTIMONIALS[testimonialIndex].streak} consécutifs</p>
+                    <p className="text-white/40 text-xs">{TESTIMONIALS[testimonialIndex].sign} · {TESTIMONIALS[testimonialIndex].streak} consécutifs</p>
                   </div>
                 </div>
               </motion.div>
             </AnimatePresence>
-            <div className="flex justify-center gap-2 mt-5">
-              {TESTIMONIALS.map((_, i) => (
-                <button key={i} onClick={() => setTestimonialIndex(i)}
-                  className="rounded-full transition-all duration-300"
+            <div className="flex justify-center gap-2 mt-5" role="tablist" aria-label="Navigation témoignages">
+              {TESTIMONIALS.map((t, i) => (
+                <button
+                  key={i}
+                  onClick={() => setTestimonialIndex(i)}
+                  role="tab"
+                  aria-selected={i === testimonialIndex}
+                  aria-label={`Témoignage de ${t.name}`}
+                  className="rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   style={{ width: i === testimonialIndex ? 22 : 8, height: 8, backgroundColor: i === testimonialIndex ? gold : 'hsl(255 20% 30%)' }}
-                  aria-label={`Témoignage ${i + 1}`}
                 />
               ))}
             </div>
@@ -797,10 +840,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 7 — TRAITEMENT DES OBJECTIONS
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-24 overflow-hidden">
+      <section className="relative py-24 overflow-hidden" aria-label="Réponses aux questions fréquentes">
         <Orb size={400} color="radial-gradient(circle, hsl(42 70% 40% / 0.07), transparent)" x="80%" y="50%" delay={1} />
         <div className="container mx-auto px-5 relative z-10">
-          <div className="max-w-3xl mx-auto grid sm:grid-cols-3 gap-7">
+          <div className="max-w-3xl mx-auto grid sm:grid-cols-3 gap-6">
             {[
               { title: "Je ne crois pas au tarot", body: "Bien. Vous n'avez pas à croire. Tarot Dinatoire n'est pas un outil de divination — c'est un miroir psychologique. Les cartes révèlent ce que vous projetez. L'oracle l'organise. Résultat : une clarté que vous ne trouverez pas ailleurs." },
               { title: "J'ai déjà essayé. Ça ne m'a rien apporté.", body: "Vous avez essayé du tarot générique — une carte, un texte recyclé, oubli le lendemain. Tarot Dinatoire ne fonctionne pas comme ça. L'oracle apprend à vous connaître. Au bout de 10 jours, la comparaison n'existe plus." },
@@ -808,9 +851,9 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             ].map((item, i) => (
               <SectionReveal key={i}>
                 <div className="p-6 rounded-2xl border h-full" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.5)' }}>
-                  <p className="text-white/25 text-xs font-semibold tracking-widest uppercase mb-3">Objection {i + 1}</p>
-                  <h3 className="font-serif text-base text-white/80 font-semibold mb-3 leading-snug">"{item.title}"</h3>
-                  <p className="text-white/45 text-sm leading-relaxed">{item.body}</p>
+                  <p className="text-white/30 text-xs font-semibold tracking-widest uppercase mb-3" aria-hidden="true">Objection {i + 1}</p>
+                  <h3 className="font-serif text-base text-white/85 font-semibold mb-3 leading-snug">"{item.title}"</h3>
+                  <p className="text-white/60 text-sm leading-relaxed">{item.body}</p>
                 </div>
               </SectionReveal>
             ))}
@@ -821,7 +864,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 8 — OFFRE / PRICING
       ══════════════════════════════════════════════════════════════════════ */}
-      <section id="offre" className="relative py-28 overflow-hidden">
+      <section id="offre" className="relative py-24 sm:py-28 overflow-hidden" aria-label="Offre et tarifs">
         <Orb size={700} color="radial-gradient(circle, hsl(265 55% 38% / 0.18), transparent)" x="50%" y="50%" delay={0} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-lg mx-auto text-center">
@@ -829,40 +872,41 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white mb-3 leading-tight">
               Tout l'oracle.<br />Pour moins que rien.
             </h2>
-            <p className="text-white/40 mb-10 leading-relaxed">
+            <p className="text-white/50 mb-10 leading-relaxed">
               3,90€ par mois. Sans engagement. L'intégralité de l'expérience — dès le premier jour.
             </p>
 
             <div
-              className="relative p-8 rounded-3xl border mb-7"
+              className="relative p-6 sm:p-8 rounded-3xl border mb-7"
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', background: 'linear-gradient(155deg, hsl(265 35% 10%), hsl(260 30% 7%))' }}
             >
               {/* Badge */}
               <div
-                className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase"
+                className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap"
                 style={{ background: `linear-gradient(90deg, ${violet}, hsl(var(--mp-brand-gold) / 0.9))`, color: 'white' }}
+                aria-label="Offre de lancement"
               >
                 Offre de lancement
               </div>
 
               {/* Price */}
               <div className="flex items-baseline justify-center gap-1 mb-1.5 mt-3">
-                <span className="font-serif text-6xl font-bold text-white">3,90€</span>
-                <span className="text-white/35 text-lg">/mois</span>
+                <span className="font-serif text-5xl sm:text-6xl font-bold text-white">3,90€</span>
+                <span className="text-white/40 text-lg">/mois</span>
               </div>
-              <p className="text-white/28 text-sm mb-9">TTC · Sans engagement · Annulation en 1 clic</p>
+              <p className="text-white/35 text-sm mb-8">TTC · Sans engagement · Annulation en 1 clic</p>
 
               {/* Features */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-9 text-left">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8 text-left" aria-label="Fonctionnalités incluses">
                 {PRICING_FEATURES.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-sm text-white/60">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: goldSoft }}>
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-white/70">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: goldSoft }} aria-hidden="true">
                       <Check className="h-3 w-3" style={{ color: gold }} />
                     </div>
                     {feature}
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
 
               <Link to={ctaHref} className="block">
                 <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />}>
@@ -872,10 +916,10 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
             </div>
 
             {/* Trust signals */}
-            <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-white/28">
-              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" />Paiement Stripe sécurisé</div>
-              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" />RGPD · Données protégées</div>
-              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" />+12 000 voyageurs</div>
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 text-xs text-white/40">
+              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Paiement Stripe sécurisé</div>
+              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />RGPD · Données protégées</div>
+              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />+12 000 voyageurs</div>
             </div>
           </SectionReveal>
         </div>
@@ -884,16 +928,21 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 9 — FAQ
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-20 overflow-hidden" aria-label="Questions fréquentes">
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="text-center mb-12">
             <Eyebrow>Avant de vous lancer</Eyebrow>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Les vraies questions. Les vraies réponses.</h2>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Les vraies questions.<br className="sm:hidden" /> Les vraies réponses.</h2>
           </SectionReveal>
 
-          <div className="max-w-2xl mx-auto rounded-2xl border overflow-hidden" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.6)' }}>
+          <div
+            className="max-w-2xl mx-auto rounded-2xl border overflow-hidden"
+            style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.6)' }}
+            role="region"
+            aria-label="FAQ"
+          >
             <div className="divide-y px-6" style={{ borderColor: surfaceBorder }}>
-              {FAQ_ITEMS.map((item, i) => <FAQItem key={i} q={item.q} a={item.a} />)}
+              {FAQ_ITEMS.map((item, i) => <FAQItem key={i} q={item.q} a={item.a} index={i} />)}
             </div>
           </div>
         </div>
@@ -902,37 +951,34 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 10 — DERNIER CTA
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-28 overflow-hidden">
+      <section className="relative py-24 sm:py-28 overflow-hidden" aria-label="Commencer l'expérience">
         <Orb size={700} color="radial-gradient(circle, hsl(265 55% 40% / 0.22), transparent)" x="50%" y="50%" delay={0} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-2xl mx-auto text-center">
-            <div className="font-serif text-5xl mb-6 opacity-40" style={{ color: gold }}>✦</div>
+            <div className="font-serif text-5xl mb-6 opacity-40" style={{ color: gold }} aria-hidden="true">✦</div>
             <h2 className="font-serif text-4xl md:text-6xl font-semibold text-white leading-tight mb-6">
               Il y a des choses<br />que vous savez déjà.
             </h2>
-            <p className="text-white/50 text-lg leading-relaxed mb-3 max-w-lg mx-auto">
+            <p className="text-white/60 text-base sm:text-lg leading-relaxed mb-3 max-w-lg mx-auto">
               Vous les sentez. Vous les portez. Vous n'arrivez pas encore à les formuler.
             </p>
-            <p className="text-white/35 text-base leading-relaxed mb-10 max-w-md mx-auto">
+            <p className="text-white/40 text-sm sm:text-base leading-relaxed mb-10 max-w-md mx-auto">
               C'est exactement là que Tarot Dinatoire entre en jeu.
             </p>
             <Link to={ctaHref}>
-              <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-lg px-12">
+              <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12">
                 Commencer mon premier rituel
               </MysticButton>
             </Link>
-            <p className="text-white/22 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
+            <p className="text-white/25 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
           </SectionReveal>
         </div>
       </section>
 
       <LandingFooter />
 
-      {/* pb-safe for mobile sticky CTA */}
+      {/* Spacer for mobile sticky CTA */}
       <div className="h-24 md:hidden" aria-hidden="true" />
     </div>
   );
-});
-
-Landing.displayName = 'Landing';
-export default Landing;
+}
