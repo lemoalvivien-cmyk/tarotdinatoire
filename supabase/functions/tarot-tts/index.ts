@@ -21,8 +21,11 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
 const MYSTICAL_VOICE_ID = 'XrExE9yKIg1WjnnlVkGX';
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsH = buildCorsHeaders(origin);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsH });
   }
 
   try {
@@ -31,7 +34,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -45,7 +48,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -53,7 +56,7 @@ Deno.serve(async (req) => {
     if (!ELEVENLABS_API_KEY) {
       return new Response(JSON.stringify({ error: 'ElevenLabs API key not configured' }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -62,7 +65,7 @@ Deno.serve(async (req) => {
     if (!text || typeof text !== 'string') {
       return new Response(JSON.stringify({ error: 'Text is required' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -90,7 +93,7 @@ Deno.serve(async (req) => {
             similarity_boost: 0.80,
             style: 0.35,
             use_speaker_boost: true,
-            speed: 0.92, // Slightly slower — more mystical
+            speed: 0.92,
           },
         }),
       }
@@ -99,9 +102,9 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs error:', response.status, errorText);
-      return new Response(JSON.stringify({ error: 'TTS generation failed', details: errorText }), {
+      return new Response(JSON.stringify({ error: 'TTS generation failed' }), {
         status: response.status,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsH, 'Content-Type': 'application/json' },
       });
     }
 
@@ -110,7 +113,7 @@ Deno.serve(async (req) => {
     return new Response(audioBuffer, {
       status: 200,
       headers: {
-        ...corsHeaders,
+        ...corsH,
         'Content-Type': 'audio/mpeg',
         'Content-Length': audioBuffer.byteLength.toString(),
         'Cache-Control': 'private, max-age=3600',
@@ -118,10 +121,10 @@ Deno.serve(async (req) => {
     });
 
   } catch (err) {
-    console.error('TTS edge function error:', err);
+    console.error('TTS edge function error:', err instanceof Error ? err.message : 'unknown');
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...buildCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' },
     });
   }
 });

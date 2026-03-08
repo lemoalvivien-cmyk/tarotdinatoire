@@ -23,9 +23,12 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
  * and only allows modifying unsubscribed_at and consent fields.
  */
 serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  const corsH = buildCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsH });
   }
 
   try {
@@ -33,7 +36,7 @@ serve(async (req) => {
     if (req.method !== "POST") {
       return new Response(
         JSON.stringify({ error: "Method not allowed" }),
-        { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 405, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
@@ -43,7 +46,7 @@ serve(async (req) => {
     if (!token || typeof token !== "string") {
       return new Response(
         JSON.stringify({ error: "Token manquant ou invalide", status: "error" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
@@ -52,7 +55,7 @@ serve(async (req) => {
     if (!uuidRegex.test(token)) {
       return new Response(
         JSON.stringify({ error: "Format de token invalide", status: "error" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
@@ -64,22 +67,22 @@ serve(async (req) => {
     // Find lead by unsubscribe token
     const { data: lead, error: fetchError } = await supabaseAdmin
       .from("email_leads")
-      .select("id, unsubscribed_at, email")
+      .select("id, unsubscribed_at")
       .eq("unsubscribe_token", token)
       .maybeSingle();
 
     if (fetchError) {
-      console.error("Database fetch error:", fetchError);
+      console.error("Database fetch error:", fetchError.message);
       return new Response(
         JSON.stringify({ error: "Erreur serveur", status: "error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
     if (!lead) {
       return new Response(
         JSON.stringify({ error: "Lien invalide ou expiré", status: "error" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 404, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
@@ -87,7 +90,7 @@ serve(async (req) => {
     if (lead.unsubscribed_at) {
       return new Response(
         JSON.stringify({ message: "Déjà désinscrit", status: "already" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
@@ -102,25 +105,23 @@ serve(async (req) => {
       .eq("id", lead.id);
 
     if (updateError) {
-      console.error("Database update error:", updateError);
+      console.error("Database update error:", updateError.message);
       return new Response(
         JSON.stringify({ error: "Erreur lors de la désinscription", status: "error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsH, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`Successfully unsubscribed lead: ${lead.id}`);
-
     return new Response(
       JSON.stringify({ message: "Désinscription confirmée", status: "success" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsH, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
-    console.error("Unsubscribe error:", error);
+    console.error("Unsubscribe error:", error instanceof Error ? error.message : 'unknown');
     return new Response(
       JSON.stringify({ error: "Erreur serveur", status: "error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...buildCorsHeaders(req.headers.get("Origin")), "Content-Type": "application/json" } }
     );
   }
 });
