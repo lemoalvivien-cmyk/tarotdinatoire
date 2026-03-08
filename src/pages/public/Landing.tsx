@@ -907,11 +907,9 @@ export default function Landing() {
                 ))}
               </ul>
 
-              <Link to={ctaHref} className="block">
-                <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />}>
+              <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => navigate(ctaHref)}>
                   {ctaLabel}
                 </MysticButton>
-              </Link>
             </div>
 
             {/* Trust signals */}
