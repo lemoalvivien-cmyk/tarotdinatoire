@@ -39,24 +39,24 @@
 
 ### 1.2 Edge Functions
 
-| Fonction | Domaine | CORS | Statut |
-|---|---|---|---|
-| `tarot-interpretation` | CORE | ✅ Allowlist | ✅ Production |
-| `daily-draw` | CORE | ✅ Allowlist | ✅ Production |
-| `card-insight` | CORE | ✅ Allowlist | ✅ Production |
-| `narrative-engine` | CORE | ✅ Allowlist | ✅ Production |
-| `psychological-reflection` | CORE | ✅ Allowlist | ✅ Production |
-| `synchronicity-engine` | CORE | ✅ Allowlist | ✅ Production |
-| `tarot-tts` | CORE | ✅ Allowlist | ✅ Production |
-| `og-share` | CORE | ✅ Allowlist | ✅ Production |
-| `public-config` | CORE | ✅ Allowlist | ✅ Production |
-| `check-subscription` | BILLING | ✅ Allowlist (fixed) | ✅ Production |
-| `create-checkout` | BILLING | ✅ Allowlist (fixed) | ✅ Production |
-| `customer-portal` | BILLING | ✅ Allowlist (fixed) | ✅ Production |
-| `stripe-webhook` | BILLING | ✅ Server-to-server | ✅ Production |
-| `unsubscribe` | BILLING | ✅ Allowlist | ✅ Production |
-| `bootstrap-admin` | ADMIN | ✅ Allowlist | ✅ One-shot |
-| **`agent-dispatcher`** | **AUTOMATION** | ✅ Allowlist | ✅ **Nouveau** |
+| Fonction | Domaine | CORS | Statut | Vérifié |
+|---|---|---|---|---|
+| `tarot-interpretation` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `daily-draw` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `card-insight` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `narrative-engine` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `psychological-reflection` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `synchronicity-engine` | CORE | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `tarot-tts` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `og-share` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `public-config` | CORE | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `check-subscription` | BILLING | ✅ Allowlist + bug corsHeaders corrigé | ✅ Production | ✅ Lu |
+| `create-checkout` | BILLING | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `customer-portal` | BILLING | ✅ Allowlist | ✅ Production | ✅ Lu |
+| `stripe-webhook` | BILLING | ✅ Server-to-server | ✅ Production | ✅ Lu |
+| `unsubscribe` | BILLING | ✅ Allowlist (corrigé 2026-03-08) | ✅ Production | ✅ Lu |
+| `bootstrap-admin` | ADMIN | ✅ Allowlist | ✅ One-shot | ✅ Lu |
+| **`agent-dispatcher`** | **AUTOMATION** | ✅ Allowlist | ✅ Production | ✅ Lu |
 
 ### 1.3 Tables SQL
 
