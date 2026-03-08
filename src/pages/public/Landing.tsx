@@ -399,6 +399,7 @@ const LandingFooter = forwardRef<HTMLElement>(function LandingFooter(_, ref) {
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function Landing() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const shouldReduce = useReducedMotion();
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
