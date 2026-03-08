@@ -278,6 +278,7 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
 // ─── Sticky Mobile CTA ────────────────────────────────────────────────────────
 function StickyMobileCTA({ href, label }: { href: string; label: string }) {
   const [show, setShow] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     const h = () => setShow(window.scrollY > 600);
     window.addEventListener('scroll', h, { passive: true });
@@ -292,15 +293,14 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
           className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-[env(safe-area-inset-bottom,1rem)] md:hidden"
           style={{ background: 'linear-gradient(to top, hsl(var(--mp-bg-900)), hsl(var(--mp-bg-900) / 0.95) 80%, transparent)' }}
         >
-          <Link to={href} className="block" tabIndex={-1}>
-            <button
-              className="w-full h-14 rounded-xl text-base font-semibold text-white transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 8px 30px hsl(var(--mp-brand-violet) / 0.4)` }}
-              aria-label={label}
-            >
-              {label}
-            </button>
-          </Link>
+          <button
+            onClick={() => navigate(href)}
+            className="w-full h-14 rounded-xl text-base font-semibold text-white transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            style={{ background: `linear-gradient(135deg, ${violet}, ${violet2})`, boxShadow: `0 8px 30px hsl(var(--mp-brand-violet) / 0.4)` }}
+            aria-label={label}
+          >
+            {label}
+          </button>
           <p className="text-center text-xs text-white/35 mt-2">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
         </motion.div>
       )}
