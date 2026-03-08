@@ -540,7 +540,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
           animate={shouldReduce ? {} : { y: [0, 7, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <span className="text-white/20 text-xs tracking-widest uppercase">Découvrir</span>
+          <span className="text-white/20 text-xs tracking-widest uppercase">Descendre</span>
           <ChevronDown className="h-5 w-5 text-white/15" />
         </motion.div>
       </section>
