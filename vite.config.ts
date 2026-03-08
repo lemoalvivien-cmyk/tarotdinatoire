@@ -104,7 +104,6 @@ export default defineConfig(({ mode }) => ({
                 maxAgeSeconds: 24 * 60 * 60, // 24h
               },
               cacheableResponse: { statuses: [0, 200] },
-              networkTimeoutSeconds: 5,
             },
           },
 
