@@ -18,19 +18,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Receives a queryClient ref so we can clear the cache on logout
-// without creating a circular dependency
+// QueryClient ref — permet de vider le cache sans dépendance circulaire
 export let _queryClientRef: { clear: () => void } | null = null;
 export function setQueryClientRef(ref: { clear: () => void }) {
   _queryClientRef = ref;
 }
 
+// Navigation callback injectable — permet à AuthContext de naviguer
+// sans dépendre de React Router (qui est en-dessous dans l'arbre)
+let _navigateToRoot: (() => void) | null = null;
+export function setNavigateCallback(fn: () => void) {
+  _navigateToRoot = fn;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser]     = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [status, setStatus] = useState<AuthStatus>('loading');
+  const [status, setStatus]   = useState<AuthStatus>('loading');
   const initialCheckDone = useRef(false);
-  const mountedRef = useRef(true);
+  const mountedRef       = useRef(true);
 
   const updateSession = useCallback((newSession: Session | null) => {
     if (!mountedRef.current) return;
@@ -73,15 +79,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) return;
       updateSession(refreshed);
     } catch {
-      // silent
+      // Silent — session refresh failure is not fatal
     }
   }, [updateSession]);
 
   const signUp = async (email: string, password: string) => {
-    // FIX #2 (N-1): emailRedirectTo now points to /app/onboarding so users
-    // land in the app after confirming their email
     const redirectUrl = `${window.location.origin}/app/onboarding`;
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -105,16 +108,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  // FIX #1 (SEC-12) + FIX #7 (SEC-13):
-  // Logout clears React Query cache and replaces history so back button
-  // cannot navigate to a protected page
+  /**
+   * signOut — correctif :
+   *  - Vide le cache React Query (pas de données stale sur appareil partagé)
+   *  - Utilise le callback de navigation injectable si disponible
+   *    (évite window.history.replaceState qui ne notifie pas React Router)
+   *  - Fallback window.history.replaceState si le callback n'est pas encore enregistré
+   */
   const signOut = async () => {
     await supabase.auth.signOut();
     updateSession(null);
-    // Clear ALL React Query cache so no stale data is visible on shared devices
     _queryClientRef?.clear();
-    // Replace the current history entry so back button goes to landing, not app
-    window.history.replaceState(null, '', '/');
+
+    if (_navigateToRoot) {
+      _navigateToRoot();
+    } else {
+      // Fallback : remplace l'entrée history (back button → landing)
+      window.history.replaceState(null, '', '/');
+    }
   };
 
   const loading = status === 'loading';
