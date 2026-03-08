@@ -1,8 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // ══════════════════════════════════════════════════════════════
-// BLOC 3 · ZERO TRUST CORS ALLOWLIST
-// Never use wildcard '*' for authenticated endpoints.
+// ZERO TRUST CORS ALLOWLIST
+// Jamais de wildcard '*' sur une fonction authentifiée.
 // ══════════════════════════════════════════════════════════════
 const ALLOWED_ORIGINS = [
   'https://tarotdinatoire.lovable.app',
@@ -23,8 +23,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
 }
 
 // ══════════════════════════════════════════════════════════════
-// BLOC 4 · JOB TYPE ALLOWLIST
-// Only these 5 job types are accepted. Anything else → 400.
+// JOB TYPE ALLOWLIST
 // ══════════════════════════════════════════════════════════════
 const ALLOWED_JOB_TYPES = [
   'ui_qa_check',
@@ -35,7 +34,6 @@ const ALLOWED_JOB_TYPES = [
 ] as const;
 type JobType = (typeof ALLOWED_JOB_TYPES)[number];
 
-// Per-type timeout overrides (seconds)
 const JOB_TIMEOUTS: Record<JobType, number> = {
   ui_qa_check: 30,
   content_synthesis: 90,
@@ -44,17 +42,16 @@ const JOB_TIMEOUTS: Record<JobType, number> = {
   security_drift_check: 120,
 };
 
-// Per-type max retry overrides
 const JOB_MAX_ATTEMPTS: Record<JobType, number> = {
   ui_qa_check: 2,
   content_synthesis: 3,
   data_verification: 3,
   admin_assist_review: 2,
-  security_drift_check: 1, // security checks: no retry on failure
+  security_drift_check: 1, // fail-closed, no retry on security checks
 };
 
 // ══════════════════════════════════════════════════════════════
-// BLOC 4 · DISPATCHER — main handler
+// DISPATCHER — main handler
 // ══════════════════════════════════════════════════════════════
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('Origin');
@@ -84,7 +81,6 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anonKey     = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const token       = authHeader.replace('Bearer ', '');
 
     // Validate caller identity
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -98,7 +94,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // RBAC: only admins can dispatch jobs (Zero Trust — server-side check)
+    // RBAC: only admins can dispatch jobs (server-side check via service_role)
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data: isAdmin } = await adminClient
       .rpc('can_dispatch_agent_job', { _user_id: user.id });
@@ -111,7 +107,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Parse + validate body ────────────────────────────────
-    let body: { job_type?: string; payload?: Record<string, unknown>; priority?: number; idempotency_key?: string };
+    let body: {
+      job_type?: string;
+      payload?: Record<string, unknown>;
+      priority?: number;
+      idempotency_key?: string;
+    };
     try {
       body = await req.json();
     } catch {
@@ -123,20 +124,15 @@ Deno.serve(async (req: Request) => {
 
     const { job_type, payload = {}, priority = 5, idempotency_key } = body;
 
-    // Strict job type allowlist
     if (!job_type || !ALLOWED_JOB_TYPES.includes(job_type as JobType)) {
       return new Response(
-        JSON.stringify({
-          error: 'Invalid job_type',
-          allowed: ALLOWED_JOB_TYPES,
-        }),
+        JSON.stringify({ error: 'Invalid job_type', allowed: ALLOWED_JOB_TYPES }),
         { status: 400, headers: { ...headers, 'Content-Type': 'application/json' } },
       );
     }
 
     const validatedType = job_type as JobType;
 
-    // Priority must be 1-10
     if (typeof priority !== 'number' || priority < 1 || priority > 10) {
       return new Response(
         JSON.stringify({ error: 'priority must be integer 1–10' }),
@@ -144,7 +140,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Payload size guard (prevent oversized jobs)
     const payloadSize = JSON.stringify(payload).length;
     if (payloadSize > 10_000) {
       return new Response(
@@ -172,19 +167,19 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (insertError) {
-      // Idempotency conflict — return existing job ID
+      // 23505 = unique_violation → idempotency conflict (scoped per created_by)
       if (insertError.code === '23505') {
         const { data: existing } = await adminClient
           .from('agent_jobs')
           .select('id, status, job_type, created_at')
           .eq('idempotency_key', idempotency_key!)
+          .eq('created_by', user.id) // scope: même admin uniquement
           .single();
         return new Response(
           JSON.stringify({ deduplicated: true, job: existing }),
           { status: 200, headers: { ...headers, 'Content-Type': 'application/json' } },
         );
       }
-      console.error('[agent-dispatcher] insert error:', insertError.message);
       return new Response(
         JSON.stringify({ error: 'Failed to create job' }),
         { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } },
@@ -198,7 +193,7 @@ Deno.serve(async (req: Request) => {
       target_id:     job.id,
       target_type:   'agent_job',
       metadata: {
-        job_type:  validatedType,
+        job_type:     validatedType,
         priority,
         payload_size: payloadSize,
       },
@@ -209,9 +204,10 @@ Deno.serve(async (req: Request) => {
       { status: 201, headers: { ...headers, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
-    console.error('[agent-dispatcher] unexpected error:', err);
+    // Log type uniquement, jamais le message (peut contenir des données utilisateur)
+    const errType = err instanceof Error ? err.constructor.name : typeof err;
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', type: errType }),
       { status: 500, headers: { ...headers, 'Content-Type': 'application/json' } },
     );
   }
