@@ -708,21 +708,21 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               className="space-y-8"
             >
               <div>
-                <Eyebrow>Oracle Narratif Unique</Eyebrow>
+                <Eyebrow>La différence qui change tout</Eyebrow>
                 <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight mb-5">
-                  L'oracle qui lit<br />votre histoire
+                  Il ne lit pas les cartes.<br />Il vous lit, vous.
                 </h2>
                 <p className="text-white/50 text-base leading-relaxed">
-                  Contrairement à un tirage isolé, Tarot Dinatoire mémorise chaque lecture.
-                  Il détecte vos cartes récurrentes, vos thèmes de vie, votre arc émotionnel —
-                  et génère une synthèse narrative <strong className="text-white/75 font-medium">entièrement personnalisée</strong>.
+                  Tarot Dinatoire mémorise chaque tirage, chaque journal, chaque récurrence.
+                  Au bout d'un mois, il génère une synthèse narrative de votre vie intérieure —{' '}
+                  <strong className="text-white/75 font-medium">que vous n'auriez pas écrite vous-même</strong>.
                 </p>
               </div>
               <div className="space-y-5">
-                <BenefitRow icon={TrendingUp} title="Patterns émotionnels sur 90 jours" desc="L'oracle repère ce que vous ne voyez plus parce que vous êtes dedans." />
-                <BenefitRow icon={Zap} title="Synchronicités révélées" desc="Les coïncidences significatives de votre vie, mises en lumière et analysées." />
-                <BenefitRow icon={Heart} title="Profil psychologique évolutif" desc="Votre portrait se précise semaine après semaine. Vous vous découvrez autrement." />
-                <BenefitRow icon={BookOpen} title="Mémoire vivante" desc="Le journal affine l'oracle. Plus vous l'utilisez, plus il vous comprend." />
+                <BenefitRow icon={TrendingUp} title="Il voit ce que vous ne voyez plus" desc="Vos patterns émotionnels sur 90 jours, identifiés et nommés — parce que vous êtes dedans." />
+                <BenefitRow icon={Zap} title="Il relie les coïncidences" desc="Ces cartes qui reviennent. Ces thèmes qui persistent. L'oracle les nomme avant vous." />
+                <BenefitRow icon={Heart} title="Il se souvient de tout" desc="Votre profil psychologique évolue à chaque session. Il est unique. Il est vôtre." />
+                <BenefitRow icon={BookOpen} title="Il s'affine avec le temps" desc="Chaque journal lui donne plus de précision. C'est la première app qui s'améliore en vous connaissant mieux." />
               </div>
               <Link to={ctaHref}>
                 <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
