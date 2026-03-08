@@ -509,7 +509,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
                 </MysticButton>
               </Link>
               <a href="#rituel" className="text-sm text-white/40 hover:text-white/70 transition-colors underline-offset-4 hover:underline">
-                Comment ça marche ?
+                Voir comment ça fonctionne
               </a>
             </motion.div>
 
