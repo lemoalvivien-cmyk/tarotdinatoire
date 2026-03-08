@@ -916,7 +916,7 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
               Votre premier rituel vous attend.
             </p>
             <Link to={ctaHref}>
-              <MysticButton size="xl" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-lg px-12">
+              <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-lg px-12">
                 {ctaLabel}
               </MysticButton>
             </Link>
