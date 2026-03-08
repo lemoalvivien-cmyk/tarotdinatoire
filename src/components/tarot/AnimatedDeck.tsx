@@ -73,6 +73,23 @@ interface StackedDeckProps {
 }
 
 function StackedDeck({ cards, isShuffling, isCutting }: StackedDeckProps) {
+  // When idle (not shuffling/cutting), render the WebGL 3D card as the top card
+  const showWebGL = !isShuffling && !isCutting;
+
+  if (showWebGL) {
+    return (
+      <div className="relative h-[310px] w-[220px] flex items-center justify-center">
+        {/* Ambient glow */}
+        <div
+          className="absolute inset-0 rounded-3xl blur-3xl opacity-40"
+          style={{ background: 'radial-gradient(ellipse at center, hsl(var(--mp-brand-violet) / 0.8), transparent 70%)' }}
+        />
+        {/* WebGL card — levitation + parallax + metallic shader */}
+        <TarotCard3D stackCount={Math.min(cards.length, 3)} className="drop-shadow-2xl" />
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-[280px] w-[200px] flex items-center justify-center">
       {/* Ambient glow */}
@@ -83,14 +100,14 @@ function StackedDeck({ cards, isShuffling, isCutting }: StackedDeckProps) {
         }}
       />
       
-      {/* Card stack */}
+      {/* Card stack — CSS for shuffle/cut choreography */}
       <div className="relative">
         <AnimatePresence mode="sync">
           {isCutting ? (
             // Cutting animation: 3 piles
             <CuttingAnimation cards={cards} />
           ) : (
-            // Normal stack or shuffling
+            // Shuffling
             cards.map((card, i) => (
               <motion.div
                 key={`stack-${card.id}`}
