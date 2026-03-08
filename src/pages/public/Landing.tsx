@@ -227,10 +227,10 @@ function BenefitRow({ icon: Icon, title, desc }: { icon: React.ElementType; titl
 
 // ─── Testimonial Card ─────────────────────────────────────────────────────────
 const TESTIMONIALS = [
-  { q: "Un miroir d'une précision troublante.", text: "En trois semaines, j'ai compris des patterns dans ma vie que je n'arrivais pas à voir depuis des années. Chaque tirage me parlait vraiment.", name: "Sophie M.", sign: "♏ Scorpion", streak: "127 jours", stars: 5 },
-  { q: "Pas de la divination. Un miroir.", text: "Ce n'est pas du mysticisme vague. C'est un outil de clarté réelle. L'oracle narratif analyse mes récurrences sur 30 jours. Bluffant.", name: "Thomas R.", sign: "♒ Verseau", streak: "89 jours", stars: 5 },
-  { q: "Une précision qui laisse sans voix.", text: "La récurrence de certaines cartes analysée sur plusieurs semaines… je n'attendais pas ça. C'est précis, personnel, profond.", name: "Isabelle D.", sign: "♓ Poissons", streak: "203 jours", stars: 5 },
-  { q: "Le meilleur investissement bien-être.", text: "3,90€ par mois pour quelque chose d'aussi puissant. J'ai essayé des dizaines d'applications. Rien ne fait ça.", name: "Marie-Claire B.", sign: "♋ Cancer", streak: "44 jours", stars: 5 },
+  { q: "Je n'attendais pas ça.", text: "En trois semaines, j'ai compris des patterns dans ma vie que je ne voyais plus. L'oracle ne me donnait pas des réponses — il me posait les bonnes questions.", name: "Sophie M.", sign: "♏ Scorpion", streak: "127 jours", stars: 5 },
+  { q: "Ce n'est pas du tarot. C'est un révélateur.", text: "L'oracle narratif a analysé mes 30 derniers jours et m'a dit exactement ce que je traversais. Pas en termes vagues. Précisément. Je n'avais rien dit de tel à personne.", name: "Thomas R.", sign: "♒ Verseau", streak: "89 jours", stars: 5 },
+  { q: "Troublant de justesse.", text: "Une même carte est apparue 4 fois en trois semaines. L'oracle l'a signalé, l'a analysé, et a nommé quelque chose que je n'arrivais pas à formuler moi-même.", name: "Isabelle D.", sign: "♓ Poissons", streak: "203 jours", stars: 5 },
+  { q: "J'ai essayé tout le reste. Rien ne fait ça.", text: "Des dizaines d'applications de bien-être, de méditation, de tarot. Tarot Dinatoire est la seule qui se souvient de moi d'un jour à l'autre. C'est la seule qui apprend.", name: "Marie-Claire B.", sign: "♋ Cancer", streak: "44 jours", stars: 5 },
 ];
 
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
