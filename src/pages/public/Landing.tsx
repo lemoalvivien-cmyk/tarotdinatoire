@@ -887,8 +887,8 @@ const Landing = forwardRef<HTMLDivElement>((_, ref) => {
       <section className="relative py-20 overflow-hidden">
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="text-center mb-12">
-            <Eyebrow>Questions fréquentes</Eyebrow>
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Tout ce que vous voulez savoir</h2>
+            <Eyebrow>Avant de vous lancer</Eyebrow>
+            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Les vraies questions. Les vraies réponses.</h2>
           </SectionReveal>
 
           <div className="max-w-2xl mx-auto rounded-2xl border overflow-hidden" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.6)' }}>
