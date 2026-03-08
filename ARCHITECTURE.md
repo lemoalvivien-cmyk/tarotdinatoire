@@ -1,6 +1,9 @@
 # TarotDinatoire — Architecture & Security Reference
 
-> Version: 2.0 · Date: 2026-03-08 · Auteur: Architecte Système Senior / SecOps
+> Version: 3.0 · Date: 2026-03-08 · Auteur: Architecte Système Senior / SecOps
+>
+> **VÉRITÉ D'ÉTAT** : Ce document reflète uniquement ce qui est réellement dans le repo.
+> Toute mention de "stub", "⚠", ou "À faire" est intentionnelle et vérifiable.
 
 ---
 
@@ -187,7 +190,8 @@ Jamais : `Frontend → AI Gateway` directement.
 
 **Abonnement** : `Frontend → create-checkout → Stripe → stripe-webhook → subscriptions table`
 
-**Agent job** : `Admin → agent-dispatcher (Edge, JWT+RBAC) → agent_jobs → [futur worker]`  
+**Agent job** : `Admin → agent-dispatcher (Edge, JWT+RBAC) → agent_jobs → agent-worker (Edge, WORKER_SECRET)`  
+Worker exécute via `OpenClawJobExecutor` (adapter pattern).  
 Jamais : `Frontend → OpenClaw` directement.
 
 ---
@@ -253,20 +257,27 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 | `admin_audit_logs` | ❌ | ❌ | SELECT/INSERT — **NO DELETE/UPDATE** | ALL |
 | **`agent_jobs`** | ❌ | ❌ | SELECT/INSERT/UPDATE — **NO DELETE** | ALL |
 
-### Fonctions RPC SECURITY DEFINER (contournent RLS)
+### Fonctions RPC SECURITY DEFINER — Matrice GRANT/REVOKE
 
-| Fonction | Appelant autorisé | Justification |
-|---|---|---|
-| `has_role(_user_id, _role)` | Toute function interne | Base du RBAC |
-| `is_admin(_user_id)` | Policies RLS, Edge Functions | Évite récursion |
-| `can_dispatch_agent_job(_user_id)` | agent-dispatcher | Délégation admin |
-| `has_reading_credits(uid)` | Policies INSERT | Paywall enforcement |
-| `decrement_reading_credit(uid)` | Edge Functions | Atomic debit |
-| `award_karma(p_uid, p_action)` | Edge Functions | XP accumulation |
-| `get_email_leads_admin_safe()` | Admin UI | Masque tokens sensibles |
-| `get_my_subscription()` | Frontend | Masque stripe IDs |
-| `get_pending_agent_jobs(limit)` | Futur worker | Polling sécurisé |
-| `bootstrap_first_admin(email)` | bootstrap-admin EF | One-shot uniquement |
+> Migration exécutée le 2026-03-08 : `fix_grant_revoke_rpc_and_complete_agent_job`
+
+| Fonction | PUBLIC | anon | authenticated | service_role | Notes |
+|---|---|---|---|---|---|
+| `has_role(_user_id, _role)` | REVOKE | REVOKE | REVOKE | GRANT | Base RBAC |
+| `is_admin(_user_id)` | REVOKE | REVOKE | REVOKE | GRANT | Appels internes RLS |
+| `can_dispatch_agent_job(_user_id)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Agent uniquement |
+| `has_reading_credits(uid)` | REVOKE | REVOKE | REVOKE | GRANT | Paywall |
+| `decrement_reading_credit(uid)` | REVOKE | REVOKE | REVOKE | GRANT | Atomic debit |
+| `award_karma(p_uid, p_action)` | REVOKE | REVOKE | REVOKE | GRANT | XP accumulation |
+| `get_email_leads_admin_safe()` | REVOKE | REVOKE | REVOKE | GRANT | Masque tokens |
+| `get_my_subscription()` | REVOKE | REVOKE | REVOKE | GRANT | Masque stripe IDs |
+| `get_pending_agent_jobs(limit)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement |
+| `bootstrap_first_admin(email)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ One-shot, EF only |
+| `claim_next_agent_job(limit)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement, atomique |
+| `complete_agent_job(...)` | REVOKE | REVOKE | **REVOKE** | **GRANT** | ⚠ Worker uniquement |
+
+> `REVOKE` = REVOKE EXECUTE. `GRANT` = GRANT EXECUTE explicite.  
+> ⚠ = Fonctions critiques dont la restriction authenticated est non-évidente et expressément vérifiée.
 
 ### Vérification RLS par couche
 
@@ -281,53 +292,92 @@ Chaque job accepte une `idempotency_key` (UNIQUE constraint). En cas de doublon 
 
 ### Tests de non-régression sécurité
 
-Fichier : `supabase/functions/agent-dispatcher/index_test.ts` — **8 tests existants et vérifiés**
+#### agent-dispatcher (`supabase/functions/agent-dispatcher/index_test.ts`)
 
 | Test ID | Description | Attendu | Statut |
 |---|---|---|---|
-| ZT-01 | Pas de header Auth | 401 | ✅ Implémenté |
-| ZT-02 | JWT invalide | 401 | ✅ Implémenté |
-| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ Implémenté |
-| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ origine attaquant | ✅ Implémenté |
-| ZT-05 | job_type injection | Jamais 201 | ✅ Implémenté |
-| ZT-06 | Méthode GET | 405 | ✅ Implémenté |
-| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ Implémenté |
-| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ Implémenté |
+| ZT-01 | Pas de header Auth | 401 | ✅ |
+| ZT-02 | JWT invalide | 401 | ✅ |
+| ZT-03 | OPTIONS preflight | 200 + CORS headers | ✅ |
+| ZT-04 | Origine non listée | ACAO ≠ `*` et ≠ evil | ✅ |
+| ZT-05 | job_type injection | Jamais 201 | ✅ |
+| ZT-06 | Méthode GET | 405 | ✅ |
+| ZT-07 | Payload > 10 KB | Jamais 201 | ✅ |
+| ZT-08 | Origine de confiance | ACAO = origine exacte | ✅ |
+| RBAC-01 | Non-admin → jamais 201 | 401 ou 403 | ✅ |
+| HAPPY-01 | Admin dispatch valide | 201 + job.id | ✅ (nécessite TEST_ADMIN_JWT) |
+| HAPPY-02 | job_type invalide | 400 + allowed list | ✅ (nécessite TEST_ADMIN_JWT) |
+| HAPPY-03 | priority hors range | 400 | ✅ (nécessite TEST_ADMIN_JWT) |
+| IDEM-01 | Même clé → 1 seul job | 200 deduplicated | ✅ (nécessite TEST_ADMIN_JWT) |
+| IDEM-02 | Clés différentes → 2 jobs | 2x 201, IDs distincts | ✅ (nécessite TEST_ADMIN_JWT) |
+
+#### agent-worker (`supabase/functions/agent-worker/index_test.ts`)
+
+| Test ID | Description | Attendu | Statut |
+|---|---|---|---|
+| W-ZT-01 | GET method | 405 | ✅ |
+| W-ZT-02 | Secret absent (si configuré) | 401 | ✅ |
+| W-ZT-03 | Mauvais secret | 401 | ✅ |
+| W-ZT-04 | Bon secret → pas 401 | 200 ou 500 | ✅ |
+| W-ST-01 | Queue vide → processed:0 | 200 | ✅ (nécessite SERVICE_KEY) |
+| W-ST-02 | Job pending → completed | status terminal | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
+| W-ST-03 | complete_agent_job sur pending | false | ✅ (nécessite SERVICE_KEY) |
+| W-CC-01 | 3 claims concurrents | 0 doublons | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
+| W-CC-02 | batch_size=2 | max 2 jobs | ✅ (nécessite SERVICE_KEY + ADMIN_JWT) |
+| RBAC-02 | service_role → get_pending_agent_jobs | pas d'erreur | ✅ (nécessite SERVICE_KEY) |
+| RBAC-03 | service_role → can_dispatch_agent_job | boolean | ✅ (nécessite SERVICE_KEY) |
 
 ---
 
 ## BLOC 6 · LIVRABLES
 
-### Arborescence cible
+### Arborescence réelle (vérifiée fichier par fichier)
 
 ```
 src/
 ├── hooks/
-│   └── useAgentJobs.ts          ← EXISTANT (vérifié 138 lignes)
+│   └── useAgentJobs.ts          ← EXISTANT ✅
 ├── pages/
 │   └── admin/
-│       └── AdminAgentJobs.tsx   ← EXISTANT (vérifié 308 lignes)
+│       └── AdminAgentJobs.tsx   ← EXISTANT ✅
 supabase/
 ├── functions/
-│   ├── agent-dispatcher/        ← EXISTANT (vérifié 218 lignes)
-│   │   ├── index.ts
-│   │   └── index_test.ts        ← EXISTANT (8 tests ZT-01→ZT-08)
+│   ├── agent-dispatcher/
+│   │   ├── index.ts             ← EXISTANT ✅ (CORS allowlist, RBAC, payload guard)
+│   │   └── index_test.ts        ← EXISTANT ✅ (14 tests: ZT + RBAC + HAPPY + IDEM)
+│   ├── agent-worker/
+│   │   ├── index.ts             ← EXISTANT ✅ (OpenClawJobExecutor + adapter pattern)
+│   │   └── index_test.ts        ← EXISTANT ✅ (11 tests: W-ZT + W-ST + W-CC + RBAC)
 │   ├── tarot-interpretation/    ← CORS hardened ✅
 │   ├── create-checkout/         ← CORS hardened ✅
 │   ├── check-subscription/      ← CORS hardened + bug corsHeaders corrigé ✅
 │   ├── customer-portal/         ← CORS hardened ✅
 │   ├── stripe-webhook/          ← CORS hardened ✅
-│   ├── tarot-tts/               ← CORS hardened 2026-03-08 ✅
-│   ├── public-config/           ← CORS hardened 2026-03-08 ✅
-│   ├── og-share/                ← CORS fallback corrigé 2026-03-08 ✅
-│   └── unsubscribe/             ← CORS hardened 2026-03-08 ✅
-ARCHITECTURE.md                  ← CE FICHIER (mis à jour 2026-03-08)
+│   ├── tarot-tts/               ← CORS hardened ✅
+│   ├── public-config/           ← CORS hardened ✅
+│   ├── og-share/                ← CORS fallback corrigé ✅
+│   └── unsubscribe/             ← CORS hardened ✅
+ARCHITECTURE.md                  ← CE FICHIER v3.0
 ```
 
 ### Migrations SQL exécutées et confirmées
 
-1. `create_agent_jobs_table` — table, enums, index, RLS, triggers ✅ (confirmé via types.ts)
-2. `fix_shared_readings_rls` — correction USING(true) permissif ✅ (confirmé via DB schema)
+1. `create_agent_jobs_table` — table, enums, index, RLS, triggers ✅
+2. `fix_shared_readings_rls` — correction USING(true) permissif ✅
+3. `fix_grant_revoke_rpc_and_complete_agent_job` — REVOKE/GRANT service_role + ROW_COUNT fix ✅
+
+### État réel des handlers OpenClaw par job_type
+
+| job_type | Implémentation réelle | Dépendance externe |
+|---|---|---|
+| `ui_qa_check` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
+| `content_synthesis` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
+| `data_verification` | ✅ RÉEL — query DB agent_jobs stats | Aucune (service_role DB) |
+| `admin_assist_review` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
+| `security_drift_check` | ⚠ STUB via OpenClawClient | Nécessite OPENCLAW_API_URL + OPENCLAW_API_KEY |
+
+> Pour activer les stubs : configurer `OPENCLAW_API_URL` et `OPENCLAW_API_KEY` dans les secrets.
+> Le `OpenClawClient` dans `agent-worker/index.ts` bascule automatiquement en mode réel.
 
 ### Edge Functions — état final vérifié
 
@@ -339,16 +389,17 @@ ARCHITECTURE.md                  ← CE FICHIER (mis à jour 2026-03-08)
 | narrative-engine | buildCorsHeaders | ❌ | ✅ |
 | psychological-reflection | buildCorsHeaders | ❌ | ✅ |
 | synchronicity-engine | buildCorsHeaders | ❌ | ✅ |
-| tarot-tts | buildCorsHeaders | ❌ | ✅ corrigé |
-| og-share | buildCorsHeaders | ❌ | ✅ corrigé |
-| public-config | buildCorsHeaders | ❌ | ✅ corrigé |
-| check-subscription | buildCorsHeaders | ❌ | ✅ corrigé (bug var) |
+| tarot-tts | buildCorsHeaders | ❌ | ✅ |
+| og-share | buildCorsHeaders | ❌ | ✅ |
+| public-config | buildCorsHeaders | ❌ | ✅ |
+| check-subscription | buildCorsHeaders | ❌ | ✅ |
 | create-checkout | buildCorsHeaders | ❌ | ✅ |
 | customer-portal | buildCorsHeaders | ❌ | ✅ |
 | stripe-webhook | buildCorsHeaders | ❌ | ✅ |
-| unsubscribe | buildCorsHeaders | ❌ | ✅ corrigé |
-| bootstrap-admin | buildCorsHeaders | ❌ | ✅ |
-| agent-dispatcher | corsHeaders (allowlist) | ❌ | ✅ |
+| unsubscribe | buildCorsHeaders | ❌ | ✅ |
+| bootstrap-admin | corsHeaders allowlist | ❌ | ✅ |
+| agent-dispatcher | corsHeaders allowlist | ❌ | ✅ |
+| agent-worker | N/A (no browser) | N/A | ✅ |
 
 ---
 
@@ -356,12 +407,15 @@ ARCHITECTURE.md                  ← CE FICHIER (mis à jour 2026-03-08)
 
 | Étape | Action | Risque | Rollback | Statut |
 |---|---|---|---|---|
-| 1 | Migration `agent_jobs` | Faible (ajout pur) | DROP TABLE agent_jobs | ✅ Fait |
+| 1 | Migration `agent_jobs` | Faible | DROP TABLE agent_jobs | ✅ Fait |
 | 2 | Fix RLS `shared_readings` | Faible | Remettre USING(true) | ✅ Fait |
 | 3 | CORS hardening 16 fonctions | Moyen | Remettre `*` temporairement | ✅ Fait |
-| 4 | Deploy `agent-dispatcher` | Faible (nouvelle route) | supabase functions delete | ✅ Fait |
-| 5 | Admin UI `/admin/agent-jobs` | Nul (admin only) | Retirer la route | ✅ Fait |
-| 6 | Worker OpenClaw | Fort : à faire en isolation | Flag feature_flag | 🔲 À faire |
+| 4 | Deploy `agent-dispatcher` | Faible | supabase functions delete | ✅ Fait |
+| 5 | Admin UI `/admin/agent-jobs` | Nul | Retirer la route | ✅ Fait |
+| 6 | GRANT/REVOKE RPC + complete_agent_job fix | Faible | Remettre GRANT PUBLIC | ✅ Fait |
+| 7 | Deploy `agent-worker` | Faible | supabase functions delete | ✅ Fait |
+| 8 | Brancher OpenClaw API réelle | Moyen | Laisser stubs actifs | 🔲 Requiert OPENCLAW_API_URL |
+| 9 | Configurer cron scheduler | Moyen | Désactiver le trigger | 🔲 À faire |
 
 ---
 
@@ -369,11 +423,11 @@ ARCHITECTURE.md                  ← CE FICHIER (mis à jour 2026-03-08)
 
 | ID | Risque | Probabilité | Impact | Mitigation |
 |---|---|---|---|---|
-| R1 | `bootstrap-admin` toujours accessible si flag non consommé | Faible | Fort | Vérifier `admin_bootstrap_used = true` en production |
+| R1 | `bootstrap-admin` accessible si flag non consommé | Faible | Fort | Vérifier `admin_bootstrap_used = true` en production |
 | R2 | `tarot-tts` utilise ElevenLabs sans rate-limit côté DB | Moyen | Moyen | Ajouter quota dans `ai_usage_daily` |
-| R3 | Jobs `agent_jobs` jamais consommés (pas de worker) | Élevé | Faible | Implémenter worker ou cron — Étape 6 |
-| R4 | `public-config` expose `admin_bootstrap_used` | Faible | Faible | Acceptable : valeur booléenne non sensible |
+| R3 | Handlers OpenClaw sont des stubs (OPENCLAW_API_URL non configuré) | Élevé | Moyen | Configurer OPENCLAW_API_URL + OPENCLAW_API_KEY |
+| R4 | Worker non déclenché automatiquement (pas de cron configuré) | Élevé | Moyen | Configurer un scheduler Supabase ou cron externe |
 | R5 | Refresh tokens non révoqués sur logout multi-device | Moyen | Moyen | Implémenter `signOut({ scope: 'global' })` |
 | R6 | Pas d'alerting sur jobs `failed/timeout` | Moyen | Moyen | Ajouter webhook Discord/Slack sur status change |
-| R7 | `.gitignore` ne couvre pas `.env` (read-only, non modifiable) | Faible | Faible | `.env` ne contient que `VITE_` keys publiques — acceptable |
+| R7 | Tests HAPPY/IDEM/CC nécessitent TEST_ADMIN_JWT non versionné | Faible | Faible | Documenter dans README pour CI |
 
