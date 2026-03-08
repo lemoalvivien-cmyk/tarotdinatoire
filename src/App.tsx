@@ -64,6 +64,7 @@ const AdminLeads          = lazy(() => import("./pages/admin/AdminLeads"));
 const AdminStats          = lazy(() => import("./pages/admin/AdminStats"));
 const AdminProdChecklist  = lazy(() => import("./pages/admin/AdminProdChecklist"));
 const AdminImportDeck     = lazy(() => import("./pages/admin/AdminImportDeck"));
+const AdminAgentJobs      = lazy(() => import("./pages/admin/AdminAgentJobs"));
 
 // ─── QueryClient ─────────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
