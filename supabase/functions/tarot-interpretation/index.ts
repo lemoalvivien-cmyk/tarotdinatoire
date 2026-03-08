@@ -124,8 +124,11 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number; res
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("Origin");
+  const reqCorsHeaders = buildCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: reqCorsHeaders });
   }
 
   try {
@@ -134,7 +137,6 @@ serve(async (req) => {
     const rateLimit = checkRateLimit(rateLimitKey);
     
     if (!rateLimit.allowed) {
-      console.warn(`[RateLimit] Blocked IP: ${rateLimitKey}`);
       return new Response(
         JSON.stringify({ 
           error: "Trop de requêtes",
@@ -144,7 +146,7 @@ serve(async (req) => {
         { 
           status: 429, 
           headers: { 
-            ...corsHeaders, 
+            ...reqCorsHeaders, 
             "Content-Type": "application/json",
             "Retry-After": String(Math.ceil(rateLimit.resetIn / 1000))
           } 
