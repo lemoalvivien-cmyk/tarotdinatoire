@@ -761,11 +761,9 @@ export default function Landing() {
                 <BenefitRow icon={Heart} title="Il se souvient de tout" desc="Votre profil psychologique évolue à chaque session. Il est unique. Il est vôtre." />
                 <BenefitRow icon={BookOpen} title="Il s'affine avec le temps" desc="Chaque journal lui donne plus de précision. La seule app qui s'améliore en vous connaissant mieux." />
               </div>
-              <Link to={ctaHref}>
-                <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />}>
+              <MysticButton size="md" rightIcon={<ArrowRight className="h-4 w-4" />} onClick={() => navigate(ctaHref)}>
                   Commencer maintenant
                 </MysticButton>
-              </Link>
             </motion.div>
           </div>
         </div>
