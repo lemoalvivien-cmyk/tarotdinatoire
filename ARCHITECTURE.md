@@ -303,46 +303,65 @@ Fichier : `supabase/functions/agent-dispatcher/index_test.ts` — **8 tests exis
 ```
 src/
 ├── hooks/
-│   └── useAgentJobs.ts          ← NEW (AUTOMATION)
+│   └── useAgentJobs.ts          ← EXISTANT (vérifié 138 lignes)
 ├── pages/
 │   └── admin/
-│       └── AdminAgentJobs.tsx   ← NEW
+│       └── AdminAgentJobs.tsx   ← EXISTANT (vérifié 308 lignes)
 supabase/
 ├── functions/
-│   ├── agent-dispatcher/        ← NEW (AUTOMATION)
+│   ├── agent-dispatcher/        ← EXISTANT (vérifié 218 lignes)
 │   │   ├── index.ts
-│   │   └── index_test.ts        ← NEW (security tests)
-│   ├── tarot-interpretation/    ← CORS hardened
-│   ├── create-checkout/         ← CORS hardened
-│   ├── check-subscription/      ← CORS hardened
-│   ├── customer-portal/         ← CORS hardened
-│   └── stripe-webhook/          ← CORS hardened
-ARCHITECTURE.md                  ← NEW (ce fichier)
+│   │   └── index_test.ts        ← EXISTANT (8 tests ZT-01→ZT-08)
+│   ├── tarot-interpretation/    ← CORS hardened ✅
+│   ├── create-checkout/         ← CORS hardened ✅
+│   ├── check-subscription/      ← CORS hardened + bug corsHeaders corrigé ✅
+│   ├── customer-portal/         ← CORS hardened ✅
+│   ├── stripe-webhook/          ← CORS hardened ✅
+│   ├── tarot-tts/               ← CORS hardened 2026-03-08 ✅
+│   ├── public-config/           ← CORS hardened 2026-03-08 ✅
+│   ├── og-share/                ← CORS fallback corrigé 2026-03-08 ✅
+│   └── unsubscribe/             ← CORS hardened 2026-03-08 ✅
+ARCHITECTURE.md                  ← CE FICHIER (mis à jour 2026-03-08)
 ```
 
-### Migrations SQL exécutées
+### Migrations SQL exécutées et confirmées
 
-1. `create_agent_jobs_table` — table, enums, index, RLS, triggers
-2. `fix_shared_readings_rls` — correction USING(true) permissif
+1. `create_agent_jobs_table` — table, enums, index, RLS, triggers ✅ (confirmé via types.ts)
+2. `fix_shared_readings_rls` — correction USING(true) permissif ✅ (confirmé via DB schema)
 
-### Edge Functions à garder / supprimer
+### Edge Functions — état final vérifié
 
-**Garder** : toutes les fonctions listées en 1.2  
-**Supprimer** : aucune à ce stade (pas de doublon identifié)  
-**Ajouter** : `agent-dispatcher` ✅ déployé
+| Fonction | CORS | Wildcard | Statut |
+|---|---|---|---|
+| tarot-interpretation | buildCorsHeaders | ❌ | ✅ |
+| daily-draw | buildCorsHeaders | ❌ | ✅ |
+| card-insight | buildCorsHeaders | ❌ | ✅ |
+| narrative-engine | buildCorsHeaders | ❌ | ✅ |
+| psychological-reflection | buildCorsHeaders | ❌ | ✅ |
+| synchronicity-engine | buildCorsHeaders | ❌ | ✅ |
+| tarot-tts | buildCorsHeaders | ❌ | ✅ corrigé |
+| og-share | buildCorsHeaders | ❌ | ✅ corrigé |
+| public-config | buildCorsHeaders | ❌ | ✅ corrigé |
+| check-subscription | buildCorsHeaders | ❌ | ✅ corrigé (bug var) |
+| create-checkout | buildCorsHeaders | ❌ | ✅ |
+| customer-portal | buildCorsHeaders | ❌ | ✅ |
+| stripe-webhook | buildCorsHeaders | ❌ | ✅ |
+| unsubscribe | buildCorsHeaders | ❌ | ✅ corrigé |
+| bootstrap-admin | buildCorsHeaders | ❌ | ✅ |
+| agent-dispatcher | corsHeaders (allowlist) | ❌ | ✅ |
 
 ---
 
 ## Plan de déploiement
 
-| Étape | Action | Risque | Rollback |
-|---|---|---|---|
-| 1 | ✅ Migration `agent_jobs` | Faible (ajout pur) | DROP TABLE agent_jobs |
-| 2 | ✅ Fix RLS `shared_readings` | Faible | Remettre USING(true) |
-| 3 | ✅ CORS hardening 5 fonctions | Moyen : peut casser appels cross-origin légitimes | Remettre `*` temporairement |
-| 4 | ✅ Deploy `agent-dispatcher` | Faible (nouvelle route) | supabase functions delete |
-| 5 | ✅ Admin UI `/admin/agent-jobs` | Nul (admin only) | Retirer la route |
-| 6 | 🔲 Worker OpenClaw | Fort : à faire en isolation | Flag feature_flag |
+| Étape | Action | Risque | Rollback | Statut |
+|---|---|---|---|---|
+| 1 | Migration `agent_jobs` | Faible (ajout pur) | DROP TABLE agent_jobs | ✅ Fait |
+| 2 | Fix RLS `shared_readings` | Faible | Remettre USING(true) | ✅ Fait |
+| 3 | CORS hardening 16 fonctions | Moyen | Remettre `*` temporairement | ✅ Fait |
+| 4 | Deploy `agent-dispatcher` | Faible (nouvelle route) | supabase functions delete | ✅ Fait |
+| 5 | Admin UI `/admin/agent-jobs` | Nul (admin only) | Retirer la route | ✅ Fait |
+| 6 | Worker OpenClaw | Fort : à faire en isolation | Flag feature_flag | 🔲 À faire |
 
 ---
 
@@ -352,7 +371,9 @@ ARCHITECTURE.md                  ← NEW (ce fichier)
 |---|---|---|---|---|
 | R1 | `bootstrap-admin` toujours accessible si flag non consommé | Faible | Fort | Vérifier `admin_bootstrap_used = true` en production |
 | R2 | `tarot-tts` utilise ElevenLabs sans rate-limit côté DB | Moyen | Moyen | Ajouter quota dans `ai_usage_daily` |
-| R3 | Jobs `agent_jobs` jamais consommés (pas de worker) | Élevé | Faible | Implémenter worker ou cron dans Bloc 6 étape 6 |
-| R4 | `public-config` expose `admin_bootstrap_used` | Faible | Faible | Acceptable : valeur booléenne publique |
+| R3 | Jobs `agent_jobs` jamais consommés (pas de worker) | Élevé | Faible | Implémenter worker ou cron — Étape 6 |
+| R4 | `public-config` expose `admin_bootstrap_used` | Faible | Faible | Acceptable : valeur booléenne non sensible |
 | R5 | Refresh tokens non révoqués sur logout multi-device | Moyen | Moyen | Implémenter `signOut({ scope: 'global' })` |
 | R6 | Pas d'alerting sur jobs `failed/timeout` | Moyen | Moyen | Ajouter webhook Discord/Slack sur status change |
+| R7 | `.gitignore` ne couvre pas `.env` (read-only, non modifiable) | Faible | Faible | `.env` ne contient que `VITE_` keys publiques — acceptable |
+
