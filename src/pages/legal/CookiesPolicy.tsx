@@ -119,7 +119,7 @@ export default function CookiesPolicy() {
                         personnalisés. Ils peuvent être déposés par des partenaires publicitaires.
                       </p>
                       <p className="text-sm text-muted-foreground italic">
-                        Note : Actuellement, Tarot Divinatoire n'utilise pas de cookies marketing. 
+                        Note : Actuellement, Tarot Dinatoire n'utilise pas de cookies marketing. 
                         Cette catégorie est prévue pour de futures fonctionnalités.
                       </p>
                     </div>

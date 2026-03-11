@@ -186,7 +186,7 @@ export default function TarotCardMeaning() {
     );
   }
 
-  const pageTitle = `${card!.nom_fr} - Signification Tarot | Tarot Divinatoire`;
+  const pageTitle = `${card!.nom_fr} - Signification Tarot | Tarot Dinatoire`;
   const pageDesc = card!.meaning_upright_fr
     ? `${card!.nom_fr} : ${card!.meaning_upright_fr.slice(0, 150)}...`
     : `Decouvrez la signification de la carte ${card!.nom_fr} du tarot, ses interpretations droite et inversee, et la guidance spirituelle du jour.`;
