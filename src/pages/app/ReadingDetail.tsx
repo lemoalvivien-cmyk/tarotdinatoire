@@ -237,7 +237,10 @@ export default function ReadingDetail() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground font-medium animate-pulse">Chargement du tirage…</p>
+          </div>
         </div>
       </Layout>
     );
