@@ -794,7 +794,7 @@ export default function Landing() {
             <h2 className="font-serif text-3xl md:text-4xl font-semibold text-white">Pas des avis. Des expériences.</h2>
           </SectionReveal>
 
-          <div className="max-w-xl mx-auto relative min-h-[260px]" aria-live="polite" aria-atomic="true">
+          <div className="max-w-xl mx-auto relative min-h-[320px] sm:min-h-[280px]" aria-live="polite" aria-atomic="true">
             <AnimatePresence mode="wait">
               <motion.div
                 key={testimonialIndex}
