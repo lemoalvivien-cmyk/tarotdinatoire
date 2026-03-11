@@ -61,17 +61,21 @@ function StarfieldCanvas() {
 }
 
 // ─── Floating Orb ─────────────────────────────────────────────────────────────
-function Orb({ size, color, x, y, delay = 0 }: { size: number; color: string; x: string; y: string; delay?: number }) {
-  return (
-    <motion.div
-      className="absolute rounded-full pointer-events-none"
-      aria-hidden="true"
-      style={{ width: size, height: size, left: x, top: y, background: color, filter: 'blur(80px)' }}
-      animate={{ y: [-20, 20, -20], scale: [1, 1.06, 1], opacity: [0.2, 0.38, 0.2] }}
-      transition={{ duration: 10 + delay, repeat: Infinity, ease: 'easeInOut', delay }}
-    />
-  );
-}
+const Orb = forwardRef<HTMLDivElement, { size: number; color: string; x: string; y: string; delay?: number }>(
+  function Orb({ size, color, x, y, delay = 0 }, ref) {
+    return (
+      <motion.div
+        ref={ref}
+        className="absolute rounded-full pointer-events-none"
+        aria-hidden="true"
+        style={{ width: size, height: size, left: x, top: y, background: color, filter: 'blur(80px)' }}
+        animate={{ y: [-20, 20, -20], scale: [1, 1.06, 1], opacity: [0.2, 0.38, 0.2] }}
+        transition={{ duration: 10 + delay, repeat: Infinity, ease: 'easeInOut', delay }}
+      />
+    );
+  }
+);
+Orb.displayName = 'Orb';
 
 // ─── Horizontal gold divider ──────────────────────────────────────────────────
 function GoldDivider() {
@@ -245,40 +249,43 @@ const TESTIMONIALS = [
 ];
 
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
-function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
-  const [open, setOpen] = useState(false);
-  const id = `faq-${index}`;
-  return (
-    <div className="border-b last:border-0" style={{ borderColor: surfaceBorder }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between py-5 text-left group"
-        aria-expanded={open}
-        aria-controls={id}
-        id={`${id}-btn`}
-      >
-        <span className="text-white/85 text-sm font-medium group-hover:text-white transition-colors leading-snug pr-4">{q}</span>
-        <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors" aria-hidden="true">
-          {open ? <Minus className="h-3 w-3" style={{ color: gold }} /> : <Plus className="h-3 w-3 text-white/50" />}
-        </span>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            id={id}
-            role="region"
-            aria-labelledby={`${id}-btn`}
-            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
-          >
-            <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+const FAQItem = forwardRef<HTMLDivElement, { q: string; a: string; index: number }>(
+  function FAQItem({ q, a, index }, ref) {
+    const [open, setOpen] = useState(false);
+    const id = `faq-${index}`;
+    return (
+      <div ref={ref} className="border-b last:border-0" style={{ borderColor: surfaceBorder }}>
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="w-full flex items-center justify-between py-5 text-left group"
+          aria-expanded={open}
+          aria-controls={id}
+          id={`${id}-btn`}
+        >
+          <span className="text-white/85 text-sm font-medium group-hover:text-white transition-colors leading-snug pr-4">{q}</span>
+          <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors" aria-hidden="true">
+            {open ? <Minus className="h-3 w-3" style={{ color: gold }} /> : <Plus className="h-3 w-3 text-white/50" />}
+          </span>
+        </button>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              id={id}
+              role="region"
+              aria-labelledby={`${id}-btn`}
+              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+);
+FAQItem.displayName = 'FAQItem';
 
 // ─── Sticky Mobile CTA ────────────────────────────────────────────────────────
 function StickyMobileCTA({ href, label }: { href: string; label: string }) {
@@ -458,7 +465,7 @@ export default function Landing() {
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 1 — HERO
       ══════════════════════════════════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire" style={{ position: 'relative' }}>
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16" aria-label="Présentation de Tarot Dinatoire">
         <StarfieldCanvas />
         <Orb size={600} color="radial-gradient(circle, hsl(265 55% 40% / 0.35), transparent)" x="0%" y="-5%" delay={0} />
         <Orb size={400} color="radial-gradient(circle, hsl(42 70% 45% / 0.15), transparent)" x="60%" y="55%" delay={3} />
