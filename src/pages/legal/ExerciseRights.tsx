@@ -7,7 +7,7 @@ export default function ExerciseRights() {
   return (
     <Layout>
       <SEOHead
-        title="Exercer mes droits RGPD | Tarot Divinatoire"
+        title="Exercer mes droits RGPD | Tarot Dinatoire"
         description="Exercez vos droits RGPD : accès, rectification, effacement, portabilité, opposition. Délai de réponse : 1 mois."
         noindex={true}
       />
