@@ -158,7 +158,7 @@ export default function Terms() {
                   </h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p className="font-medium text-foreground">
-                      Les interprétations fournies par Tarot Divinatoire ne constituent EN AUCUN CAS :
+                      Les interprétations fournies par Tarot Dinatoire ne constituent EN AUCUN CAS :
                     </p>
                     <ul className="list-disc list-inside space-y-2">
                       <li><strong>Des conseils médicaux</strong> — Consultez un professionnel de santé</li>
