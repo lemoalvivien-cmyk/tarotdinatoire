@@ -33,7 +33,7 @@ export default function Disclaimer() {
               <div className="space-y-2">
                 <h2 className="font-serif text-xl font-semibold">Ce que nous proposons</h2>
                 <p className="text-muted-foreground">
-                  Le Tarot Divinatoire est un <strong>outil d'introspection et de réflexion personnelle</strong>. 
+                  Le Tarot Dinatoire est un <strong>outil d'introspection et de réflexion personnelle</strong>. 
                   Nos tirages et interprétations sont conçus pour vous aider à explorer vos pensées, 
                   émotions et situations sous un angle différent. C'est une invitation à la méditation 
                   et à la compréhension de soi.
