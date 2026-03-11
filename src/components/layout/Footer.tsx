@@ -10,7 +10,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-serif text-lg font-semibold">Tarot Divinatoire</span>
+              <span className="font-serif text-lg font-semibold">Tarot Dinatoire</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Fait et développé avec le savoir-faire d'une trentaine de Tarologues professionnels.
