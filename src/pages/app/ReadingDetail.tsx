@@ -367,7 +367,7 @@ export default function ReadingDetail() {
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-foreground">
                 Notes personnelles
-              </label>
+              </p>
               {isSavingNotes && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Save className="h-3 w-3 animate-pulse" />
