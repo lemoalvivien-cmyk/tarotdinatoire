@@ -11,8 +11,8 @@ export default function CookiesPolicy() {
   return (
     <Layout>
       <SEOHead
-        title="Politique des Cookies | Tarot Divinatoire"
-        description="Politique des cookies de Tarot Divinatoire. Comprendre quels cookies nous utilisons, pourquoi, et comment gérer vos préférences."
+        title="Politique des Cookies | Tarot Dinatoire"
+        description="Politique des cookies de Tarot Dinatoire. Comprendre quels cookies nous utilisons, pourquoi, et comment gérer vos préférences."
         noindex={true}
       />
       <div className="container mx-auto px-4 py-16">
@@ -119,7 +119,7 @@ export default function CookiesPolicy() {
                         personnalisés. Ils peuvent être déposés par des partenaires publicitaires.
                       </p>
                       <p className="text-sm text-muted-foreground italic">
-                        Note : Actuellement, Tarot Divinatoire n'utilise pas de cookies marketing. 
+                        Note : Actuellement, Tarot Dinatoire n'utilise pas de cookies marketing. 
                         Cette catégorie est prévue pour de futures fonctionnalités.
                       </p>
                     </div>

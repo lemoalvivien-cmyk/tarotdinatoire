@@ -7,7 +7,7 @@ export default function Privacy() {
   return (
     <Layout>
       <SEOHead
-        title="Politique de Confidentialité | Tarot Divinatoire"
+        title="Politique de Confidentialité | Tarot Dinatoire"
         description="Politique de confidentialité et protection des données personnelles. RGPD compliant. Vos droits : accès, rectification, effacement, portabilité."
         noindex={true}
       />
@@ -31,7 +31,7 @@ export default function Privacy() {
             <section className="p-6 rounded-xl bg-card border border-border/50">
               <h2 className="font-serif text-xl font-semibold mb-4">Engagement de protection</h2>
               <p className="text-muted-foreground">
-                Tarot Divinatoire s'engage à protéger votre vie privée et vos données personnelles 
+                Tarot Dinatoire s'engage à protéger votre vie privée et vos données personnelles 
                 conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi 
                 Informatique et Libertés. Cette politique vous informe de la manière dont nous 
                 collectons, utilisons et protégeons vos informations lors de votre utilisation de 

@@ -8,8 +8,8 @@ export default function Imprint() {
   return (
     <Layout>
       <SEOHead
-        title="Mentions Légales | Tarot Divinatoire"
-        description="Mentions légales du service Tarot Divinatoire. Éditeur, hébergement, propriété intellectuelle et conditions d'utilisation."
+        title="Mentions Légales | Tarot Dinatoire"
+        description="Mentions légales du service Tarot Dinatoire. Éditeur, hébergement, propriété intellectuelle et conditions d'utilisation."
         noindex={true}
       />
       <div className="container mx-auto px-4 py-16">

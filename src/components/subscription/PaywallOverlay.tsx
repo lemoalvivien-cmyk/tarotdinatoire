@@ -37,7 +37,7 @@ export function PaywallOverlay({ onClose, variant = 'modal', mandatory = true }:
         </div>
         <CardTitle className="font-serif text-2xl">Passez à Premium</CardTitle>
         <CardDescription className="text-base">
-          Débloquez l'accès complet au Tarot Divinatoire
+          Débloquez l'accès complet à Tarot Dinatoire
         </CardDescription>
       </CardHeader>
 

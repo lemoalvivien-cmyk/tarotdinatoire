@@ -7,8 +7,8 @@ export default function Terms() {
   return (
     <Layout>
       <SEOHead
-        title="Conditions Générales de Vente (CGV) | Tarot Divinatoire"
-        description="CGV du service Tarot Divinatoire. Abonnement mensuel à 3,90€ TTC. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
+        title="Conditions Générales de Vente (CGV) | Tarot Dinatoire"
+        description="CGV du service Tarot Dinatoire. Abonnement mensuel à 3,90€ TTC. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
         noindex={true}
       />
       <div className="container mx-auto px-4 py-16">
@@ -120,8 +120,8 @@ export default function Terms() {
             <section className="p-6 rounded-xl bg-card border border-border/50">
               <h2 className="font-serif text-xl font-semibold mb-4">4. Objet du service</h2>
               <p className="text-muted-foreground">
-                Les présentes Conditions Générales de Vente (CGV) régissent l'abonnement au 
-                service de Tarot Divinatoire en ligne proposé par VLM Consulting. 
+                 Les présentes Conditions Générales de Vente (CGV) régissent l'abonnement au 
+                service de Tarot Dinatoire en ligne proposé par VLM Consulting. 
                 L'inscription et l'utilisation du service impliquent l'acceptation pleine 
                 et entière de ces CGV.
               </p>
@@ -132,7 +132,7 @@ export default function Terms() {
               <h2 className="font-serif text-xl font-semibold mb-4">5. Description du service</h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  Tarot Divinatoire est une plateforme de tirage de tarot assistée par 
+                  Tarot Dinatoire est une plateforme de tirage de tarot assistée par 
                   intelligence artificielle, conçue exclusivement pour l'introspection 
                   personnelle et la guidance spirituelle.
                 </p>
@@ -158,7 +158,7 @@ export default function Terms() {
                   </h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p className="font-medium text-foreground">
-                      Les interprétations fournies par Tarot Divinatoire ne constituent EN AUCUN CAS :
+                      Les interprétations fournies par Tarot Dinatoire ne constituent EN AUCUN CAS :
                     </p>
                     <ul className="list-disc list-inside space-y-2">
                       <li><strong>Des conseils médicaux</strong> — Consultez un professionnel de santé</li>
@@ -169,7 +169,7 @@ export default function Terms() {
                     </ul>
                     <p className="text-sm font-medium">
                       L'utilisateur reste seul responsable des décisions qu'il prend dans sa vie. 
-                      Tarot Divinatoire décline toute responsabilité quant aux conséquences de 
+                      Tarot Dinatoire décline toute responsabilité quant aux conséquences de 
                       l'interprétation des tirages.
                     </p>
                   </div>

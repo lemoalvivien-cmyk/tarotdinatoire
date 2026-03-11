@@ -65,7 +65,7 @@ export default function Spreads() {
   return (
     <Layout>
       <SEOHead
-        title="Tirages de Tarot | Tarot Divinatoire"
+        title="Tirages de Tarot | Tarot Dinatoire"
         description="Découvrez notre catalogue de tirages de tarot : Marseille, Amour, Oui-Non, Persan, Lenormand, Anges, Belline. Interprétations personnalisées par nos tarologues."
       />
 

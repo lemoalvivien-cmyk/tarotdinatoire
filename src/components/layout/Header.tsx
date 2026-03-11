@@ -98,7 +98,7 @@ export function Header() {
           <Link to={user ? '/app' : '/'} className="flex items-center gap-2 group shrink-0">
             <Sparkles className="h-5 w-5 text-primary transition-transform group-hover:scale-110" />
             <span className="font-serif text-lg sm:text-xl font-semibold text-foreground">
-              Tarot Divinatoire
+              Tarot Dinatoire
             </span>
           </Link>
 

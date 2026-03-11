@@ -28,10 +28,10 @@ function buildJsonLd(card: TarotCard, slug: string) {
     headline: `${card.nom_fr} - Signification & Interpretation Tarot`,
     description: card.meaning_upright_fr ?? `Decouvrez la signification de la carte ${card.nom_fr} du tarot.`,
     url: `${SITE_URL}/tarot/${slug}`,
-    author: { '@type': 'Organization', name: 'Tarot Divinatoire' },
+    author: { '@type': 'Organization', name: 'Tarot Dinatoire' },
     publisher: {
       '@type': 'Organization',
-      name: 'Tarot Divinatoire',
+      name: 'Tarot Dinatoire',
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/icons/icon-192x192.png` },
     },
     image: card.image_url ?? `${SITE_URL}/og-image.png`,
@@ -186,7 +186,7 @@ export default function TarotCardMeaning() {
     );
   }
 
-  const pageTitle = `${card!.nom_fr} - Signification Tarot | Tarot Divinatoire`;
+  const pageTitle = `${card!.nom_fr} - Signification Tarot | Tarot Dinatoire`;
   const pageDesc = card!.meaning_upright_fr
     ? `${card!.nom_fr} : ${card!.meaning_upright_fr.slice(0, 150)}...`
     : `Decouvrez la signification de la carte ${card!.nom_fr} du tarot, ses interpretations droite et inversee, et la guidance spirituelle du jour.`;

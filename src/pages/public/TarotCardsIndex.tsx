@@ -71,7 +71,7 @@ export default function TarotCardsIndex() {
     name: 'Signification des 78 Cartes de Tarot',
     description: 'Guide complet des 78 cartes de tarot : Arcanes Majeures et Mineures, significations droite et inversee, interpretations spirituelles.',
     url: `${SITE_URL}/tarot`,
-    publisher: { '@type': 'Organization', name: 'Tarot Divinatoire' },
+    publisher: { '@type': 'Organization', name: 'Tarot Dinatoire' },
     numberOfItems: cards?.length ?? 78,
   };
 

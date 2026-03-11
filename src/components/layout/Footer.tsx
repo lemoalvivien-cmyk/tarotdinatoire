@@ -10,7 +10,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-serif text-lg font-semibold">Tarot Divinatoire</span>
+              <span className="font-serif text-lg font-semibold">Tarot Dinatoire</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Fait et développé avec le savoir-faire d'une trentaine de Tarologues professionnels.
@@ -85,7 +85,7 @@ export function Footer() {
         <div className="mt-8 pt-6 border-t border-border/50">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} VLM Consulting · Tarot Divinatoire. Tous droits réservés.
+              © {new Date().getFullYear()} VLM Consulting · Tarot Dinatoire. Tous droits réservés.
             </p>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Shield className="h-3 w-3 text-primary" />
