@@ -120,8 +120,8 @@ export default function Terms() {
             <section className="p-6 rounded-xl bg-card border border-border/50">
               <h2 className="font-serif text-xl font-semibold mb-4">4. Objet du service</h2>
               <p className="text-muted-foreground">
-                Les présentes Conditions Générales de Vente (CGV) régissent l'abonnement au 
-                service de Tarot Divinatoire en ligne proposé par VLM Consulting. 
+                 Les présentes Conditions Générales de Vente (CGV) régissent l'abonnement au 
+                service de Tarot Dinatoire en ligne proposé par VLM Consulting. 
                 L'inscription et l'utilisation du service impliquent l'acceptation pleine 
                 et entière de ces CGV.
               </p>
