@@ -85,26 +85,31 @@ function GoldDivider() {
 }
 
 // ─── Section wrapper with fade-in ────────────────────────────────────────────
-const SectionReveal = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 36 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '-80px' }}
-    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-    className={className}
-  >
-    {children}
-  </motion.div>
+const SectionReveal = forwardRef<HTMLDivElement, { children: React.ReactNode; className?: string }>(
+  ({ children, className = '' }, ref) => (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 36 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
 );
+SectionReveal.displayName = 'SectionReveal';
 
 // ─── Eyebrow label ────────────────────────────────────────────────────────────
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-4" style={{ color: gold }}>
+const Eyebrow = forwardRef<HTMLParagraphElement, { children: React.ReactNode }>(
+  ({ children }, ref) => (
+    <p ref={ref} className="text-xs font-semibold tracking-[0.2em] uppercase mb-4" style={{ color: gold }}>
       {children}
     </p>
-  );
-}
+  )
+);
+Eyebrow.displayName = 'Eyebrow';
 
 // ─── Card Preview (hero) ──────────────────────────────────────────────────────
 function OracleCardPreview() {
