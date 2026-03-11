@@ -324,6 +324,10 @@ export default function History() {
                     key={`${item.type}-${item.id}`}
                     className="history-item group"
                     onClick={() => handleItemClick(item)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleItemClick(item)}
+                    aria-label={`Voir le tirage du ${new Date(item.created_at).toLocaleDateString('fr-FR')}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
