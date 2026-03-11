@@ -176,10 +176,11 @@ export function Header() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-foreground rounded-md hover:bg-muted/50 transition-colors"
+            className="md:hidden p-2 text-foreground rounded-md hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             onClick={() => setMobileMenuOpen(v => !v)}
-            aria-label="Menu"
+            aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -187,7 +188,7 @@ export function Header() {
 
         {/* Mobile Menu — slide down */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50 animate-fade-in-up">
+          <div id="mobile-menu" className="md:hidden py-4 border-t border-border/50 animate-fade-in-up">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 self-start">
                 <Sparkles className="h-3 w-3 text-primary" />
