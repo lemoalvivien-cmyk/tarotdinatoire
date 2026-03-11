@@ -169,7 +169,7 @@ export default function Terms() {
                     </ul>
                     <p className="text-sm font-medium">
                       L'utilisateur reste seul responsable des décisions qu'il prend dans sa vie. 
-                      Tarot Divinatoire décline toute responsabilité quant aux conséquences de 
+                      Tarot Dinatoire décline toute responsabilité quant aux conséquences de 
                       l'interprétation des tirages.
                     </p>
                   </div>
