@@ -6,9 +6,9 @@ export default function Disclaimer() {
   return (
     <Layout>
       <SEOHead
-        title="À propos du service | Tarot Divinatoire"
+        title="À propos du service | Tarot Dinatoire"
         description="Comprendre ce que le tarot peut et ne peut pas faire. Service de guidance et introspection créé par 30 tarologues professionnels. Pas d'avis médical, juridique ou financier."
-        ogTitle="À propos - Tarot Divinatoire"
+        ogTitle="À propos - Tarot Dinatoire"
         ogDescription="Guidance et introspection uniquement. Le tarot ne remplace pas un avis médical, juridique ou financier."
       />
       <div className="container mx-auto px-4 py-16">
