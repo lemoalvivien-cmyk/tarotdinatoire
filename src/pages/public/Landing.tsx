@@ -61,17 +61,21 @@ function StarfieldCanvas() {
 }
 
 // ─── Floating Orb ─────────────────────────────────────────────────────────────
-function Orb({ size, color, x, y, delay = 0 }: { size: number; color: string; x: string; y: string; delay?: number }) {
-  return (
-    <motion.div
-      className="absolute rounded-full pointer-events-none"
-      aria-hidden="true"
-      style={{ width: size, height: size, left: x, top: y, background: color, filter: 'blur(80px)' }}
-      animate={{ y: [-20, 20, -20], scale: [1, 1.06, 1], opacity: [0.2, 0.38, 0.2] }}
-      transition={{ duration: 10 + delay, repeat: Infinity, ease: 'easeInOut', delay }}
-    />
-  );
-}
+const Orb = forwardRef<HTMLDivElement, { size: number; color: string; x: string; y: string; delay?: number }>(
+  function Orb({ size, color, x, y, delay = 0 }, ref) {
+    return (
+      <motion.div
+        ref={ref}
+        className="absolute rounded-full pointer-events-none"
+        aria-hidden="true"
+        style={{ width: size, height: size, left: x, top: y, background: color, filter: 'blur(80px)' }}
+        animate={{ y: [-20, 20, -20], scale: [1, 1.06, 1], opacity: [0.2, 0.38, 0.2] }}
+        transition={{ duration: 10 + delay, repeat: Infinity, ease: 'easeInOut', delay }}
+      />
+    );
+  }
+);
+Orb.displayName = 'Orb';
 
 // ─── Horizontal gold divider ──────────────────────────────────────────────────
 function GoldDivider() {
