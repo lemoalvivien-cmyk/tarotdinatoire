@@ -212,6 +212,10 @@ export default function Favorites() {
                     key={reading.id}
                     className="history-item group"
                     onClick={() => navigate(`/app/reading/${reading.id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/app/reading/${reading.id}`)}
+                    aria-label={`Voir le tirage favori du ${new Date(reading.created_at).toLocaleDateString('fr-FR')}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
