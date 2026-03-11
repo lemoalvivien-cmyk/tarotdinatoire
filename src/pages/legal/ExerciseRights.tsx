@@ -32,7 +32,7 @@ export default function ExerciseRights() {
             <section className="p-6 rounded-xl bg-primary/5 border border-primary/20">
               <h2 className="font-serif text-xl font-semibold mb-4">Vous êtes connecté ?</h2>
               <p className="text-muted-foreground mb-4">
-                Si vous avez un compte Tarot Divinatoire, vous pouvez exercer directement 
+                Si vous avez un compte Tarot Dinatoire, vous pouvez exercer directement 
                 la plupart de vos droits depuis votre profil :
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
