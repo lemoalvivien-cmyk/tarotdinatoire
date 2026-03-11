@@ -249,40 +249,43 @@ const TESTIMONIALS = [
 ];
 
 // ─── FAQ item ─────────────────────────────────────────────────────────────────
-function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
-  const [open, setOpen] = useState(false);
-  const id = `faq-${index}`;
-  return (
-    <div className="border-b last:border-0" style={{ borderColor: surfaceBorder }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between py-5 text-left group"
-        aria-expanded={open}
-        aria-controls={id}
-        id={`${id}-btn`}
-      >
-        <span className="text-white/85 text-sm font-medium group-hover:text-white transition-colors leading-snug pr-4">{q}</span>
-        <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors" aria-hidden="true">
-          {open ? <Minus className="h-3 w-3" style={{ color: gold }} /> : <Plus className="h-3 w-3 text-white/50" />}
-        </span>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            id={id}
-            role="region"
-            aria-labelledby={`${id}-btn`}
-            initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
-          >
-            <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+const FAQItem = forwardRef<HTMLDivElement, { q: string; a: string; index: number }>(
+  function FAQItem({ q, a, index }, ref) {
+    const [open, setOpen] = useState(false);
+    const id = `faq-${index}`;
+    return (
+      <div ref={ref} className="border-b last:border-0" style={{ borderColor: surfaceBorder }}>
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="w-full flex items-center justify-between py-5 text-left group"
+          aria-expanded={open}
+          aria-controls={id}
+          id={`${id}-btn`}
+        >
+          <span className="text-white/85 text-sm font-medium group-hover:text-white transition-colors leading-snug pr-4">{q}</span>
+          <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors" aria-hidden="true">
+            {open ? <Minus className="h-3 w-3" style={{ color: gold }} /> : <Plus className="h-3 w-3 text-white/50" />}
+          </span>
+        </button>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              id={id}
+              role="region"
+              aria-labelledby={`${id}-btn`}
+              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <p className="pb-5 text-sm text-white/60 leading-relaxed">{a}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+);
+FAQItem.displayName = 'FAQItem';
 
 // ─── Sticky Mobile CTA ────────────────────────────────────────────────────────
 function StickyMobileCTA({ href, label }: { href: string; label: string }) {
