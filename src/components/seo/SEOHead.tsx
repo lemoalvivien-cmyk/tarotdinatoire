@@ -41,7 +41,7 @@ export const SEOHead = forwardRef<HTMLDivElement, SEOHeadProps>(
     setMeta('og:title', ogTitle || title, true);
     setMeta('og:description', ogDescription || description, true);
     setMeta('og:type', 'website', true);
-    setMeta('og:site_name', 'Tarot Divinatoire - 3,90€/mois', true);
+    setMeta('og:site_name', 'Tarot Dinatoire - 3,90€/mois', true);
 
     // Set robots
     if (noindex) {
