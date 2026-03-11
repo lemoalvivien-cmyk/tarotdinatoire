@@ -132,7 +132,7 @@ export default function Terms() {
               <h2 className="font-serif text-xl font-semibold mb-4">5. Description du service</h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  Tarot Divinatoire est une plateforme de tirage de tarot assistée par 
+                  Tarot Dinatoire est une plateforme de tirage de tarot assistée par 
                   intelligence artificielle, conçue exclusivement pour l'introspection 
                   personnelle et la guidance spirituelle.
                 </p>
