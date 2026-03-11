@@ -365,7 +365,7 @@ export default function ReadingDetail() {
           {/* User Notes */}
           <div className="p-6 rounded-2xl glass-mystic shadow-soft space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-foreground">
+              <p className="text-sm font-medium text-foreground">
                 Notes personnelles
               </label>
               {isSavingNotes && (
