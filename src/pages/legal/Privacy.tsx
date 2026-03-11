@@ -7,7 +7,7 @@ export default function Privacy() {
   return (
     <Layout>
       <SEOHead
-        title="Politique de Confidentialité | Tarot Divinatoire"
+        title="Politique de Confidentialité | Tarot Dinatoire"
         description="Politique de confidentialité et protection des données personnelles. RGPD compliant. Vos droits : accès, rectification, effacement, portabilité."
         noindex={true}
       />

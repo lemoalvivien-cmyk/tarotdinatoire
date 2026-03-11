@@ -7,8 +7,8 @@ export default function Terms() {
   return (
     <Layout>
       <SEOHead
-        title="Conditions Générales de Vente (CGV) | Tarot Divinatoire"
-        description="CGV du service Tarot Divinatoire. Abonnement mensuel à 3,90€ TTC. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
+        title="Conditions Générales de Vente (CGV) | Tarot Dinatoire"
+        description="CGV du service Tarot Dinatoire. Abonnement mensuel à 3,90€ TTC. Service de guidance et introspection - pas de conseils médicaux, juridiques ou financiers."
         noindex={true}
       />
       <div className="container mx-auto px-4 py-16">
