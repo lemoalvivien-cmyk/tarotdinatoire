@@ -943,7 +943,7 @@ export default function Landing() {
             role="region"
             aria-label="FAQ"
           >
-            <div className="divide-y px-6" style={{ borderColor: surfaceBorder }}>
+            <div className="px-6" style={{ borderColor: surfaceBorder }}>
               {FAQ_ITEMS.map((item, i) => <FAQItem key={i} q={item.q} a={item.a} index={i} />)}
             </div>
           </div>
