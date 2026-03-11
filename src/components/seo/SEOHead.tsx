@@ -65,7 +65,7 @@ export const SEOHead = forwardRef<HTMLDivElement, SEOHeadProps>(
 
     // Cleanup on unmount (optional: reset to defaults)
     return () => {
-      document.title = 'Tarot Divinatoire - 3,90€/mois';
+      document.title = 'Tarot Dinatoire - 3,90€/mois';
     };
   }, [title, description, ogTitle, ogDescription, canonical, noindex]);
 
