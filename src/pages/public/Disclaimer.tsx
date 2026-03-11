@@ -63,7 +63,7 @@ export default function Disclaimer() {
             
             <div className="p-6 rounded-xl bg-destructive/5 border border-destructive/20 space-y-4">
               <p className="font-medium text-foreground">
-                Le Tarot Divinatoire ne remplace en aucun cas :
+                Le Tarot Dinatoire ne remplace en aucun cas :
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">

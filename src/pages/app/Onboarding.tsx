@@ -237,7 +237,7 @@ export default function Onboarding() {
                   <span className="font-medium">Ce que nous proposons</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Le Tarot Divinatoire est un <strong>outil d'introspection et de guidance personnelle</strong>. 
+                  Le Tarot Dinatoire est un <strong>outil d'introspection et de guidance personnelle</strong>. 
                   Nos interprétations, créées avec le savoir-faire de 30 tarologues professionnels, 
                   vous accompagnent dans votre réflexion.
                 </p>
