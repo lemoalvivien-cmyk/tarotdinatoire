@@ -759,7 +759,7 @@ export default function Landing() {
             >
               <div className="rounded-3xl p-6 sm:p-7 border" style={{ borderColor: surfaceBorder, background: 'linear-gradient(145deg, hsl(265 35% 10%), hsl(260 30% 7%))' }}>
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-green-400/60" aria-hidden="true" />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4ade80', opacity: 0.6 }} aria-hidden="true" />
                   <p className="text-xs text-white/40 uppercase tracking-widest">Oracle Narratif · 30 derniers jours</p>
                 </div>
                 <div className="space-y-3">
