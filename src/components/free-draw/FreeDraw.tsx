@@ -81,12 +81,27 @@ function ShufflingDeck({ onDone }: { onDone: () => void }) {
   );
 }
 
+// ─── Derive card image path from cardId ───────────────────────────────────────
+function getCardImageSrc(cardId: string): string {
+  // Try the RWS public folder convention: /tarot/rws/00-the-fool.png etc.
+  // Fall back to empty (will trigger error handler)
+  const majorMap: Record<string, string> = {
+    major_00: '00-the-fool', major_01: '01-the-magician', major_02: '02-the-high-priestess',
+    major_03: '03-the-empress', major_04: '04-the-emperor', major_05: '05-the-hierophant',
+    major_06: '06-the-lovers', major_07: '07-the-chariot', major_08: '08-strength',
+    major_09: '09-the-hermit',
+  };
+  const slug = majorMap[cardId];
+  if (slug) return `/tarot/rws/${slug}.png`;
+  return '';
+}
+
 // ─── Card face ────────────────────────────────────────────────────────────────
 function CardFace({ cardId, cardName, orientation, revealed }: {
   cardId: string; cardName: string; orientation: string; revealed: boolean;
 }) {
   const [imgError, setImgError] = useState(false);
-  const imgSrc = getCardImagePath(cardId);
+  const imgSrc = getCardImageSrc(cardId);
   const isReversed = orientation === 'reversed';
 
   return (
