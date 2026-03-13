@@ -23,6 +23,7 @@ import ResetPassword from "./pages/public/ResetPassword";
 
 // ─── Public pages — lazy ─────────────────────────────────────────────────────
 const Disclaimer       = lazy(() => import("./pages/public/Disclaimer"));
+const FreeDrawPage     = lazy(() => import("./pages/public/FreeDrawPage"));
 const Status           = lazy(() => import("./pages/public/Status"));
 const Spreads          = lazy(() => import("./pages/public/Spreads"));
 const SpreadDetail     = lazy(() => import("./pages/public/SpreadDetail"));
