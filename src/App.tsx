@@ -23,6 +23,7 @@ import ResetPassword from "./pages/public/ResetPassword";
 
 // ─── Public pages — lazy ─────────────────────────────────────────────────────
 const Disclaimer       = lazy(() => import("./pages/public/Disclaimer"));
+const FreeDrawPage     = lazy(() => import("./pages/public/FreeDrawPage"));
 const Status           = lazy(() => import("./pages/public/Status"));
 const Spreads          = lazy(() => import("./pages/public/Spreads"));
 const SpreadDetail     = lazy(() => import("./pages/public/SpreadDetail"));
@@ -125,6 +126,7 @@ const App = () => (
                   <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="/status" element={<Status />} />
                   <Route path="/tirages" element={<Spreads />} />
+                  <Route path="/tirage-gratuit" element={<FreeDrawPage />} />
                   <Route path="/tirages/:slug" element={<SpreadDetail />} />
                   <Route path="/cartes" element={<CardsList />} />
                   <Route path="/cartes/:id" element={<CardDetail />} />
