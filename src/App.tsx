@@ -126,6 +126,7 @@ const App = () => (
                   <Route path="/disclaimer" element={<Disclaimer />} />
                   <Route path="/status" element={<Status />} />
                   <Route path="/tirages" element={<Spreads />} />
+                  <Route path="/tirage-gratuit" element={<FreeDrawPage />} />
                   <Route path="/tirages/:slug" element={<SpreadDetail />} />
                   <Route path="/cartes" element={<CardsList />} />
                   <Route path="/cartes/:id" element={<CardDetail />} />
