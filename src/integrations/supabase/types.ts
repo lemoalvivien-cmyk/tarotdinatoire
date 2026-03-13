@@ -266,6 +266,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_free_draws: {
+        Row: {
+          card_id: string
+          created_at: string
+          draw_date: string
+          email: string | null
+          id: string
+          interpretation: Json | null
+          orientation: string
+          session_key: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          draw_date?: string
+          email?: string | null
+          id?: string
+          interpretation?: Json | null
+          orientation?: string
+          session_key: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          draw_date?: string
+          email?: string | null
+          id?: string
+          interpretation?: Json | null
+          orientation?: string
+          session_key?: string
+        }
+        Relationships: []
+      }
       email_leads: {
         Row: {
           consent: boolean
