@@ -477,22 +477,29 @@ export default function Landing() {
           className="relative z-10 container mx-auto px-5 py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-24"
         >
           {/* Left — Copy */}
-          <div className="flex-1 max-w-2xl text-center lg:text-left space-y-7">
-            {/* Eyebrow */}
+          <div className="flex-1 max-w-2xl text-center lg:text-left space-y-6">
+            {/* Live counter badge */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold tracking-widest uppercase"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold"
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', color: gold, backgroundColor: goldSoft }}
-              aria-label="Expérience tarot premium"
+              aria-live="polite"
+              aria-label="Personnes en train de tirer en ce moment"
             >
-              <Stars className="h-3.5 w-3.5" aria-hidden="true" />
-              Expérience tarot premium
+              <motion.span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: '#4ade80' }}
+                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity }}
+                aria-hidden="true"
+              />
+              <LiveCounter />
             </motion.div>
 
             {/* H1 */}
             <motion.h1
               initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-serif text-[2.6rem] leading-[1.08] sm:text-6xl lg:text-7xl font-semibold text-white"
+              className="font-serif text-[2.4rem] leading-[1.08] sm:text-5xl lg:text-6xl font-semibold text-white"
             >
               Ce n'est pas un tirage.{' '}
               <span
@@ -505,23 +512,24 @@ export default function Landing() {
 
             {/* Sub */}
             <motion.p
-              initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
-              className="text-base sm:text-lg text-white/60 leading-relaxed max-w-xl mx-auto lg:mx-0"
+              initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-base sm:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0"
+              style={{ color: 'hsl(var(--mp-text-muted))' }}
             >
-              Chaque jour, une carte tirée pour vous seul.{' '}
-              <span className="text-white/85">L'oracle se souvient de tout.</span>{' '}
-              Jour après jour, il détecte vos patterns, lit votre arc émotionnel et vous dit ce que vous ne voyez plus — parce que vous êtes dedans.
+              Essaie ton premier rituel{' '}
+              <span className="text-white font-semibold">gratuit maintenant.</span>{' '}
+              Ensuite, accès illimité à l'oracle complet.
             </motion.p>
 
             {/* Social proof inline */}
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
               className="flex items-center gap-3 justify-center lg:justify-start"
-              aria-label="12 437 utilisateurs actifs, 5 étoiles"
+              aria-label="12 437 utilisateurs actifs, 87% reviennent"
             >
               <div className="flex -space-x-2" aria-hidden="true">
                 {['S', 'T', 'I', 'M'].map((l, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/90"
+                  <div key={i} className="w-7 h-7 rounded-full border-2 border-white/10 flex items-center justify-center text-xs font-bold text-white/90"
                     style={{ background: `hsl(${262 + i * 18} 50% ${38 + i * 5}%)` }}>
                     {l}
                   </div>
@@ -531,35 +539,47 @@ export default function Landing() {
                 <div className="flex items-center gap-0.5 mb-0.5" aria-hidden="true">
                   {[0, 1, 2, 3, 4].map(i => <Star key={i} className="h-3 w-3 fill-current" style={{ color: gold }} />)}
                 </div>
-                <p className="text-white/50 text-xs">12 437 personnes utilisent l'oracle aujourd'hui</p>
+                <p className="text-xs" style={{ color: 'hsl(var(--mp-text-muted))' }}>
+                  <strong className="text-white">12 437</strong> personnes tirent aujourd'hui · <strong className="text-white">87 %</strong> reviennent demain
+                </p>
               </div>
             </motion.div>
 
-            {/* CTA block */}
+            {/* CTA block — FREEMIUM */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start items-center"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.42 }}
+              className="flex flex-col gap-3 justify-center lg:justify-start"
             >
-              <MysticButton
-                  size="lg"
-                  rightIcon={<ArrowRight className="h-5 w-5" />}
-                  className="text-base px-8 w-full sm:w-auto"
-                  onClick={() => navigate(ctaHref)}
-                >
-                  {ctaLabel}
-                </MysticButton>
-              <a
-                href="#rituel"
-                className="text-sm text-white/50 hover:text-white/80 transition-colors underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 rounded"
+              {/* Primary: Free Draw CTA */}
+              <button
+                onClick={() => navigate('/tirage-gratuit')}
+                className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl text-base font-bold text-white overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(350 70% 45%), hsl(30 80% 50%))',
+                  boxShadow: '0 8px 40px hsl(350 70% 35% / 0.4)',
+                }}
+                aria-label="Tirer ma carte gratuite maintenant"
               >
-                Voir comment ça fonctionne
-              </a>
+                <Sparkles className="h-5 w-5" aria-hidden="true" />
+                Tirer ma carte gratuite
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </button>
+              {/* Secondary: full oracle */}
+              <button
+                onClick={() => navigate(user ? '/app' : '/auth')}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl text-sm font-semibold text-white/70 border border-white/10 hover:border-white/20 hover:text-white transition-all duration-200"
+                aria-label="Découvrir l'oracle complet"
+              >
+                Découvrir l'oracle complet
+                <span className="text-xs ml-1" style={{ color: gold }}>→ après 3,90€/mois</span>
+              </button>
             </motion.div>
 
             {/* Trust micro-signals */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-              className="flex flex-wrap items-center gap-4 justify-center lg:justify-start text-xs text-white/35"
+              className="flex flex-wrap items-center gap-4 justify-center lg:justify-start text-xs"
+              style={{ color: 'hsl(var(--mp-text-muted))' }}
               aria-label="Garanties"
             >
               <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Données chiffrées</div>
