@@ -4,11 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   ArrowRight, Sparkles, Shield, Lock, Stars,
   ChevronDown, BookOpen, Eye, Heart, TrendingUp,
-  Check, Star, CreditCard, Moon, Zap, X, Minus, Plus
+  Check, Star, CreditCard, Moon, Zap, X, Minus, Plus, Flame, Users
 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { MysticButton } from '@/components/mystic';
 import { motion, useReducedMotion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { FreeDraw } from '@/components/free-draw/FreeDraw';
 
 // ─── Design Tokens helpers ────────────────────────────────────────────────────
 const gold = 'hsl(var(--mp-brand-gold))';
