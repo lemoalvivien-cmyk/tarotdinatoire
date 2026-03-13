@@ -18,8 +18,8 @@ function getSessionKey(): string {
   return key;
 }
 
-// ── Card back SVG path ────────────────────────────────────────────────────────
-const CARD_BACK = '/assets/tarot/back.svg';
+// ── Card back path ────────────────────────────────────────────────────────────
+const CARD_BACK = CARD_BACK_URL;
 
 // ── Phases du flux ─────────────────────────────────────────────────────────────
 type Phase = 'idle' | 'shuffling' | 'choosing' | 'revealing' | 'reading' | 'email' | 'upsell';
