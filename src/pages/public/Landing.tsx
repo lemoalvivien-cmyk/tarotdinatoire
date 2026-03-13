@@ -207,7 +207,29 @@ function AnimatedCounter({ end, suffix = '', label }: { end: number; suffix?: st
   );
 }
 
-// ─── Ritual Step Card ─────────────────────────────────────────────────────────
+// ─── Live Counter (simulated, pseudo-random but stable) ───────────────────────
+function LiveCounter() {
+  const [count, setCount] = useState(() => 847 + Math.floor(Math.random() * 200));
+  useEffect(() => {
+    const t = setInterval(() => {
+      setCount(c => {
+        const delta = Math.random() < 0.5 ? 1 : -1;
+        return Math.max(700, Math.min(1200, c + delta));
+      });
+    }, 3500);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span>
+      <motion.span key={count} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        {count.toLocaleString('fr-FR')}
+      </motion.span>
+      {' '}personnes tirent en ce moment
+    </span>
+  );
+}
+
+
 function RitualStepCard({ num, icon: Icon, title, desc, delay }: { num: string; icon: React.ElementType; title: string; desc: string; delay: number }) {
   return (
     <motion.div
