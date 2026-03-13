@@ -8,7 +8,6 @@ import { Sparkles, ArrowRight, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { UpsellModal } from './UpsellModal';
 import { CARD_BACK_URL } from '@/constants/tarotAssets';
-import { getCardFaceUrl } from '@/utils/tarotImageHelpers';
 
 // ── Session key fingerprint (anonyme, non-persistant entre navigateurs) ──────
 function getSessionKey(): string {
