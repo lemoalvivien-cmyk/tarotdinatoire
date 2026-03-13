@@ -294,7 +294,7 @@ export function FreeDraw() {
             className="text-center space-y-6"
           >
             {error && (
-              <p className="text-red-400/80 text-sm bg-red-900/20 rounded-xl px-4 py-3" role="alert">{error}</p>
+              <p className="text-sm rounded-xl px-4 py-3" style={{ color: 'hsl(0 60% 70%)', backgroundColor: 'hsl(0 40% 15% / 0.5)' }} role="alert">{error}</p>
             )}
             <button
               onClick={startDraw}
