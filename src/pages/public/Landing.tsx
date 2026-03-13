@@ -447,15 +447,15 @@ export default function Landing() {
     return () => clearInterval(t);
   }, []);
 
-  const ctaHref = user ? '/app' : '/auth';
-  const ctaLabel = user ? 'Accéder à mon oracle' : 'Vivre l\'expérience';
+  const ctaHref = user ? '/app' : '/tirage-gratuit';
+  const ctaLabel = user ? 'Accéder à mon oracle' : 'Tirer ma carte gratuite';
 
   const FAQ_ITEMS = [
     { q: "Est-ce vraiment différent d'une application de tarot classique ?", a: "Oui. Tarot Dinatoire mémorise chaque tirage pour construire votre profil unique. L'oracle analyse vos récurrences, détecte vos patterns émotionnels et génère un récit narratif sur vos 30-90 derniers jours. Aucune app de tarot ne fait ça." },
     { q: "Il faut croire au tarot pour en bénéficier ?", a: "Non. Beaucoup d'utilisateurs abordent le tarot comme un outil de réflexion psychologique, pas de divination. Les cartes sont un miroir symbolique : elles révèlent ce que vous projetez sur elles. C'est une pratique de connaissance de soi." },
-    { q: "Comment fonctionne l'abonnement ?", a: "3,90€/mois, sans engagement. Vous pouvez résilier à tout moment en un clic depuis votre profil. Aucune reconduction cachée, aucun frais supplémentaire. Paiement sécurisé via Stripe." },
+    { q: "Comment fonctionne l'abonnement ?", a: "3,90€/mois TTC, sans engagement. Vous pouvez résilier à tout moment en un clic depuis votre profil. Aucune reconduction cachée, aucun frais supplémentaire. Paiement sécurisé via Stripe." },
     { q: "Mes données personnelles sont-elles protégées ?", a: "Vos données sont chiffrées, hébergées en Europe et jamais revendues. Conformité RGPD complète. Vous pouvez demander leur suppression à tout moment depuis votre profil." },
-    { q: "Puis-je tester avant de payer ?", a: "Votre premier tirage est accessible dès la création de votre compte, sans carte bancaire. L'abonnement premium débloque le rituel quotidien illimité, l'oracle narratif et tous les tirages avancés." },
+    { q: "Puis-je tester avant de payer ?", a: "Oui ! Vous avez droit à 1 tirage gratuit par jour, sans compte requis. L'abonnement à 3,90€/mois débloque le rituel quotidien illimité, l'oracle narratif IA et tous les tirages avancés." },
   ];
 
   const PRICING_FEATURES = [
