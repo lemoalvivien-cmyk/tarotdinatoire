@@ -475,11 +475,11 @@ export default function Landing() {
       style={{ background: 'linear-gradient(180deg, hsl(260 38% 5%) 0%, hsl(260 33% 7%) 60%, hsl(260 28% 6%) 100%)' }}
     >
       <SEOHead
-        title="Tarot Dinatoire | Oracle Personnel IA — 3,90€/mois"
-        description="L'oracle tarot qui apprend à vous connaître. Tirage quotidien, analyse psychologique et récit narratif de votre vie intérieure. Sans engagement."
+        title="Tarot Dinatoire | Oracle Personnel IA — 1 tirage gratuit par jour"
+        description="L'oracle tarot qui apprend à vous connaître. 1 tirage gratuit par jour, sans compte. Tirage quotidien, analyse psychologique et récit narratif de votre vie intérieure."
         ogTitle="Tarot Dinatoire — Ce n'est pas un tirage. C'est un miroir qui se souvient."
-        ogDescription="Plus qu'un tirage. Une expérience immersive qui détecte vos patterns et construit votre récit intérieur. 3,90€/mois · Sans engagement."
-        canonical="https://tarotdinatoire.lovable.app/"
+        ogDescription="Plus qu'un tirage. Une expérience immersive qui détecte vos patterns et construit votre récit intérieur. Essaie gratuitement."
+        canonical="https://tarotdinatoire.fr/"
       />
 
       <LandingHeader ctaHref={ctaHref} />
