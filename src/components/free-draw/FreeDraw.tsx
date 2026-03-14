@@ -82,17 +82,40 @@ function ShufflingDeck({ onDone }: { onDone: () => void }) {
 }
 
 // ─── Derive card image path from cardId ───────────────────────────────────────
+// Complete 78-card mapping: RWS public folder for major arcana,
+// gradient fallback for minor arcana (images served from storage or fallback UI)
+const MAJOR_MAP: Record<string, string> = {
+  major_00: '00-the-fool',
+  major_01: '01-the-magician',
+  major_02: '02-the-high-priestess',
+  major_03: '03-the-empress',
+  major_04: '04-the-emperor',
+  major_05: '05-the-hierophant',
+  major_06: '06-the-lovers',
+  major_07: '07-the-chariot',
+  major_08: '08-strength',
+  major_09: '09-the-hermit',
+  major_10: '10-wheel-of-fortune',
+  major_11: '11-justice',
+  major_12: '12-the-hanged-man',
+  major_13: '13-death',
+  major_14: '14-temperance',
+  major_15: '15-the-devil',
+  major_16: '16-the-tower',
+  major_17: '17-the-star',
+  major_18: '18-the-moon',
+  major_19: '19-the-sun',
+  major_20: '20-judgement',
+  major_21: '21-the-world',
+};
+
 function getCardImageSrc(cardId: string): string {
-  // Try the RWS public folder convention: /tarot/rws/00-the-fool.png etc.
-  // Fall back to empty (will trigger error handler)
-  const majorMap: Record<string, string> = {
-    major_00: '00-the-fool', major_01: '01-the-magician', major_02: '02-the-high-priestess',
-    major_03: '03-the-empress', major_04: '04-the-emperor', major_05: '05-the-hierophant',
-    major_06: '06-the-lovers', major_07: '07-the-chariot', major_08: '08-strength',
-    major_09: '09-the-hermit',
-  };
-  const slug = majorMap[cardId];
+  const slug = MAJOR_MAP[cardId];
   if (slug) return `/tarot/rws/${slug}.png`;
+  // Minor arcana: try storage bucket path, fallback to '' → triggers gradient UI
+  if (cardId.startsWith('minor_')) {
+    return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/tarot-cards/tarot/cbd/${cardId}.jpg`;
+  }
   return '';
 }
 
