@@ -11,10 +11,11 @@ import { CARD_BACK_URL } from '@/constants/tarotAssets';
 
 // ── Session key fingerprint (anonyme, non-persistant entre navigateurs) ──────
 function getSessionKey(): string {
-  const stored = sessionStorage.getItem('fd_sk');
+  // localStorage persists across tabs → prevents multi-tab bypass of 1/day limit
+  const stored = localStorage.getItem('fd_sk');
   if (stored) return stored;
   const key = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  sessionStorage.setItem('fd_sk', key);
+  localStorage.setItem('fd_sk', key);
   return key;
 }
 
