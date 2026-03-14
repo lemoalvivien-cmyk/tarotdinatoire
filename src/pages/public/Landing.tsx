@@ -336,7 +336,7 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
           >
             {label}
           </button>
-          <p className="text-center text-xs text-white/35 mt-2">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
+          <p className="text-center text-xs text-white/35 mt-2">1 tirage gratuit · Annulation en 1 clic</p>
         </motion.div>
       )}
     </AnimatePresence>
