@@ -336,7 +336,7 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
           >
             {label}
           </button>
-          <p className="text-center text-xs text-white/35 mt-2">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
+          <p className="text-center text-xs text-white/35 mt-2">1 tirage gratuit · Annulation en 1 clic</p>
         </motion.div>
       )}
     </AnimatePresence>
@@ -475,11 +475,11 @@ export default function Landing() {
       style={{ background: 'linear-gradient(180deg, hsl(260 38% 5%) 0%, hsl(260 33% 7%) 60%, hsl(260 28% 6%) 100%)' }}
     >
       <SEOHead
-        title="Tarot Dinatoire | Oracle Personnel IA — 3,90€/mois"
-        description="L'oracle tarot qui apprend à vous connaître. Tirage quotidien, analyse psychologique et récit narratif de votre vie intérieure. Sans engagement."
+        title="Tarot Dinatoire | Oracle Personnel IA — 1 tirage gratuit par jour"
+        description="L'oracle tarot qui apprend à vous connaître. 1 tirage gratuit par jour, sans compte. Tirage quotidien, analyse psychologique et récit narratif de votre vie intérieure."
         ogTitle="Tarot Dinatoire — Ce n'est pas un tirage. C'est un miroir qui se souvient."
-        ogDescription="Plus qu'un tirage. Une expérience immersive qui détecte vos patterns et construit votre récit intérieur. 3,90€/mois · Sans engagement."
-        canonical="https://tarotdinatoire.lovable.app/"
+        ogDescription="Plus qu'un tirage. Une expérience immersive qui détecte vos patterns et construit votre récit intérieur. Essaie gratuitement."
+        canonical="https://tarotdinatoire.fr/"
       />
 
       <LandingHeader ctaHref={ctaHref} />
@@ -593,7 +593,7 @@ export default function Landing() {
                 aria-label="Découvrir l'oracle complet"
               >
                 Découvrir l'oracle complet
-                <span className="text-xs ml-1" style={{ color: gold }}>→ après 3,90€/mois</span>
+                <ArrowRight className="h-4 w-4 ml-1 opacity-60" aria-hidden="true" />
               </button>
             </motion.div>
 
@@ -1020,7 +1020,7 @@ export default function Landing() {
             <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12" onClick={() => navigate(ctaHref)}>
               Commencer mon premier rituel
             </MysticButton>
-            <p className="text-white/25 text-xs mt-5">3,90€/mois · Sans engagement · Annulation en 1 clic</p>
+            <p className="text-white/25 text-xs mt-5">Sans engagement · Annulation en 1 clic</p>
           </SectionReveal>
         </div>
       </section>

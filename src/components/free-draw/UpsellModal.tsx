@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Check, Sparkles, ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 
 const FEATURES = [
   'Rituel quotidien · chaque jour, une carte qui se souvient',
@@ -24,14 +25,19 @@ interface UpsellModalProps {
 
 export function UpsellModal({ cardName, onClose, inline = false }: UpsellModalProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { startCheckout, checkoutLoading } = useSubscription();
 
   const handleSubscribe = async () => {
+    // Anonymous users must sign up first, then land on checkout
+    if (!user) {
+      navigate('/auth?redirect=/app&checkout=1');
+      return;
+    }
     try {
-      // Redirect to auth first if not logged in, then checkout
       await startCheckout();
     } catch {
-      navigate('/auth?redirect=/app');
+      navigate('/auth?redirect=/app&checkout=1');
     }
   };
 
