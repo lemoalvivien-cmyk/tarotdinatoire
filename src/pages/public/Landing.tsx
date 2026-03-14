@@ -593,7 +593,7 @@ export default function Landing() {
                 aria-label="Découvrir l'oracle complet"
               >
                 Découvrir l'oracle complet
-                <span className="text-xs ml-1" style={{ color: gold }}>→ après 3,90€/mois</span>
+                <ArrowRight className="h-4 w-4 ml-1 opacity-60" aria-hidden="true" />
               </button>
             </motion.div>
 
