@@ -40,7 +40,7 @@ interface LegacyInterpretation {
   };
 }
 
-// New format from edge function
+// New format from edge function — 4 storytelling sections
 interface NewInterpretation {
   resume_court?: string;
   interpretation_par_position?: Array<{
@@ -50,7 +50,9 @@ interface NewInterpretation {
     message?: string;
   }>;
   message_global?: string;
+  questions_synchronicite?: string[];
   actions_concretes?: string[];
+  message_tarologues?: string;
   limites_ethiques?: string;
 }
 
