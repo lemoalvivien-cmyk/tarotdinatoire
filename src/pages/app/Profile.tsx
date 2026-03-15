@@ -400,7 +400,7 @@ export default function Profile() {
               <a href="/legal/privacy" className="hover:text-foreground transition-colors">Politique de confidentialité</a>
               <a href="/legal/rights" className="hover:text-foreground transition-colors">Exercer mes droits</a>
               <a href="/legal/cookies" className="hover:text-foreground transition-colors">Politique cookies</a>
-              <a href="mailto:contact@tarotdivinatoire.app" className="hover:text-foreground transition-colors">contact@tarotdivinatoire.app</a>
+              <a href="mailto:contact@tarotdinatoire.fr" className="hover:text-foreground transition-colors">contact@tarotdinatoire.fr</a>
             </div>
           </div>
 

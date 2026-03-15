@@ -160,10 +160,9 @@ export default function ExerciseRights() {
                       pour exporter vos données ou supprimer votre compte.
                     </p>
                     <p>
-                      <strong className="text-foreground">Option 2 - Par email :</strong><br />
                       Envoyez votre demande à{' '}
-                      <a href="mailto:contact@tarotdivinatoire.app" className="text-primary hover:underline">
-                        contact@tarotdivinatoire.app
+                      <a href="mailto:contact@tarotdinatoire.fr" className="text-primary hover:underline">
+                        contact@tarotdinatoire.fr
                       </a>{' '}
                       en précisant :
                     </p>

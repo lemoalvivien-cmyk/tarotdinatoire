@@ -313,7 +313,7 @@ export default function Terms() {
             <section className="p-6 rounded-xl bg-muted/50 border border-border/30">
               <h2 className="font-serif text-lg font-semibold mb-3">Contact</h2>
               <p className="text-sm text-muted-foreground">
-                Pour toute question concernant ces CGV : <strong>contact@tarotdivinatoire.app</strong>
+                Pour toute question concernant ces CGV : <strong>contact@tarotdinatoire.fr</strong>
                 <br />
                 Voir également nos{' '}
                 <Link to="/legal/imprint" className="text-primary hover:underline">
