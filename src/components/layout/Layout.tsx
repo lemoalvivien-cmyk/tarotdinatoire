@@ -21,10 +21,10 @@ export function Layout({ children, showFooter = true }: LayoutProps) {
       </a>
 
       {/* Subtle starfield background */}
-      <div className="fixed inset-0 starfield opacity-30 pointer-events-none" aria-hidden="true" />
+      <div className="fixed inset-0 starfield opacity-30 pointer-events-none" style={{ zIndex: -1 }} aria-hidden="true" />
       
       {/* Mist overlay at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 h-64 mist-overlay pointer-events-none" aria-hidden="true" />
+      <div className="fixed bottom-0 left-0 right-0 h-64 mist-overlay pointer-events-none" style={{ zIndex: -1 }} aria-hidden="true" />
       
       <Header />
       

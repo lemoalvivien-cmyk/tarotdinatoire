@@ -14,7 +14,7 @@ interface StarfieldCanvasProps {
 
 export function StarfieldCanvas({
   starCount = 180,
-  opacity = 0.45,
+  opacity = 0.35,
   className = 'absolute inset-0 w-full h-full pointer-events-none',
 }: StarfieldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

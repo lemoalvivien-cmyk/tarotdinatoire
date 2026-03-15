@@ -40,7 +40,7 @@ export default function FreeDrawPage() {
       {/* Main */}
       <main className="flex-1 flex flex-col items-center justify-center px-5 py-8 sm:py-12">
         {/* Stars BG */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }} aria-hidden="true">
           {Array.from({ length: 60 }).map((_, i) => (
             <motion.div
               key={i}
