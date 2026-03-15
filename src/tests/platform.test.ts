@@ -287,8 +287,12 @@ describe('Card draw — orientation & spread logic', () => {
   }
 
   function isValidCardId(id: string): boolean {
-    return /^major_\d{2}$/.test(id) ||
-      /^minor_(wands|cups|swords|pentacles)_(ace|[2-9]|10|page|knight|queen|king)$/.test(id);
+    // major_00 to major_21 (numeric value 0-21)
+    if (/^major_(\d{2})$/.test(id)) {
+      const n = parseInt(id.slice(6), 10);
+      return n >= 0 && n <= 21;
+    }
+    return /^minor_(wands|cups|swords|pentacles)_(ace|[2-9]|10|page|knight|queen|king)$/.test(id);
   }
 
   it('even seed → upright', () => {
