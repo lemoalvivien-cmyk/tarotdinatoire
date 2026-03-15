@@ -1,32 +1,31 @@
 /**
  * FreeDraw — Tirage gratuit public (sans compte requis)
- * Flux : Shuffle animé → Reveal → Interprétation IA → Capture email → Upsell
+ * Flux : Shuffle animé → Reveal → Interprétation IA → Capture email
+ *
+ * Security: session_key is a LOCAL cache-only UUID.
+ * Rate-limiting is entirely server-side (IP+UA hash).
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Sparkles, ArrowRight, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { UpsellModal } from './UpsellModal';
 import { CARD_BACK_URL } from '@/constants/tarotAssets';
 
-// ── Session key fingerprint (anonyme, non-persistant entre navigateurs) ──────
-function getSessionKey(): string {
-  // localStorage persists across tabs → prevents multi-tab bypass of 1/day limit
-  const stored = localStorage.getItem('fd_sk');
+// ── Client-side cache ID (NOT used for rate limiting, only for UX cache) ──────
+function getCacheId(): string {
+  const stored = sessionStorage.getItem('fd_cache_id');
   if (stored) return stored;
-  const key = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  localStorage.setItem('fd_sk', key);
-  return key;
+  const id = crypto.randomUUID();
+  sessionStorage.setItem('fd_cache_id', id);
+  return id;
 }
 
-// ── Card back path ────────────────────────────────────────────────────────────
 const CARD_BACK = CARD_BACK_URL;
 
-// ── Phases du flux ─────────────────────────────────────────────────────────────
 type Phase = 'idle' | 'shuffling' | 'choosing' | 'revealing' | 'reading' | 'email' | 'upsell';
 
 interface DrawResult {
-  id: string;
+  id?: string;
   card_id: string;
   card_nom_fr?: string;
   orientation: 'upright' | 'reversed';
@@ -38,6 +37,36 @@ interface DrawResult {
   } | null;
   themes?: string[];
   alreadyDrawn?: boolean;
+}
+
+// ─── Shimmer skeleton for cards during shuffle ────────────────────────────────
+function CardShimmer() {
+  return (
+    <div className="relative w-44 h-64 mx-auto rounded-2xl overflow-hidden">
+      <div
+        className="absolute inset-0 rounded-2xl"
+        style={{ background: 'linear-gradient(135deg, hsl(265 40% 12%), hsl(265 40% 18%))' }}
+      />
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, hsl(265 55% 55% / 0.15) 50%, transparent 100%)',
+          backgroundSize: '200% 100%',
+        }}
+        animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+      />
+      {/* Pulsing star */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div
+          animate={{ opacity: [0.2, 0.6, 0.2], scale: [0.9, 1.1, 0.9] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <Sparkles className="h-8 w-8" style={{ color: 'hsl(var(--mp-brand-gold) / 0.5)' }} />
+        </motion.div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Shuffle card animation ───────────────────────────────────────────────────
@@ -56,7 +85,7 @@ function ShufflingDeck({ onDone }: { onDone: () => void }) {
         {cards.map((i) => (
           <motion.div
             key={i}
-            className="absolute inset-0 rounded-2xl border border-white/10"
+            className="absolute inset-0 rounded-2xl border border-white/10 overflow-hidden"
             style={{ backgroundImage: `url(${CARD_BACK})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ rotate: 0, x: 0, y: 0, opacity: 0.6 }}
             animate={shouldReduce ? {} : {
@@ -66,7 +95,15 @@ function ShufflingDeck({ onDone }: { onDone: () => void }) {
               opacity: [0.6, 1, 0.7, 1, 0.8],
             }}
             transition={{ duration: 1.8, delay: i * 0.06, ease: 'easeInOut' }}
-          />
+          >
+            {/* Gold shimmer on each card */}
+            <motion.div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(90deg, transparent, hsl(42 75% 55% / 0.12), transparent)' }}
+              animate={shouldReduce ? {} : { x: ['-100%', '200%'] }}
+              transition={{ duration: 1.4, delay: i * 0.15, repeat: Infinity, ease: 'linear' }}
+            />
+          </motion.div>
         ))}
       </div>
       <motion.p
@@ -81,45 +118,27 @@ function ShufflingDeck({ onDone }: { onDone: () => void }) {
   );
 }
 
-// ─── Derive card image path from cardId ───────────────────────────────────────
-// Complete 78-card mapping: RWS public folder for major arcana,
-// gradient fallback for minor arcana (images served from storage or fallback UI)
+// ─── Complete 78-card mapping ─────────────────────────────────────────────────
 const MAJOR_MAP: Record<string, string> = {
-  major_00: '00-the-fool',
-  major_01: '01-the-magician',
-  major_02: '02-the-high-priestess',
-  major_03: '03-the-empress',
-  major_04: '04-the-emperor',
-  major_05: '05-the-hierophant',
-  major_06: '06-the-lovers',
-  major_07: '07-the-chariot',
-  major_08: '08-strength',
-  major_09: '09-the-hermit',
-  major_10: '10-wheel-of-fortune',
-  major_11: '11-justice',
-  major_12: '12-the-hanged-man',
-  major_13: '13-death',
-  major_14: '14-temperance',
-  major_15: '15-the-devil',
-  major_16: '16-the-tower',
-  major_17: '17-the-star',
-  major_18: '18-the-moon',
-  major_19: '19-the-sun',
-  major_20: '20-judgement',
-  major_21: '21-the-world',
+  major_00: '00-the-fool', major_01: '01-the-magician', major_02: '02-the-high-priestess',
+  major_03: '03-the-empress', major_04: '04-the-emperor', major_05: '05-the-hierophant',
+  major_06: '06-the-lovers', major_07: '07-the-chariot', major_08: '08-strength',
+  major_09: '09-the-hermit', major_10: '10-wheel-of-fortune', major_11: '11-justice',
+  major_12: '12-the-hanged-man', major_13: '13-death', major_14: '14-temperance',
+  major_15: '15-the-devil', major_16: '16-the-tower', major_17: '17-the-star',
+  major_18: '18-the-moon', major_19: '19-the-sun', major_20: '20-judgement', major_21: '21-the-world',
 };
 
 function getCardImageSrc(cardId: string): string {
   const slug = MAJOR_MAP[cardId];
   if (slug) return `/tarot/rws/${slug}.png`;
-  // Minor arcana: try storage bucket path, fallback to '' → triggers gradient UI
   if (cardId.startsWith('minor_')) {
     return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/tarot-cards/tarot/cbd/${cardId}.jpg`;
   }
   return '';
 }
 
-// ─── Card face ────────────────────────────────────────────────────────────────
+// ─── Card face with shimmer-on-reveal ────────────────────────────────────────
 function CardFace({ cardId, cardName, orientation, revealed }: {
   cardId: string; cardName: string; orientation: string; revealed: boolean;
 }) {
@@ -138,8 +157,11 @@ function CardFace({ cardId, cardName, orientation, revealed }: {
       {/* Front */}
       <div
         className="absolute inset-0 rounded-2xl overflow-hidden border border-white/15"
-        style={{ backfaceVisibility: 'hidden', transform: isReversed ? 'rotate(180deg)' : undefined,
-          boxShadow: '0 20px 60px hsl(265 55% 30% / 0.5)' }}
+        style={{
+          backfaceVisibility: 'hidden',
+          transform: isReversed ? 'rotate(180deg)' : undefined,
+          boxShadow: '0 20px 60px hsl(265 55% 30% / 0.5)',
+        }}
         aria-label={`Carte ${cardName} ${isReversed ? '(renversée)' : ''}`}
       >
         {!imgError ? (
@@ -150,28 +172,44 @@ function CardFace({ cardId, cardName, orientation, revealed }: {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, hsl(265 40% 12%), hsl(265 40% 18%))' }}>
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, hsl(265 40% 12%), hsl(265 40% 18%))' }}
+          >
             <div className="text-center px-4">
               <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-50" style={{ color: 'hsl(var(--mp-brand-gold))' }} />
               <p className="font-serif text-white/80 text-sm">{cardName}</p>
             </div>
           </div>
         )}
+        {/* Gold shimmer on reveal */}
+        {revealed && (
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(135deg, transparent, hsl(42 75% 55% / 0.2), transparent)' }}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 1.2, delay: 0.3 }}
+          />
+        )}
       </div>
       {/* Back */}
       <div
         className="absolute inset-0 rounded-2xl border border-white/10"
-        style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)',
-          backgroundImage: `url(${CARD_BACK})`, backgroundSize: 'cover' }}
+        style={{
+          backfaceVisibility: 'hidden',
+          transform: 'rotateY(180deg)',
+          backgroundImage: `url(${CARD_BACK})`,
+          backgroundSize: 'cover',
+        }}
         aria-hidden="true"
       />
     </motion.div>
   );
 }
 
-// ─── Email capture mini-form ──────────────────────────────────────────────────
-function EmailCapture({ drawId, onDone }: { drawId: string; onDone: () => void }) {
+// ─── Email capture ────────────────────────────────────────────────────────────
+function EmailCapture({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -181,12 +219,6 @@ function EmailCapture({ drawId, onDone }: { drawId: string; onDone: () => void }
     if (!email.trim() || loading) return;
     setLoading(true);
     try {
-      // Save email to daily_free_draws row
-      await supabase
-        .from('daily_free_draws')
-        .update({ email: email.trim().toLowerCase() })
-        .eq('id', drawId);
-      // Also capture in email_leads for marketing
       await supabase.from('email_leads').insert({
         email: email.trim().toLowerCase(),
         consent: true,
@@ -196,7 +228,7 @@ function EmailCapture({ drawId, onDone }: { drawId: string; onDone: () => void }
     setDone(true);
     setLoading(false);
     setTimeout(onDone, 1200);
-  }, [email, drawId, loading, onDone]);
+  }, [email, loading, onDone]);
 
   if (done) {
     return (
@@ -221,20 +253,15 @@ function EmailCapture({ drawId, onDone }: { drawId: string; onDone: () => void }
       <p className="text-white/50 text-xs mb-4">Ta carte du jour, chaque matin dans ta boîte.</p>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="ton@email.fr"
-          required
-          aria-label="Ton adresse email"
+          type="email" value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="ton@email.fr" required aria-label="Ton adresse email"
           className="flex-1 h-10 rounded-xl px-3 text-sm bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors"
         />
         <button
-          type="submit"
-          disabled={loading || !email.trim()}
+          type="submit" disabled={loading || !email.trim()}
           className="h-10 px-4 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40"
           style={{ background: 'linear-gradient(135deg, hsl(var(--mp-brand-violet)), hsl(var(--mp-brand-violet2)))' }}
-          aria-label="S'inscrire aux insights quotidiens"
+          aria-label="S'inscrire"
         >
           {loading ? '…' : 'OK'}
         </button>
@@ -242,7 +269,6 @@ function EmailCapture({ drawId, onDone }: { drawId: string; onDone: () => void }
       <button
         onClick={onDone}
         className="mt-3 text-xs text-white/30 hover:text-white/50 transition-colors underline-offset-2 hover:underline"
-        aria-label="Passer la capture d'email"
       >
         Non merci
       </button>
@@ -258,7 +284,6 @@ export function FreeDraw() {
   const [alreadyDrawn, setAlreadyDrawn] = useState(false);
   const isDrawing = useRef(false);
   const shouldReduce = useReducedMotion();
-
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   const startDraw = useCallback(async () => {
@@ -268,9 +293,9 @@ export function FreeDraw() {
     setPhase('shuffling');
 
     try {
-      const sessionKey = getSessionKey();
+      // client_id is purely cosmetic cache — NOT used for rate limiting server-side
+      getCacheId();
 
-      // Pause pour l'animation
       await new Promise(r => setTimeout(r, shouldReduce ? 600 : 2000));
       setPhase('revealing');
 
@@ -280,11 +305,10 @@ export function FreeDraw() {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ session_key: sessionKey }),
+        body: JSON.stringify({ mood: '' }),  // session_key removed — server computes hash
       });
 
       const data = await resp.json();
-
       if (!resp.ok) throw new Error(data.error ?? 'Erreur serveur');
 
       setResult(data.draw);
@@ -334,6 +358,14 @@ export function FreeDraw() {
                 style={{ background: 'linear-gradient(135deg, hsl(350 70% 50%), hsl(30 80% 55%))' }}
                 aria-hidden="true"
               />
+              {/* Shimmer on button */}
+              <motion.span
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)' }}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'linear', delay: 1 }}
+                aria-hidden="true"
+              />
               <span className="relative flex items-center justify-center gap-2">
                 <Sparkles className="h-5 w-5" aria-hidden="true" />
                 Tirer ma carte gratuite
@@ -351,39 +383,50 @@ export function FreeDraw() {
           </motion.div>
         )}
 
-        {/* ── REVEALING / READING ───────────────────────────────────── */}
-        {(phase === 'revealing' || phase === 'reading') && result && (
+        {/* ── REVEALING ─────────────────────────────────────────────── */}
+        {phase === 'revealing' && (
+          <motion.div key="revealing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex flex-col items-center gap-6">
+            <CardShimmer />
+            <motion.p
+              className="text-white/50 text-sm tracking-widest uppercase"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 1.2, repeat: Infinity }}
+            >
+              L'oracle consulte les étoiles…
+            </motion.p>
+          </motion.div>
+        )}
+
+        {/* ── READING ───────────────────────────────────────────────── */}
+        {phase === 'reading' && result && (
           <motion.div
             key="reading"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="space-y-5"
           >
-            {/* Card */}
             <div className="flex flex-col items-center gap-4">
               <CardFace
                 cardId={result.card_id}
                 cardName={result.card_nom_fr ?? result.card_id}
                 orientation={result.orientation}
-                revealed={phase === 'reading'}
+                revealed={true}
               />
-              {phase === 'reading' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                  className="text-center"
-                >
-                  <p className="font-serif text-xl font-semibold text-white">
-                    {result.card_nom_fr ?? result.card_id}
-                  </p>
-                  <p className="text-white/50 text-xs mt-1 tracking-widest uppercase">
-                    {result.orientation === 'upright' ? "À l'endroit" : 'Renversée'}
-                    {result.themes?.length ? ` · ${result.themes.slice(0, 2).join(' · ')}` : ''}
-                  </p>
-                </motion.div>
-              )}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                className="text-center"
+              >
+                <p className="font-serif text-xl font-semibold text-white">
+                  {result.card_nom_fr ?? result.card_id}
+                </p>
+                <p className="text-white/50 text-xs mt-1 tracking-widest uppercase">
+                  {result.orientation === 'upright' ? "À l'endroit" : 'Renversée'}
+                  {result.themes?.length ? ` · ${result.themes.slice(0, 2).join(' · ')}` : ''}
+                </p>
+              </motion.div>
             </div>
 
-            {/* Interprétation */}
-            {phase === 'reading' && result.interpretation && (
+            {result.interpretation && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
                 className="rounded-2xl border p-5 space-y-4"
@@ -411,49 +454,20 @@ export function FreeDraw() {
               </motion.div>
             )}
 
-            {/* Already drawn notice */}
             {alreadyDrawn && (
               <motion.p
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className="text-center text-white/40 text-xs"
               >
-                Tu as déjà tiré ta carte aujourd'hui. Reviens demain 🌙
+                Tirage du jour déjà effectué — voici ta carte d'aujourd'hui.
               </motion.p>
             )}
 
-            {/* CTA vers upsell */}
-            {phase === 'reading' && !alreadyDrawn && (
+            {!alreadyDrawn && (
               <motion.div
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-                className="space-y-3 pt-2"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
               >
-                <EmailCapture
-                  drawId={result.id}
-                  onDone={() => setPhase('upsell')}
-                />
-              </motion.div>
-            )}
-
-            {phase === 'reading' && alreadyDrawn && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
-                className="flex flex-col gap-3"
-              >
-                <button
-                  onClick={() => setPhase('upsell')}
-                  className="w-full h-12 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02]"
-                  style={{ background: 'linear-gradient(135deg, hsl(var(--mp-brand-violet)), hsl(var(--mp-brand-violet2)))' }}
-                  aria-label="Débloquer l'oracle complet"
-                >
-                  Débloquer l'oracle complet
-                </button>
-                <button
-                  onClick={() => setPhase('idle')}
-                  className="text-xs text-white/30 hover:text-white/50 transition-colors"
-                  aria-label="Retour"
-                >
-                  ← Retour
-                </button>
+                <EmailCapture onDone={() => setPhase('upsell')} />
               </motion.div>
             )}
           </motion.div>
@@ -461,8 +475,30 @@ export function FreeDraw() {
 
         {/* ── UPSELL ───────────────────────────────────────────────── */}
         {phase === 'upsell' && (
-          <motion.div key="upsell" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <UpsellModal cardName={result?.card_nom_fr} onClose={() => setPhase('reading')} />
+          <motion.div
+            key="upsell"
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="text-center space-y-5 py-4"
+          >
+            <Sparkles className="h-8 w-8 mx-auto" style={{ color: 'hsl(var(--mp-brand-gold))' }} />
+            <div>
+              <p className="font-serif text-xl font-semibold text-white mb-2">
+                Ton oracle t'attend
+              </p>
+              <p className="text-white/60 text-sm leading-relaxed max-w-xs mx-auto">
+                Crée ton compte gratuit pour accéder à l'oracle complet — tirages illimités, récit narratif, journal de bord.
+              </p>
+            </div>
+            <a
+              href="/auth"
+              className="inline-flex items-center gap-2 h-12 px-6 rounded-xl text-sm font-bold text-white transition-all duration-300 hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--mp-brand-violet)), hsl(var(--mp-brand-violet2)))', boxShadow: '0 8px 30px hsl(var(--mp-brand-violet) / 0.35)' }}
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
+              Créer mon compte gratuit
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+            <p className="text-white/30 text-xs">100 % gratuit · Sans carte bancaire</p>
           </motion.div>
         )}
 
@@ -470,3 +506,5 @@ export function FreeDraw() {
     </div>
   );
 }
+
+export default FreeDraw;

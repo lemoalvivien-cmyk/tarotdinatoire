@@ -4,12 +4,38 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* ── Float keyframe — fallback animation for TarotCard3D CSS mode ── */
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   33%       { transform: translateY(-8px) rotate(0.5deg); }
   66%       { transform: translateY(-4px) rotate(-0.3deg); }
 }
+
+/* ── Card shimmer loading ───────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.card-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(265 40% 12%) 0%,
+    hsl(265 55% 25% / 0.4) 50%,
+    hsl(265 40% 12%) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* ── Gold shimmer overlay ───────────────────────────────────────────── */
+@keyframes gold-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+
 
 
 
