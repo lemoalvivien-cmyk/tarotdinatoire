@@ -89,7 +89,7 @@ export default function Terms() {
                     </p>
                     <p>Pour exercer ce droit :</p>
                     <ul className="list-disc list-inside space-y-1">
-                      <li>Email : contact@tarotdivinatoire.app</li>
+                      <li>Email : contact@tarotdinatoire.fr</li>
                       <li>Ou depuis votre profil → "Gérer mon abonnement" → "Annuler"</li>
                     </ul>
                     <p className="font-medium">
