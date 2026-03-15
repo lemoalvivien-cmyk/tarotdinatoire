@@ -1336,6 +1336,100 @@ div[style*="fixed"] a[href*="lovable.dev"] {
 }
 
 /* ========================================
+   WCAG 2.2 AA — Accessibility System
+   ======================================== */
+
+/* Skip-link (always above everything) */
+.skip-link {
+  position: absolute;
+  top: -100vh;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: top 0.15s ease;
+  background: hsl(var(--mp-brand-gold));
+  color: hsl(var(--mp-bg-900));
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Global focus-visible: gold ring, 7:1 contrast */
+*:focus-visible {
+  outline: 2px solid hsl(var(--mp-brand-gold));
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Keyboard-only focus for buttons and cards */
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid hsl(var(--mp-brand-gold));
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px hsl(var(--mp-brand-gold) / 0.18);
+}
+
+/* Screen reader only helper */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Screen reader visible on focus */
+.sr-only.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Reduced motion: disable all non-essential animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Preserve essential spinners */
+  .animate-spin {
+    animation: spin 1s linear infinite !important;
+  }
+}
+
+/* High contrast text utility — minimum 7:1 (WCAG AAA) */
+.text-high-contrast {
+  color: hsl(0 0% 98%);
+  text-shadow: 0 1px 3px hsl(260 50% 5% / 0.6);
+}
+
+/* Accessible card focus ring (gold 3px) */
+.card-focus-ring:focus-visible {
+  outline: 3px solid hsl(var(--mp-brand-gold));
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 5px hsl(var(--mp-brand-gold) / 0.15),
+    var(--mp-shadow-glow-g);
+}
+
+/* ========================================
    PWA Mobile Optimizations
    ======================================== */
 
