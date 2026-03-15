@@ -1,99 +1,50 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTarotCards, useCardMap } from '@/hooks/useTarotCards';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { STALE_DAILY, rlsSafeRetry } from '@/queries/queryConfig';
-import {
-  Star,
-  Loader2,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  RefreshCw,
-} from 'lucide-react';
-import type { TarotReading, TarotInterpretation, DrawnCard } from '@/types/tarot';
-
-const PAGE_SIZE = 20;
+import { useReadingsQuery, PAGE_SIZE } from '@/queries/useReadingsQuery';
+import { Star, Search, ChevronLeft, ChevronRight, Sparkles, RefreshCw } from 'lucide-react';
+import { ListSkeleton } from '@/components/ui/skeleton';
 
 export default function Favorites() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: allCards } = useTarotCards();
-
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-
-  // O(1) card lookup via shared hook
   const cardMap = useCardMap(allCards);
 
-  // ─── Query ────────────────────────────────────────────────────────────────
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['readings', 'favorites', page],
-    queryFn: async () => {
-      const from = page * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase
-        .from('tarot_readings')
-        .select(
-          'id, user_id, spread_id, question, cards, ai_interpretation, user_notes, is_favorite, created_at',
-          { count: 'exact' },
-        )
-        .eq('is_favorite', true)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-      if (error) throw error;
-      const readings: TarotReading[] = (data || []).map(item => ({
-        id: item.id,
-        user_id: item.user_id,
-        spread_id: item.spread_id,
-        question: item.question,
-        cards: item.cards as unknown as DrawnCard[],
-        ai_interpretation: item.ai_interpretation as unknown as TarotInterpretation | null,
-        user_notes: item.user_notes,
-        is_favorite: item.is_favorite ?? false,
-        created_at: item.created_at,
-      }));
-      return { readings, total: count || 0 };
-    },
-    staleTime: STALE_DAILY,
-    retry: rlsSafeRetry,
-    placeholderData: (prev) => prev,
-  });
+  const { data, isLoading, error, refetch } = useReadingsQuery({ onlyFavorites: true, page });
+
+  const totalPages = Math.ceil((data?.total ?? 0) / PAGE_SIZE);
 
   // ─── Remove favorite — optimistic ────────────────────────────────────────
   const removeFavorite = useMutation({
-    mutationFn: async (readingId: string) => {
+    mutationFn: async (sessionId: string) => {
       const { error } = await supabase
-        .from('tarot_readings')
+        .from('reading_sessions')
         .update({ is_favorite: false })
-        .eq('id', readingId);
+        .eq('id', sessionId);
       if (error) throw error;
-      return readingId;
+      return sessionId;
     },
-    onMutate: async readingId => {
-      await queryClient.cancelQueries({ queryKey: ['readings', 'favorites', page] });
-      const previous = queryClient.getQueryData(['readings', 'favorites', page]);
-      queryClient.setQueryData(
-        ['readings', 'favorites', page],
-        (old: { readings: TarotReading[]; total: number } | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            readings: old.readings.filter(r => r.id !== readingId),
-            total: old.total - 1,
-          };
-        },
-      );
+    onMutate: async sessionId => {
+      const key = [/* qk.readings prefix */ 'readings', { onlyFavorites: true, page }];
+      await queryClient.cancelQueries({ queryKey: ['readings'] });
+      const previous = queryClient.getQueryData(key);
+      queryClient.setQueryData(key, (old: typeof data) => {
+        if (!old) return old;
+        return { ...old, rows: old.rows.filter(r => r.id !== sessionId), total: old.total - 1 };
+      });
       return { previous };
     },
-    onError: (_, __, context) => {
-      queryClient.setQueryData(['readings', 'favorites', page], context?.previous);
+    onError: (_, __, ctx) => {
+      queryClient.invalidateQueries({ queryKey: ['readings'] });
       toast.error('Impossible de mettre à jour le favori');
     },
     onSuccess: () => {
@@ -102,43 +53,42 @@ export default function Favorites() {
     },
   });
 
-  // ─── O(n) search using O(1) map lookup ────────────────────────────────────
-  const filteredReadings = useMemo(() => {
-    if (!data?.readings) return [];
-    if (!searchQuery.trim()) return data.readings;
+  // ─── O(n) search ──────────────────────────────────────────────────────────
+  const filteredItems = useMemo(() => {
+    const rows = data?.rows ?? [];
+    if (!searchQuery.trim()) return rows;
     const q = searchQuery.toLowerCase();
-    return data.readings.filter(reading => {
-      const firstCard = reading.cards[0];
-      const card = firstCard ? cardMap.get(firstCard.card_id) : null;
+    return rows.filter(item => {
+      const cards = Array.isArray(item.selected_cards) ? item.selected_cards as Array<{ card_id: string }> : [];
+      const card = cards[0] ? cardMap.get(cards[0].card_id) : null;
+      const result = item.reading_results?.[0];
       return (
         card?.nom_fr.toLowerCase().includes(q) ||
         card?.keywords_fr?.some(k => k.toLowerCase().includes(q)) ||
-        reading.ai_interpretation?.title?.toLowerCase().includes(q) ||
-        reading.ai_interpretation?.summary?.toLowerCase().includes(q) ||
-        reading.question?.toLowerCase().includes(q)
+        result?.interpretation?.summary?.toLowerCase().includes(q) ||
+        item.question?.toLowerCase().includes(q)
       );
     });
-  }, [data?.readings, searchQuery, cardMap]);
+  }, [data?.rows, searchQuery, cardMap]);
 
-  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
-
-  // ─── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground font-medium animate-pulse">
-              Chargement des favoris…
-            </p>
+        <div className="container mx-auto px-4 py-8 md:py-14">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="page-header">
+              <div className="page-header-icon" style={{ background: 'hsl(var(--color-favorite) / 0.15)', color: 'hsl(var(--color-favorite))' }}>
+                <Star className="h-7 w-7 icon-favorite" />
+              </div>
+              <h1 className="page-header-title">Mes Favoris</h1>
+            </div>
+            <ListSkeleton count={4} />
           </div>
         </div>
       </Layout>
     );
   }
 
-  // ─── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <Layout>
@@ -146,8 +96,7 @@ export default function Favorites() {
           <div className="max-w-md mx-auto text-center space-y-4">
             <p className="text-muted-foreground">Impossible de charger vos favoris</p>
             <Button variant="outline" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Réessayer
+              <RefreshCw className="h-4 w-4 mr-2" />Réessayer
             </Button>
           </div>
         </div>
@@ -159,15 +108,14 @@ export default function Favorites() {
     <Layout>
       <div className="container mx-auto px-4 py-8 md:py-14">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header — semantic .page-header */}
+          {/* Header */}
           <div className="page-header">
             <div className="page-header-icon" style={{ background: 'hsl(var(--color-favorite) / 0.15)', color: 'hsl(var(--color-favorite))' }}>
               <Star className="h-7 w-7 icon-favorite" />
             </div>
             <h1 className="page-header-title">Mes Favoris</h1>
             <p className="page-header-subtitle">
-              {data?.total ?? 0} tirage{(data?.total ?? 0) !== 1 ? 's' : ''} sauvegardé
-              {(data?.total ?? 0) !== 1 ? 's' : ''}
+              {data?.total ?? 0} tirage{(data?.total ?? 0) !== 1 ? 's' : ''} sauvegardé{(data?.total ?? 0) !== 1 ? 's' : ''}
             </p>
           </div>
 
@@ -185,79 +133,63 @@ export default function Favorites() {
           )}
 
           {/* Empty state */}
-          {filteredReadings.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <div className="p-12 rounded-2xl glass-mystic text-center space-y-4 animate-scale-in">
-              <div className="page-header-icon mx-auto">
-                <Sparkles className="h-7 w-7" />
-              </div>
+              <div className="page-header-icon mx-auto"><Sparkles className="h-7 w-7" /></div>
               <p className="text-foreground/80 font-medium">
-                {searchQuery
-                  ? `Aucun résultat pour « ${searchQuery} »`
-                  : "Aucun tirage favori pour l'instant"}
+                {searchQuery ? `Aucun résultat pour « ${searchQuery} »` : "Aucun tirage favori pour l'instant"}
               </p>
               {!searchQuery && (
                 <Button onClick={() => navigate('/app/new')} className="btn-mystic">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Faire un tirage
+                  <Sparkles className="mr-2 h-4 w-4" />Faire un tirage
                 </Button>
               )}
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredReadings.map(reading => {
-                const firstCard = reading.cards[0];
+              {filteredItems.map(item => {
+                const cards = Array.isArray(item.selected_cards) ? item.selected_cards as Array<{ card_id: string; orientation: string }> : [];
+                const firstCard = cards[0];
                 const card = firstCard ? cardMap.get(firstCard.card_id) : null;
+                const result = item.reading_results?.[0];
+
                 return (
                   <div
-                    key={reading.id}
+                    key={item.id}
                     className="history-item group"
-                    onClick={() => navigate(`/app/reading/${reading.id}`)}
+                    onClick={() => navigate(`/app/reading/${item.id}`)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/app/reading/${reading.id}`)}
-                    aria-label={`Voir le tirage favori du ${new Date(reading.created_at).toLocaleDateString('fr-FR')}`}
+                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/app/reading/${item.id}`)}
+                    aria-label={`Voir le tirage favori du ${new Date(item.created_at).toLocaleDateString('fr-FR')}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>
-                            {new Date(reading.created_at).toLocaleDateString('fr-FR', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
+                            {new Date(item.created_at).toLocaleDateString('fr-FR', {
+                              day: 'numeric', month: 'short', year: 'numeric',
                             })}
                           </span>
                           {card && (
                             <>
                               <span>·</span>
                               <span className="font-medium text-foreground">{card.nom_fr}</span>
-                              <span>
-                                ({firstCard?.orientation === 'upright' ? 'Endroit' : 'Renversée'})
-                              </span>
+                              <span>({firstCard?.orientation === 'upright' ? 'Endroit' : 'Renversée'})</span>
                             </>
                           )}
                         </div>
-                        {reading.question && (
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {reading.question}
-                          </p>
+                        {item.question && (
+                          <p className="text-sm font-medium text-foreground truncate">{item.question}</p>
                         )}
-                        {reading.ai_interpretation?.summary && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {reading.ai_interpretation.summary}
-                          </p>
+                        {result?.interpretation?.summary && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">{result.interpretation.summary}</p>
                         )}
                       </div>
-
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0"
-                        onClick={e => {
-                          e.stopPropagation();
-                          removeFavorite.mutate(reading.id);
-                        }}
-                        disabled={removeFavorite.isPending && removeFavorite.variables === reading.id}
+                        variant="ghost" size="icon" className="shrink-0"
+                        onClick={e => { e.stopPropagation(); removeFavorite.mutate(item.id); }}
+                        disabled={removeFavorite.isPending && removeFavorite.variables === item.id}
                         title="Retirer des favoris"
                       >
                         <Star className="h-4 w-4 icon-favorite group-hover:scale-110 transition-transform" />
@@ -272,26 +204,12 @@ export default function Favorites() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Précédent
+              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}>
+                <ChevronLeft className="h-4 w-4 mr-1" />Précédent
               </Button>
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {page + 1} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-              >
-                Suivant
-                <ChevronRight className="h-4 w-4 ml-1" />
+              <span className="text-sm text-muted-foreground tabular-nums">{page + 1} / {totalPages}</span>
+              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}>
+                Suivant<ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
           )}

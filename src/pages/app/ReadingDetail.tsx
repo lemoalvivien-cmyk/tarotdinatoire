@@ -1,239 +1,100 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * ReadingDetail — canonical detail page for /app/reading/:id
+ * Reads from reading_sessions + reading_results (unified model).
+ * Supports retry interpretation, notes (debounced), favorite toggle, delete.
+ */
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ReadingResult } from '@/components/tarot/ReadingResult';
 import { useTarotCards } from '@/hooks/useTarotCards';
+import { useReadingDetail } from '@/hooks/useReadingDetail';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  Loader2, 
-  Star, 
-  Trash2, 
-  ArrowLeft,
-  Calendar,
-  Save,
-  AlertTriangle
+import {
+  Loader2, Star, Trash2, ArrowLeft, Calendar, Save, AlertTriangle, Sparkles,
 } from 'lucide-react';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import type { TarotReading, DrawnCard } from '@/types/tarot';
-import type { FallbackInterpretationData } from '@/utils/tarotFallback';
 import { isEmptyInterpretation } from '@/utils/interpretationNormalizer';
+import type { TarotInterpretation, DrawnCard } from '@/types/tarot';
+import type { FallbackInterpretationData } from '@/utils/tarotFallback';
 
 export default function ReadingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data: allCards } = useTarotCards();
-  
+  const { query, toggleFavorite, saveNotes, deleteReading, updateInterpretation } = useReadingDetail(id);
+  const reading = query.data;
+
   const [userNotes, setUserNotes] = useState('');
   const [isNotesModified, setIsNotesModified] = useState(false);
-  const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch reading
-  const { data: reading, isLoading, error, refetch } = useQuery({
-    queryKey: ['reading', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tarot_readings')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      
-      // Parse the data to match our types
-      const parsedReading: TarotReading = {
-        id: data.id,
-        user_id: data.user_id,
-        spread_id: data.spread_id,
-        question: data.question,
-        cards: data.cards as unknown as DrawnCard[],
-        ai_interpretation: data.ai_interpretation as unknown as TarotReading['ai_interpretation'],
-        user_notes: data.user_notes,
-        is_favorite: data.is_favorite ?? false,
-        created_at: data.created_at,
-      };
-      
-      return parsedReading;
-    },
-    enabled: !!id,
-  });
-
-  // Initialize notes from reading
+  // Hydrate notes once
   useEffect(() => {
-    if (reading?.user_notes !== undefined) {
-      setUserNotes(reading.user_notes || '');
-    }
+    if (reading?.user_notes !== undefined) setUserNotes(reading.user_notes ?? '');
   }, [reading?.user_notes]);
+
+  // Debounced auto-save notes
+  useEffect(() => {
+    if (!isNotesModified) return;
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(() => {
+      saveNotes.mutate(userNotes, { onSuccess: () => setIsNotesModified(false) });
+    }, 800);
+    return () => { if (notesTimerRef.current) clearTimeout(notesTimerRef.current); };
+  }, [userNotes, isNotesModified]); // eslint-disable-line
 
   // Retry interpretation
   const handleRetryInterpretation = useCallback(async () => {
-    if (!reading || !id) return;
-    
+    if (!reading) return;
     setIsRetrying(true);
-    
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
+      if (!accessToken) { navigate('/auth'); return; }
 
-      if (!accessToken) {
-        toast.error('Session expirée. Veuillez vous reconnecter.');
-        navigate('/auth');
-        return;
-      }
-
-      // Call the interpretation edge function
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tarot-interpretation`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
           body: JSON.stringify({
             spread_id: reading.spread_id || 'one_card',
             question: reading.question || null,
-            cards: reading.cards,
+            cards: reading.selected_cards,
           }),
-        }
+        },
       );
 
       if (response.ok) {
-        const newInterpretation = await response.json();
-        
-        // Update the reading in the database
-        const { error: updateError } = await supabase
-          .from('tarot_readings')
-          .update({ ai_interpretation: newInterpretation })
-          .eq('id', id);
-
-        if (updateError) {
-          console.error('Update error:', updateError);
-          toast.error('Erreur lors de la mise à jour');
-        } else {
-          toast.success('Interprétation régénérée avec succès');
-          // Refetch the reading to get updated data
-          refetch();
-        }
+        const newInterp: TarotInterpretation = await response.json();
+        await updateInterpretation.mutateAsync(newInterp);
+        toast.success('Interprétation régénérée ✨');
       } else if (response.status === 429) {
         toast.error('Limite atteinte. Réessayez plus tard.');
       } else if (response.status === 401) {
-        toast.error('Session expirée.');
         navigate('/auth');
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Interpretation error:', errorData);
-        toast.error(errorData.message || 'Erreur lors de l\'interprétation');
+        toast.error('Erreur lors de l\'interprétation');
       }
-    } catch (error) {
-      console.error('Retry error:', error);
+    } catch {
       toast.error('Une erreur est survenue');
     } finally {
       setIsRetrying(false);
     }
-  }, [reading, id, navigate, refetch]);
+  }, [reading, navigate, updateInterpretation]);
 
-  // Debounced save for notes
-  const saveNotes = useCallback(async (notes: string) => {
-    if (!id) return;
-    
-    setIsSavingNotes(true);
-    try {
-      const { error } = await supabase
-        .from('tarot_readings')
-        .update({ user_notes: notes })
-        .eq('id', id);
-
-      if (error) throw error;
-      setIsNotesModified(false);
-    } catch (error) {
-      console.error('Error saving notes:', error);
-      toast.error('Erreur lors de la sauvegarde des notes');
-    } finally {
-      setIsSavingNotes(false);
-    }
-  }, [id]);
-
-  // Debounce effect
-  useEffect(() => {
-    if (!isNotesModified) return;
-
-    const timer = setTimeout(() => {
-      saveNotes(userNotes);
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [userNotes, isNotesModified, saveNotes]);
-
-  // Toggle favorite mutation
-  const toggleFavorite = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('tarot_readings')
-        .update({ is_favorite: !reading?.is_favorite })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onMutate: async () => {
-      // Optimistic update
-      await queryClient.cancelQueries({ queryKey: ['reading', id] });
-      const previous = queryClient.getQueryData(['reading', id]);
-      
-      queryClient.setQueryData(['reading', id], (old: TarotReading | undefined) => {
-        if (!old) return old;
-        return { ...old, is_favorite: !old.is_favorite };
-      });
-      
-      return { previous };
-    },
-    onError: (err, _, context) => {
-      queryClient.setQueryData(['reading', id], context?.previous);
-      toast.error('Erreur lors de la mise à jour');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['readings'] });
-    },
-  });
-
-  // Delete mutation
-  const deleteReading = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('tarot_readings')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Tirage supprimé');
-      queryClient.invalidateQueries({ queryKey: ['readings'] });
-      navigate('/app/history');
-    },
-    onError: () => {
-      toast.error('Erreur lors de la suppression');
-    },
-  });
-
-
-  if (isLoading) {
+  // ─── Loading ───────────────────────────────────────────────────────────────
+  if (query.isLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-[60vh]">
@@ -246,15 +107,26 @@ export default function ReadingDetail() {
     );
   }
 
-  if (error || !reading) {
+  // ─── Not found / Error ──────────────────────────────────────────────────────
+  if (query.error || !reading) {
+    const isNotFound = (query.error as Error)?.message === 'NOT_FOUND';
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16">
-          <div className="max-w-2xl mx-auto text-center space-y-4">
-            <p className="text-destructive">Tirage non trouvé</p>
+          <div className="max-w-2xl mx-auto text-center space-y-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/30 mx-auto">
+              <Sparkles className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-serif font-semibold text-foreground">
+              {isNotFound ? 'Ce tirage s\'est dissipé dans l\'éther…' : 'Les énergies sont troubles'}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {isNotFound
+                ? 'Ce tirage n\'existe pas ou a déjà été supprimé.'
+                : 'Une erreur est survenue lors du chargement.'}
+            </p>
             <Button variant="outline" onClick={() => navigate('/app/history')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour à l'historique
+              <ArrowLeft className="mr-2 h-4 w-4" />Retour à l'historique
             </Button>
           </div>
         </div>
@@ -262,8 +134,14 @@ export default function ReadingDetail() {
     );
   }
 
-  const drawnCards = reading.cards || [];
-  const needsRetry = isEmptyInterpretation(reading.ai_interpretation);
+  const drawnCards: DrawnCard[] = reading.selected_cards.map(sc => ({
+    card_id: sc.card_id,
+    orientation: sc.orientation,
+    position_key: sc.position_key,
+  }));
+
+  const needsRetry = isEmptyInterpretation(reading.interpretation);
+  const isFallback = reading.interpretation && '_meta' in (reading.interpretation as object);
 
   return (
     <Layout>
@@ -271,27 +149,18 @@ export default function ReadingDetail() {
         <div className="max-w-3xl mx-auto space-y-8">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/app/history')}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Historique
+            <Button variant="ghost" onClick={() => navigate('/app/history')} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />Historique
             </Button>
-            
             <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => toggleFavorite.mutate()}
+                variant="ghost" size="icon"
+                onClick={() => toggleFavorite.mutate(!reading.is_favorite)}
                 disabled={toggleFavorite.isPending}
+                title={reading.is_favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               >
-                <Star 
-                  className={`h-5 w-5 ${reading.is_favorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} 
-                />
+                <Star className={`h-5 w-5 transition-colors ${reading.is_favorite ? 'icon-favorite' : 'text-muted-foreground'}`} />
               </Button>
-              
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
@@ -308,10 +177,11 @@ export default function ReadingDetail() {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => deleteReading.mutate()}
+                      onClick={() => deleteReading.mutate(undefined, { onSuccess: () => navigate('/app/history') })}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={deleteReading.isPending}
                     >
-                      Supprimer
+                      {deleteReading.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Supprimer'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -323,12 +193,8 @@ export default function ReadingDetail() {
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
             <Calendar className="h-4 w-4" />
             {new Date(reading.created_at).toLocaleDateString('fr-FR', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+              hour: '2-digit', minute: '2-digit',
             })}
           </div>
 
@@ -340,48 +206,41 @@ export default function ReadingDetail() {
             </div>
           )}
 
-          {/* Fallback Warning Banner */}
-          {reading.ai_interpretation && '_meta' in (reading.ai_interpretation as any) && (
+          {/* Fallback banner */}
+          {isFallback && (
             <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               <AlertDescription className="text-amber-700 dark:text-amber-300">
-                <strong>Interprétation simplifiée</strong> – Ce tirage a été réalisé alors que nos tarologues n'étaient pas disponibles
-                {(reading.ai_interpretation as unknown as FallbackInterpretationData)._meta?.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
-                {(reading.ai_interpretation as unknown as FallbackInterpretationData)._meta?.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
-                . L'interprétation a été réalisée à partir des arcanes traditionnels.
+                <strong>Interprétation simplifiée</strong> – Ce tirage a été réalisé à partir des arcanes traditionnels.
+                {(reading.interpretation as unknown as FallbackInterpretationData)?._meta?.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
+                {(reading.interpretation as unknown as FallbackInterpretationData)?._meta?.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Reading Result with Cards + Interpretation */}
+          {/* Cards + Interpretation */}
           <ReadingResult
             cards={drawnCards}
-            interpretation={reading.ai_interpretation}
+            interpretation={reading.interpretation}
             allCards={allCards}
             onRetry={needsRetry ? handleRetryInterpretation : undefined}
             isRetrying={isRetrying}
           />
 
-          {/* User Notes */}
+          {/* Notes */}
           <div className="p-6 rounded-2xl glass-mystic shadow-soft space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-foreground">
-                Notes personnelles
-              </p>
-              {isSavingNotes && (
+              <p className="text-sm font-medium text-foreground">Notes personnelles</p>
+              {saveNotes.isPending && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Save className="h-3 w-3 animate-pulse" />
-                  Sauvegarde...
+                  <Save className="h-3 w-3 animate-pulse" />Sauvegarde...
                 </div>
               )}
             </div>
             <Textarea
               placeholder="Ajoutez vos réflexions, vos ressentis..."
               value={userNotes}
-              onChange={(e) => {
-                setUserNotes(e.target.value);
-                setIsNotesModified(true);
-              }}
+              onChange={e => { setUserNotes(e.target.value); setIsNotesModified(true); }}
               className="min-h-[120px] resize-none"
             />
           </div>
