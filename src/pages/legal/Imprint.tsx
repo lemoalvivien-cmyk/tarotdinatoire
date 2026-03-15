@@ -73,8 +73,8 @@ export default function Imprint() {
                     <p><strong>Directeur de la publication :</strong> Vivien Le Moal</p>
                     <p>
                       <strong>Contact :</strong>{' '}
-                      <a href="mailto:contact@tarotdivinatoire.app" className="text-primary hover:underline">
-                        contact@tarotdivinatoire.app
+                      <a href="mailto:contact@tarotdinatoire.fr" className="text-primary hover:underline">
+                        contact@tarotdinatoire.fr
                       </a>
                     </p>
                   </div>
