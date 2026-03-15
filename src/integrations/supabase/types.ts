@@ -604,29 +604,38 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_favorite: boolean
+          origin_id: string | null
           question: string | null
           seed: number | null
           selected_cards: Json
           spread_id: string
           user_id: string
+          user_notes: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          is_favorite?: boolean
+          origin_id?: string | null
           question?: string | null
           seed?: number | null
           selected_cards?: Json
           spread_id: string
           user_id: string
+          user_notes?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          is_favorite?: boolean
+          origin_id?: string | null
           question?: string | null
           seed?: number | null
           selected_cards?: Json
           spread_id?: string
           user_id?: string
+          user_notes?: string | null
         }
         Relationships: []
       }
