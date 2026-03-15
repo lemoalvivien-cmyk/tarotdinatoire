@@ -372,10 +372,12 @@ export type Database = {
           enable_ai_deep_analysis: boolean | null
           enable_audio_readings: boolean | null
           enable_billing: boolean | null
+          enable_monetization: boolean
           enable_relationship_analysis: boolean | null
           enable_shop: boolean | null
           enable_unlimited_readings: boolean | null
           enable_waitlist: boolean | null
+          flag_audit_log: Json
           id: number
           maintenance_mode: boolean | null
           updated_at: string
@@ -387,10 +389,12 @@ export type Database = {
           enable_ai_deep_analysis?: boolean | null
           enable_audio_readings?: boolean | null
           enable_billing?: boolean | null
+          enable_monetization?: boolean
           enable_relationship_analysis?: boolean | null
           enable_shop?: boolean | null
           enable_unlimited_readings?: boolean | null
           enable_waitlist?: boolean | null
+          flag_audit_log?: Json
           id?: number
           maintenance_mode?: boolean | null
           updated_at?: string
@@ -402,10 +406,12 @@ export type Database = {
           enable_ai_deep_analysis?: boolean | null
           enable_audio_readings?: boolean | null
           enable_billing?: boolean | null
+          enable_monetization?: boolean
           enable_relationship_analysis?: boolean | null
           enable_shop?: boolean | null
           enable_unlimited_readings?: boolean | null
           enable_waitlist?: boolean | null
+          flag_audit_log?: Json
           id?: number
           maintenance_mode?: boolean | null
           updated_at?: string
