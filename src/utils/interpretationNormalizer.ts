@@ -193,6 +193,8 @@ export function normalizeInterpretation(data: unknown): NormalizedInterpretation
     safetyLegal: DEFAULTS.safetyLegal,
     safetyFinancial: DEFAULTS.safetyFinancial,
     positionInterpretations: [],
+    synchroniciteQuestions: [],
+    messageTarologues: '',
     isTemplate: false,
     hasError: false,
   };
