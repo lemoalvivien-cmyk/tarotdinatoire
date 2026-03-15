@@ -403,11 +403,12 @@ const LandingFooter = forwardRef<HTMLElement>(function LandingFooter(_, ref) {
             <Sparkles className="h-5 w-5" style={{ color: gold }} aria-hidden="true" />
             <span className="font-serif text-base text-white/70">Tarot Dinatoire</span>
           </div>
+          <BetaBadge size="md" />
           <div className="flex flex-wrap justify-center gap-3" role="list" aria-label="Garanties">
             {[
-              { icon: CreditCard, label: 'Paiement sécurisé Stripe' },
               { icon: Shield, label: 'RGPD · Données protégées' },
-              { icon: Lock, label: 'Sans engagement' },
+              { icon: Lock, label: 'Accès 100% gratuit' },
+              { icon: Stars, label: 'Oracle éthéré pur' },
             ].map(({ icon: Icon, label }) => (
               <div key={label} role="listitem" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{ borderColor: surfaceBorder }}>
                 <Icon className="h-3.5 w-3.5" style={{ color: gold }} aria-hidden="true" />
