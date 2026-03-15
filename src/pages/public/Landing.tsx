@@ -563,7 +563,7 @@ export default function Landing() {
             >
               <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Données chiffrées</div>
               <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />Sans engagement</div>
-              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />Annulation en 1 clic</div>
+              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />Gratuit pendant la bêta</div>
             </motion.div>
           </div>
 

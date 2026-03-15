@@ -121,7 +121,7 @@ export default function Profile() {
       setTimeout(() => navigate('/', { replace: true }), 1500);
     } catch {
       setDeleteStep('idle');
-      toast.error('Impossible de supprimer votre compte. Contactez contact@tarotdivinatoire.app.');
+      toast.error("Impossible de supprimer votre compte. Contactez contact@tarotdinatoire.fr.");
     } finally {
       setDeleting(false);
     }
