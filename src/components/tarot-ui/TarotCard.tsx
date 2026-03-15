@@ -13,11 +13,13 @@ export interface TarotCardProps {
   onClick?: () => void;
   className?: string;
   flipDuration?: number;
+  /** Position label for accessibility (ex: "Présent", "Avenir") */
+  positionLabel?: string;
 }
 
 /**
- * Carte de Tarot avec flip 3D, hover lift, et états visuels
- * Inclut skeleton loading et fallback gracieux
+ * Carte de Tarot avec flip 3D WCAG-AA accessible
+ * aria-label dynamique · focus-visible or · skeleton shimmer doré
  */
 export function TarotCard({
   id,
@@ -29,40 +31,32 @@ export function TarotCard({
   onClick,
   className,
   flipDuration = 0.75,
+  positionLabel,
 }: TarotCardProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [justRevealed, setJustRevealed] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
-  // Preload image when URL changes
   useEffect(() => {
-    if (!imageUrl) {
-      setImageLoading(false);
-      return;
-    }
-
-    // Check if already loaded
-    if (isImageLoaded(imageUrl)) {
-      setImageLoading(false);
-      setImageError(false);
-      return;
-    }
-
+    if (!imageUrl) { setImageLoading(false); return; }
+    if (isImageLoaded(imageUrl)) { setImageLoading(false); setImageError(false); return; }
     setImageLoading(true);
     setImageError(false);
-
     preloadImage(imageUrl)
-      .then(() => {
-        setImageLoading(false);
-        setImageError(false);
-      })
-      .catch(() => {
-        setImageLoading(false);
-        setImageError(true);
-      });
+      .then(() => { setImageLoading(false); setImageError(false); })
+      .catch(() => { setImageLoading(false); setImageError(true); });
   }, [imageUrl]);
 
-  // Générer un gradient fallback unique basé sur l'id
+  // Gold shimmer on reveal
+  useEffect(() => {
+    if (isRevealed) {
+      setJustRevealed(true);
+      const t = setTimeout(() => setJustRevealed(false), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [isRevealed]);
+
   const fallbackGradient = useMemo(() => {
     const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const hue1 = (hash * 37) % 360;
@@ -73,16 +67,22 @@ export function TarotCard({
   const showFallback = !imageUrl || imageError;
   const showSkeleton = imageUrl && imageLoading && !imageError;
 
-  // Animation variants
+  // Accessible label
+  const ariaLabel = useMemo(() => {
+    const parts: string[] = [];
+    if (positionLabel) parts.push(`Position ${positionLabel}`);
+    parts.push(`Carte ${name}`);
+    if (isRevealed) parts.push('révélée');
+    if (isSelected) parts.push('sélectionnée');
+    if (isDisabled) parts.push('indisponible');
+    return parts.join(', ');
+  }, [name, isRevealed, isSelected, isDisabled, positionLabel]);
+
   const cardVariants = {
-    initial: { 
-      rotateY: 0,
-      y: 0,
-      scale: 1,
-    },
-    revealed: { 
+    initial: { rotateY: 0, y: 0, scale: 1 },
+    revealed: {
       rotateY: shouldReduceMotion ? 0 : 180,
-      transition: { 
+      transition: {
         duration: shouldReduceMotion ? 0.1 : flipDuration,
         ease: [0.34, 1.56, 0.64, 1] as const,
       },
@@ -92,10 +92,7 @@ export function TarotCard({
       scale: 1.02,
       transition: { duration: 0.2, ease: 'easeOut' as const },
     },
-    tap: {
-      scale: 0.98,
-      transition: { duration: 0.1 },
-    },
+    tap: { scale: 0.98, transition: { duration: 0.1 } },
   };
 
   return (
@@ -103,10 +100,12 @@ export function TarotCard({
       onClick={onClick}
       disabled={isDisabled}
       className={cn(
-        'relative aspect-[2/3] w-full cursor-pointer',
+        'relative aspect-[2/3] w-full cursor-pointer group',
         'perspective-1000',
-        'focus:outline-none focus-visible:ring-2',
-        'focus-visible:ring-mp-brand-violet focus-visible:ring-offset-2',
+        // WCAG 2.2 AA: visible gold ring, 3px offset
+        'focus:outline-none focus-visible:outline-none',
+        'focus-visible:ring-2 focus-visible:ring-offset-2',
+        'focus-visible:ring-mp-brand-gold',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
@@ -116,9 +115,13 @@ export function TarotCard({
       whileHover={!isDisabled ? 'hover' : undefined}
       whileTap={!isDisabled ? 'tap' : undefined}
       style={{ transformStyle: 'preserve-3d' }}
-      aria-label={`Carte ${name}${isRevealed ? ' (révélée)' : ''}`}
+      aria-label={ariaLabel}
+      aria-pressed={isSelected}
+      aria-disabled={isDisabled}
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
     >
-      {/* Glow effect */}
+      {/* Glow effect (aria-hidden) */}
       <div
         className={cn(
           'absolute inset-0 rounded-xl transition-all duration-300 -z-10',
@@ -127,107 +130,107 @@ export function TarotCard({
           !isSelected && !isDisabled && 'group-hover:opacity-40'
         )}
         style={{
-          background: isSelected 
-            ? 'hsl(var(--mp-brand-gold))' 
+          background: isSelected
+            ? 'hsl(var(--mp-brand-gold))'
             : 'hsl(var(--mp-brand-violet))',
           transform: 'scale(1.1)',
         }}
+        aria-hidden="true"
       />
 
-      {/* Card face - Back */}
+      {/* Card Back */}
       <div
         className={cn(
           'absolute inset-0 rounded-xl overflow-hidden',
           'backface-hidden transform-style-3d',
           'border-2 transition-colors duration-300',
-          isSelected 
-            ? 'border-mp-brand-gold shadow-mp-glow-g' 
+          isSelected
+            ? 'border-mp-brand-gold shadow-mp-glow-g'
             : 'border-mp-surface-border shadow-mp-card'
         )}
-        style={{ 
-          backfaceVisibility: 'hidden',
-        }}
+        style={{ backfaceVisibility: 'hidden' }}
+        aria-hidden="true"
       >
-        {/* Back design */}
-        <div 
+        <div
           className="absolute inset-0"
           style={{
             background: 'linear-gradient(135deg, hsl(var(--mp-bg-700)), hsl(var(--mp-bg-900)))',
           }}
         >
-          {/* Decorative pattern */}
           <div className="absolute inset-0 opacity-20">
-            <svg className="w-full h-full" viewBox="0 0 100 150" fill="none">
+            <svg className="w-full h-full" viewBox="0 0 100 150" fill="none" aria-hidden="true">
               <circle cx="50" cy="75" r="35" stroke="currentColor" strokeWidth="0.5" className="text-mp-brand-gold" />
               <circle cx="50" cy="75" r="25" stroke="currentColor" strokeWidth="0.3" className="text-mp-brand-violet" />
-              <path 
-                d="M50 30 L55 65 L85 75 L55 85 L50 120 L45 85 L15 75 L45 65 Z" 
-                stroke="currentColor" 
-                strokeWidth="0.5" 
+              <path
+                d="M50 30 L55 65 L85 75 L55 85 L50 120 L45 85 L15 75 L45 65 Z"
+                stroke="currentColor"
+                strokeWidth="0.5"
                 fill="none"
                 className="text-mp-brand-gold"
               />
             </svg>
           </div>
-          {/* Center symbol */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl opacity-30">✦</span>
+            <span className="text-4xl opacity-30" aria-hidden="true">✦</span>
           </div>
         </div>
       </div>
 
-      {/* Card face - Front (revealed) */}
+      {/* Card Front (revealed) */}
       <div
         className={cn(
           'absolute inset-0 rounded-xl overflow-hidden',
           'backface-hidden transform-style-3d',
           'border-2 transition-colors duration-300',
-          isSelected 
-            ? 'border-mp-brand-gold shadow-mp-glow-g' 
+          isSelected
+            ? 'border-mp-brand-gold shadow-mp-glow-g'
             : 'border-mp-surface-border shadow-mp-card'
         )}
-        style={{ 
-          backfaceVisibility: 'hidden',
-          transform: 'rotateY(180deg)',
-        }}
+        style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
       >
-        {/* Skeleton loading state */}
+        {/* Skeleton loading */}
         {showSkeleton && (
-          <div 
+          <div
             className="absolute inset-0 flex flex-col items-center justify-center"
             style={{ background: fallbackGradient }}
+            aria-label={`Chargement de la carte ${name}`}
+            role="img"
           >
-            {/* Shimmer animation */}
             <div className="absolute inset-0 overflow-hidden">
-              <div 
-                className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite]"
+              <motion.div
+                className="absolute inset-0 -translate-x-full"
                 style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+                  background:
+                    'linear-gradient(90deg, transparent, hsl(var(--mp-brand-gold) / 0.15), transparent)',
                 }}
+                animate={shouldReduceMotion ? {} : { x: ['-100%', '300%'] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'linear' }}
+                aria-hidden="true"
               />
             </div>
-            {/* Loading indicator */}
             <div className="relative z-10 flex flex-col items-center gap-3">
-              <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white/60 animate-spin" />
+              <div
+                className="w-8 h-8 rounded-full border-2 animate-spin"
+                style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.2)', borderTopColor: 'hsl(var(--mp-brand-gold) / 0.7)' }}
+                aria-hidden="true"
+              />
               <span className="text-white/60 text-xs">Chargement...</span>
             </div>
           </div>
         )}
 
-        {/* Fallback state (no image or error) */}
+        {/* Fallback */}
         {showFallback && !showSkeleton && (
-          <div 
+          <div
             className="absolute inset-0 flex flex-col items-center justify-center p-4"
             style={{ background: fallbackGradient }}
+            role="img"
+            aria-label={name}
           >
-            {/* Decorative symbol */}
             <div className="flex-1 flex items-center justify-center">
-              <span className="text-5xl text-white/40">✦</span>
+              <span className="text-5xl text-white/40" aria-hidden="true">✦</span>
             </div>
-            {/* Card name */}
-            <span className="text-center font-serif text-sm text-white/80 mb-4">
-              {name}
-            </span>
+            <span className="text-center font-serif text-sm text-white/80 mb-4">{name}</span>
           </div>
         )}
 
@@ -241,13 +244,26 @@ export function TarotCard({
           />
         )}
 
-        {/* Name overlay (only when image is loaded) */}
+        {/* Name overlay */}
         {!showFallback && !showSkeleton && (
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-            <span className="text-white font-serif text-sm truncate block text-center">
-              {name}
-            </span>
+            <span className="text-white font-serif text-sm truncate block text-center">{name}</span>
           </div>
+        )}
+
+        {/* Gold shimmer on reveal */}
+        {justRevealed && !shouldReduceMotion && (
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(135deg, transparent 20%, hsl(var(--mp-brand-gold) / 0.35) 50%, transparent 80%)',
+            }}
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 1.2, delay: 0.2 }}
+            aria-hidden="true"
+          />
         )}
       </div>
     </motion.button>

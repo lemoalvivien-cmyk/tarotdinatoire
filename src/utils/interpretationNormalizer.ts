@@ -40,7 +40,7 @@ interface LegacyInterpretation {
   };
 }
 
-// New format from edge function
+// New format from edge function — 4 storytelling sections
 interface NewInterpretation {
   resume_court?: string;
   interpretation_par_position?: Array<{
@@ -50,7 +50,9 @@ interface NewInterpretation {
     message?: string;
   }>;
   message_global?: string;
+  questions_synchronicite?: string[];
   actions_concretes?: string[];
+  message_tarologues?: string;
   limites_ethiques?: string;
 }
 
@@ -89,6 +91,10 @@ export interface NormalizedInterpretation {
     orientation: string;
     message: string;
   }>;
+  /** Questions for "Synchronicité du jour" section */
+  synchroniciteQuestions: string[];
+  /** Inspirational quote from the 30 tarot traditions */
+  messageTarologues: string;
   isTemplate: boolean;
   templateReason?: string;
   hasError: boolean;
@@ -187,6 +193,8 @@ export function normalizeInterpretation(data: unknown): NormalizedInterpretation
     safetyLegal: DEFAULTS.safetyLegal,
     safetyFinancial: DEFAULTS.safetyFinancial,
     positionInterpretations: [],
+    synchroniciteQuestions: [],
+    messageTarologues: '',
     isTemplate: false,
     hasError: false,
   };
@@ -269,6 +277,14 @@ export function normalizeInterpretation(data: unknown): NormalizedInterpretation
       
       // Actions become advice
       result.advice = safeStringArray(newData.actions_concretes, DEFAULTS.advice);
+
+      // Synchronicité questions
+      result.synchroniciteQuestions = safeStringArray(newData.questions_synchronicite, []);
+
+      // Message des tarologues
+      if (newData.message_tarologues) {
+        result.messageTarologues = safeString(newData.message_tarologues, '');
+      }
       
       // Ethics become safety
       if (newData.limites_ethiques) {
