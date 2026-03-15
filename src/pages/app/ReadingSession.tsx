@@ -249,6 +249,7 @@ export default function ReadingSession() {
         }
 
         setInterpretation(interpretationData);
+        triggerConfettiIfFirst(interpretationData);
       } catch (error) {
         console.error('Interpretation error:', error);
         
