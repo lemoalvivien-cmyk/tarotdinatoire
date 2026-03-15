@@ -337,12 +337,13 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
           >
             {label}
           </button>
-          <p className="text-center text-xs text-white/35 mt-2">1 tirage gratuit · Annulation en 1 clic</p>
+          <p className="text-center text-xs text-white/35 mt-2">Gratuit · Guidance pure &amp; éthérée</p>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
+
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 function LandingHeader({ ctaHref }: { ctaHref: string }) {
