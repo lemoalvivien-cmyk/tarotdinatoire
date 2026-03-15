@@ -15,13 +15,14 @@ export interface FeatureFlags {
   enable_ai_deep_analysis: boolean;
   enable_audio_readings: boolean;
   enable_relationship_analysis: boolean;
+  // Global monetization switch — false = pure free beta mode
+  enable_monetization: boolean;
 }
 
 /**
  * Hook to fetch all feature flags - REQUIRES ADMIN ROLE
- * This should only be used in admin contexts where the user has admin role
- * For public config (maintenance_mode, app_version), use usePublicConfig instead
- * Regular authenticated users will get RLS errors - this is by design
+ * For public config (maintenance_mode), use usePublicConfig instead.
+ * Regular authenticated users will get RLS errors — this is by design.
  */
 export function useFeatureFlags() {
   return useQuery({
@@ -29,15 +30,12 @@ export function useFeatureFlags() {
     queryFn: async (): Promise<FeatureFlags> => {
       const { data, error } = await supabase
         .from('feature_flags')
-        .select('id, maintenance_mode, enable_billing, enable_waitlist, enable_shop, admin_bootstrap_used, updated_at, enable_unlimited_readings, enable_advanced_spreads, enable_ai_deep_analysis, enable_audio_readings, enable_relationship_analysis')
+        .select('id, maintenance_mode, enable_billing, enable_waitlist, enable_shop, admin_bootstrap_used, updated_at, enable_unlimited_readings, enable_advanced_spreads, enable_ai_deep_analysis, enable_audio_readings, enable_relationship_analysis, enable_monetization')
         .eq('id', 1)
         .single();
 
       if (error) {
-        // Non-admin users will get RLS 42501 — this is expected, not an error
-        if (error.code === '42501' || error.code === 'PGRST116') {
-          throw error; // silently rethrow to trigger retry: false
-        }
+        if (error.code === '42501' || error.code === 'PGRST116') throw error;
         console.error('[useFeatureFlags] Unexpected error:', error);
         throw error;
       }
@@ -45,6 +43,6 @@ export function useFeatureFlags() {
     },
     staleTime: 30000,
     refetchOnWindowFocus: true,
-    retry: false, // Prevents RLS-denied spam for non-admin users
+    retry: false,
   });
 }
