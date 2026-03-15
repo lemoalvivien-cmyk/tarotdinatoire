@@ -968,7 +968,7 @@ export default function Landing() {
             <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12" onClick={() => navigate(ctaHref)}>
               Commencer mon premier rituel
             </MysticButton>
-            <p className="text-white/25 text-xs mt-5">Sans engagement · Annulation en 1 clic</p>
+            <p className="text-white/25 text-xs mt-5">Sans engagement · Gratuit pendant la bêta</p>
           </SectionReveal>
         </div>
       </section>
