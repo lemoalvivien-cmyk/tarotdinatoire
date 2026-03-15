@@ -496,8 +496,9 @@ export default function Landing() {
             >
               Essaie ton premier rituel{' '}
               <span className="text-white font-semibold">gratuit maintenant.</span>{' '}
-              Ensuite, accès illimité à l'oracle complet.
+              L'oracle narratif se souvient de vous — tirage après tirage.
             </motion.p>
+
 
             {/* Social proof inline */}
             <motion.div
