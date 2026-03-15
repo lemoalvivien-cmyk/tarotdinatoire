@@ -1,15 +1,30 @@
 project_id = "kjxsjxtrfbsvxdbyamgi"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# PUBLIC FUNCTIONS — no JWT required (public endpoints, webhooks, free-draw)
+# ─────────────────────────────────────────────────────────────────────────────
+[functions.public-config]
+verify_jwt = false
+
+[functions.free-draw]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.og-share]
+verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AUTHENTICATED FUNCTIONS — JWT validated in-code via supabase.auth.getUser()
+# ─────────────────────────────────────────────────────────────────────────────
 [functions.tarot-interpretation]
 verify_jwt = false
 
 [functions.bootstrap-admin]
-verify_jwt = false
-
-[functions.public-config]
-verify_jwt = false
-
-[functions.unsubscribe]
 verify_jwt = false
 
 [functions.create-checkout]
@@ -21,13 +36,7 @@ verify_jwt = false
 [functions.customer-portal]
 verify_jwt = false
 
-[functions.stripe-webhook]
-verify_jwt = false
-
 [functions.synchronicity-engine]
-verify_jwt = false
-
-[functions.og-share]
 verify_jwt = false
 
 [functions.daily-draw]
@@ -53,4 +62,3 @@ verify_jwt = false
 
 [functions.generate-insight]
 verify_jwt = false
-
