@@ -208,9 +208,9 @@ export default function ReadingDetail() {
 
           {/* Fallback banner */}
           {isFallback && (
-            <Alert variant="default" className="border-amber-500/50 bg-amber-500/10">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <AlertDescription className="text-amber-700 dark:text-amber-300">
+            <Alert variant="default" className="border-warning/50 bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription className="text-warning-foreground">
                 <strong>Interprétation simplifiée</strong> – Ce tirage a été réalisé à partir des arcanes traditionnels.
                 {(reading.interpretation as unknown as FallbackInterpretationData)?._meta?.reason === 'INSUFFICIENT_BALANCE' && ' (crédits épuisés)'}
                 {(reading.interpretation as unknown as FallbackInterpretationData)?._meta?.reason === 'RATE_LIMITED' && ' (limite quotidienne atteinte)'}
