@@ -6,8 +6,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const ALLOWED_ORIGINS = [
-  'https://tarotdinatoire.lovable.app',
   'https://tarotdinatoire.fr',
+  'https://www.tarotdinatoire.fr',
+  'https://tarotdinatoire.lovable.app',
   'https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app',
   'http://localhost:5173',
   'http://localhost:8080',
