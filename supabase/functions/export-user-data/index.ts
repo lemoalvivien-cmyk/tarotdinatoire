@@ -63,7 +63,6 @@ Deno.serve(async (req) => {
     const [
       profileRes,
       sessionsRes,
-      resultsRes,
       dailyDrawsRes,
       consentLogsRes,
       karmaRes,
@@ -75,7 +74,6 @@ Deno.serve(async (req) => {
     ] = await Promise.all([
       admin.from('profiles').select('*').eq('id', uid).maybeSingle(),
       admin.from('reading_sessions').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(1000),
-      admin.from('reading_results').select('rr.*').from('reading_results as rr').innerJoin('reading_sessions as rs', 'rr.session_id', 'rs.id').eq('rs.user_id', uid).limit(1000),
       admin.from('daily_draws').select('*').eq('user_id', uid).order('draw_date', { ascending: false }).limit(365),
       admin.from('consent_logs').select('id, anon_id, choices, created_at, updated_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(100),
       admin.from('user_karma').select('*').eq('user_id', uid).maybeSingle(),
