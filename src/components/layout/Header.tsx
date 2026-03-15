@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame, Map } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { BetaBadge } from '@/components/layout/BetaBadge';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;

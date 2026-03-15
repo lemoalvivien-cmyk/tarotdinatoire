@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, Heart, Shield, CreditCard } from 'lucide-react';
+import { Sparkles, Shield } from 'lucide-react';
+import { BetaBadge } from '@/components/layout/BetaBadge';
 
 export function Footer() {
   return (
