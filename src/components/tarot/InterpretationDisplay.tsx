@@ -241,7 +241,7 @@ export function InterpretationDisplay({
       </StorySection>
 
       {/* ── Section 3 · Synchronicité du jour ───────────────────── */}
-      {data.reflectionQuestions.length > 0 && (
+      {(data.synchroniciteQuestions.length > 0 || data.reflectionQuestions.length > 0) && (
         <StorySection
           icon={<Sparkles className="h-5 w-5" aria-hidden="true" />}
           title="Synchronicité du jour"
@@ -253,9 +253,9 @@ export function InterpretationDisplay({
             Les questions que les étoiles vous posent en retour…
           </p>
           <ul className="space-y-3" role="list">
-            {data.reflectionQuestions.map((q, i) => (
+            {(data.synchroniciteQuestions.length > 0 ? data.synchroniciteQuestions : data.reflectionQuestions).map((q, i) => (
               <li key={i} className="flex items-start gap-3 text-foreground">
-              <span
+                <span
                   className="flex-shrink-0 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold mt-0.5 bg-mp-brand-gold/15 text-mp-brand-gold"
                   aria-hidden="true"
                 >
