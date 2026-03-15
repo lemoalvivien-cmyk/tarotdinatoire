@@ -49,6 +49,16 @@ export default function ReadingSession() {
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [hasTrackedView, setHasTrackedView] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Fire confetti only on brand-new AI interpretations (not template fallbacks)
+  const triggerConfettiIfFirst = (interp: TarotInterpretation | TemplateInterpretationData) => {
+    const isTemplate = '_meta' in interp;
+    if (!isTemplate && !localStorage.getItem('first_draw_confetti_done')) {
+      setShowConfetti(true);
+      localStorage.setItem('first_draw_confetti_done', '1');
+    }
+  };
 
   // Fetch session
   const { data: session, isLoading: sessionLoading, error: sessionError } = useQuery({
