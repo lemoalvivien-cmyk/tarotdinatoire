@@ -4,11 +4,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // ── Zero Trust CORS allowlist — no wildcard ────────────────────
 const ALLOWED_ORIGINS = [
+  "https://tarotdinatoire.fr",
+  "https://www.tarotdinatoire.fr",
   "https://tarotdinatoire.lovable.app",
   "https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app",
   "http://localhost:5173",
   "http://localhost:8080",
 ];
+// Canonical production URL — NEVER use req.headers.get("origin") for redirects
+const APP_URL = "https://tarotdinatoire.fr";
 function buildCorsHeaders(origin: string | null): Record<string, string> {
   const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
