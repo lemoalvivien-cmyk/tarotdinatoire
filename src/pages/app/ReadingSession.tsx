@@ -373,6 +373,13 @@ export default function ReadingSession() {
 
   return (
     <Layout>
+      {/* 🌟 Star confetti — first successful draw only */}
+      {showConfetti && (
+        <StarConfetti
+          onDone={() => setShowConfetti(false)}
+          starCount={70}
+        />
+      )}
       <MysticBackground className="min-h-screen py-8 md:py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-8">
