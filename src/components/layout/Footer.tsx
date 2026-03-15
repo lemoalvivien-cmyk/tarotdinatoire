@@ -16,56 +16,32 @@ export function Footer() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Fait et développé avec le savoir-faire d'une trentaine de Tarologues professionnels.
             </p>
-            <div className="flex items-center gap-2 text-xs text-primary">
-              <CreditCard className="h-4 w-4" />
-              <span className="font-medium">3,90€/mois · Sans engagement</span>
-            </div>
+            <BetaBadge size="sm" />
           </div>
 
           {/* Links */}
           <div className="space-y-4">
             <h3 className="font-serif text-base font-semibold">Navigation</h3>
             <nav className="flex flex-col gap-2">
-              <Link 
-                to="/disclaimer" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/disclaimer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 À propos du service
               </Link>
-              <Link 
-                to="/legal/imprint" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/legal/imprint" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Mentions légales
               </Link>
-              <Link 
-                to="/legal/privacy" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/legal/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Politique de confidentialité
               </Link>
-              <Link 
-                to="/legal/cookies" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/legal/cookies" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Politique cookies
               </Link>
-              <Link 
-                to="/legal/terms" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/legal/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 CGU
               </Link>
-              <Link 
-                to="/legal/rights" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/legal/rights" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Exercer mes droits
               </Link>
-              <Link 
-                to="/status" 
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
+              <Link to="/status" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 État du service
               </Link>
             </nav>
@@ -75,8 +51,8 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-serif text-base font-semibold">Information importante</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Ce service est destiné à la guidance et à l'introspection personnelle uniquement. 
-              Les interprétations fournies ne constituent pas des conseils médicaux, juridiques 
+              Ce service est destiné à la guidance et à l'introspection personnelle uniquement.
+              Les interprétations fournies ne constituent pas des conseils médicaux, juridiques
               ou financiers.
             </p>
           </div>
@@ -90,7 +66,7 @@ export function Footer() {
             </p>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Shield className="h-3 w-3 text-primary" />
-              Paiement sécurisé par Stripe
+              Données sécurisées · RGPD
             </p>
           </div>
         </div>
