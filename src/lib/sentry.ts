@@ -37,11 +37,15 @@ export function initSentry() {
     // PII scrubbing at the event level
     beforeSend(event) {
       // Scrub breadcrumbs
-      if (event.breadcrumbs?.values) {
-        event.breadcrumbs.values = event.breadcrumbs.values.map(b => ({
-          ...b,
-          message: b.message ? redactPII(b.message) : b.message,
-        }));
+      const bv = event.breadcrumbs?.values;
+      if (Array.isArray(bv)) {
+        event.breadcrumbs = {
+          ...event.breadcrumbs,
+          values: bv.map(b => ({
+            ...b,
+            message: b.message ? redactPII(b.message) : b.message,
+          })),
+        };
       }
       // Scrub exception values
       event.exception?.values?.forEach(ex => {
