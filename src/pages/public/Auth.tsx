@@ -286,9 +286,6 @@ export default function Auth() {
             <a href="/legal/terms" className="text-primary hover:underline">CGV</a>
             {' '}et notre{' '}
             <a href="/legal/privacy" className="text-primary hover:underline">politique de confidentialité</a>.
-            {mode === 'signup' && (
-              <span className="block mt-2">Vous serez redirigé vers Stripe pour le paiement sécurisé.</span>
-            )}
           </p>
         </div>
       </div>
