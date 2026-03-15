@@ -277,6 +277,14 @@ export function normalizeInterpretation(data: unknown): NormalizedInterpretation
       
       // Actions become advice
       result.advice = safeStringArray(newData.actions_concretes, DEFAULTS.advice);
+
+      // Synchronicité questions
+      result.synchroniciteQuestions = safeStringArray(newData.questions_synchronicite, []);
+
+      // Message des tarologues
+      if (newData.message_tarologues) {
+        result.messageTarologues = safeString(newData.message_tarologues, '');
+      }
       
       // Ethics become safety
       if (newData.limites_ethiques) {
