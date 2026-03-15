@@ -453,24 +453,16 @@ export default function Landing() {
   const ctaHref = user ? '/app' : '/tirage-gratuit';
   const ctaLabel = user ? 'Accéder à mon oracle' : 'Tirer ma carte gratuite';
 
+  // ── FAQ — version bêta gratuite, pas de mention d'abonnement ─────────────
   const FAQ_ITEMS = [
     { q: "Est-ce vraiment différent d'une application de tarot classique ?", a: "Oui. Tarot Dinatoire mémorise chaque tirage pour construire votre profil unique. L'oracle analyse vos récurrences, détecte vos patterns émotionnels et génère un récit narratif sur vos 30-90 derniers jours. Aucune app de tarot ne fait ça." },
     { q: "Il faut croire au tarot pour en bénéficier ?", a: "Non. Beaucoup d'utilisateurs abordent le tarot comme un outil de réflexion psychologique, pas de divination. Les cartes sont un miroir symbolique : elles révèlent ce que vous projetez sur elles. C'est une pratique de connaissance de soi." },
-    { q: "Comment fonctionne l'abonnement ?", a: "3,90€/mois TTC, sans engagement. Vous pouvez résilier à tout moment en un clic depuis votre profil. Aucune reconduction cachée, aucun frais supplémentaire. Paiement sécurisé via Stripe." },
+    { q: "C'est vraiment gratuit ?", a: "Oui, intégralement gratuit pendant la phase bêta. Créez votre compte, tirez vos cartes, accédez à l'oracle narratif IA — sans aucune carte bancaire. Nous croyons que la guidance doit être accessible à tous." },
     { q: "Mes données personnelles sont-elles protégées ?", a: "Vos données sont chiffrées, hébergées en Europe et jamais revendues. Conformité RGPD complète. Vous pouvez demander leur suppression à tout moment depuis votre profil." },
-    { q: "Puis-je tester avant de payer ?", a: "Oui ! Vous avez droit à 1 tirage gratuit par jour, sans compte requis. L'abonnement à 3,90€/mois débloque le rituel quotidien illimité, l'oracle narratif IA et tous les tirages avancés." },
+    { q: "Combien de tirages puis-je faire par jour ?", a: "Le rituel quotidien offre une carte profonde chaque matin. Pour les tirages avancés (Croix Celtique, Chemin de Vie…), vous pouvez consulter librement. L'oracle apprend à vous connaître à chaque session." },
   ];
 
-  const PRICING_FEATURES = [
-    'Rituel quotidien — illimité',
-    'Oracle narratif IA personnalisé',
-    '10+ tirages avancés inclus',
-    'Journal de vie avec mémoire',
-    'Profil énergétique dynamique',
-    'Détection de synchronicités',
-    'Analyse astrologique intégrée',
-    'Accès prioritaire aux nouveautés',
-  ];
+
 
   return (
     <div
