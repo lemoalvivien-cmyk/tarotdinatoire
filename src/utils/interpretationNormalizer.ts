@@ -91,6 +91,10 @@ export interface NormalizedInterpretation {
     orientation: string;
     message: string;
   }>;
+  /** Questions for "Synchronicité du jour" section */
+  synchroniciteQuestions: string[];
+  /** Inspirational quote from the 30 tarot traditions */
+  messageTarologues: string;
   isTemplate: boolean;
   templateReason?: string;
   hasError: boolean;
