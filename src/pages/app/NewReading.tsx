@@ -323,32 +323,32 @@ export default function NewReading() {
         toast.error(errorData.message || 'Erreur lors de l\'interprétation');
       }
 
-      const { data: newReading, error: saveError } = await supabase
-        .from('tarot_readings')
+      // ── Save session (canonical unified model) ──────────────────────────
+      const { data: newSession, error: sessionError } = await supabase
+        .from('reading_sessions')
         .insert({
           user_id: user.id,
           spread_id: selectedSpreadId,
           question: question || null,
-          cards: cardsToSave,
-          ai_interpretation: interpretation,
+          selected_cards: cardsToSave,
         })
         .select('id')
         .single();
 
-      if (saveError) {
-        console.error('Save error:', saveError);
+      if (sessionError) {
+        console.error('Save session error:', sessionError);
         toast.error('Erreur lors de la sauvegarde');
         setIsInterpreting(false);
         return;
       }
 
-      // Decrement credit for free users after successful save
-      if (!isPremium) {
-        await supabase.rpc('decrement_reading_credit', { uid: user.id });
-        refreshSubscription();
+      // Save result if we have an interpretation
+      if (interpretation) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await supabase.from('reading_results').insert([{ session_id: newSession.id, interpretation } as any]);
       }
 
-      navigate(`/app/reading/${newReading.id}`);
+      navigate(`/app/reading/${newSession.id}`);
     } catch (error) {
       toast.error('Une erreur est survenue. Veuillez réessayer.');
       setIsInterpreting(false);
