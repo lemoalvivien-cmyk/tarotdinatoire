@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { MysticButton } from '@/components/mystic';
+import { StarfieldCanvas } from '@/components/mystic/StarfieldCanvas';
 import { motion, useReducedMotion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { FreeDraw } from '@/components/free-draw/FreeDraw';
 import { BetaBadge } from '@/components/layout/BetaBadge';
