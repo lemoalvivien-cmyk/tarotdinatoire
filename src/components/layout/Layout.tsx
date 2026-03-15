@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt';
+import { StarfieldCanvas } from '@/components/mystic/StarfieldCanvas';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,20 +21,24 @@ export function Layout({ children, showFooter = true }: LayoutProps) {
         Aller au contenu principal
       </a>
 
-      {/* Subtle starfield background */}
-      <div className="fixed inset-0 starfield opacity-30 pointer-events-none" style={{ zIndex: -1 }} aria-hidden="true" />
-      
-      {/* Mist overlay at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 h-64 mist-overlay pointer-events-none" style={{ zIndex: -1 }} aria-hidden="true" />
-      
+      {/* Starfield — always behind everything via z-index: -1 */}
+      <StarfieldCanvas />
+
+      {/* Mist overlay at bottom — behind content */}
+      <div
+        className="fixed bottom-0 left-0 right-0 h-64 mist-overlay pointer-events-none"
+        style={{ zIndex: 0 }}
+        aria-hidden="true"
+      />
+
       <Header />
-      
+
       <main id="main-content" className="flex-1 relative" tabIndex={-1}>
         {children}
       </main>
-      
+
       {showFooter && <Footer />}
-      
+
       {/* PWA Install Banner */}
       <PWAInstallPrompt />
     </div>
