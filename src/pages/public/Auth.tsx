@@ -136,7 +136,7 @@ export default function Auth() {
               {mode === 'login'
                 ? 'Connectez-vous pour accéder à vos tirages'
                 : mode === 'signup'
-                ? 'Abonnement mensuel à 3,90€ TTC · Accès immédiat après paiement'
+                ? 'Oracle personnel IA · Accès 100 % gratuit pendant la bêta'
                 : 'Entrez votre email pour recevoir un lien de réinitialisation'}
             </p>
           </div>
