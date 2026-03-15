@@ -23,6 +23,7 @@ import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
 import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
 import { AstroInsightPanel } from '@/components/astrology';
 import { useAstrology } from '@/hooks/useAstrology';
+import { StarConfetti } from '@/components/ui/StarConfetti';
 
 interface SpreadPosition {
   key: string;
@@ -48,6 +49,16 @@ export default function ReadingSession() {
   const [isInterpreting, setIsInterpreting] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [hasTrackedView, setHasTrackedView] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Fire confetti only on brand-new AI interpretations (not template fallbacks)
+  const triggerConfettiIfFirst = (interp: TarotInterpretation | TemplateInterpretationData) => {
+    const isTemplate = '_meta' in interp;
+    if (!isTemplate && !localStorage.getItem('first_draw_confetti_done')) {
+      setShowConfetti(true);
+      localStorage.setItem('first_draw_confetti_done', '1');
+    }
+  };
 
   // Fetch session
   const { data: session, isLoading: sessionLoading, error: sessionError } = useQuery({
@@ -238,6 +249,7 @@ export default function ReadingSession() {
         }
 
         setInterpretation(interpretationData);
+        triggerConfettiIfFirst(interpretationData);
       } catch (error) {
         console.error('Interpretation error:', error);
         
@@ -361,6 +373,13 @@ export default function ReadingSession() {
 
   return (
     <Layout>
+      {/* 🌟 Star confetti — first successful draw only */}
+      {showConfetti && (
+        <StarConfetti
+          onDone={() => setShowConfetti(false)}
+          starCount={70}
+        />
+      )}
       <MysticBackground className="min-h-screen py-8 md:py-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-8">
