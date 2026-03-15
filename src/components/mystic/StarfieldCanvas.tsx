@@ -86,7 +86,7 @@ export function StarfieldCanvas({
     <canvas
       ref={canvasRef}
       className={className}
-      style={{ opacity }}
+      style={{ opacity, zIndex: -1, position: 'fixed', inset: 0, width: '100%', height: '100%' }}
       aria-hidden="true"
     />
   );
