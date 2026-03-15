@@ -2,7 +2,9 @@
  * Vitest — ENABLE_MONETIZATION flag tests
  * Covers free-beta mode (current) and future premium re-activation path.
  */
-import { describe, it, expect } from 'vitest';
+// @vitest-environment jsdom
+/// <reference types="vitest/globals" />
+
 
 // ── Simulated flag resolver (mirrors useFeatureAccess logic) ─────────────────
 type PremiumFeature = 'unlimited_readings' | 'advanced_spreads' | 'ai_deep_analysis' | 'audio_readings' | 'relationship_analysis';
