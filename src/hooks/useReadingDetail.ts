@@ -118,16 +118,19 @@ export function useReadingDetail(sessionId: string | undefined) {
   // ─── Update interpretation (retry) ───────────────────────────────────────
   const updateInterpretation = useMutation({
     mutationFn: async (interpretation: TarotInterpretation) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const interp = interpretation as any;
       if (query.data?.result_id) {
         const { error } = await supabase
           .from('reading_results')
-          .update({ interpretation: interpretation as unknown as Record<string, unknown> })
+          .update({ interpretation: interp })
           .eq('id', query.data.result_id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('reading_results')
-          .insert({ session_id: sessionId!, interpretation: interpretation as unknown as Record<string, unknown> });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .insert([{ session_id: sessionId!, interpretation: interp } as any]);
         if (error) throw error;
       }
     },
