@@ -338,9 +338,11 @@ export function InterpretationDisplay({
       >
         <blockquote className="relative pl-4 border-l-2 space-y-2" style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.5)' }}>
           <p className="text-muted-foreground text-sm leading-relaxed italic">
-            {data.isTemplate
-              ? "Cette lecture s'inscrit dans la tradition des arcanes millénaires. Les maîtres du tarot nous enseignent que chaque carte est un miroir de l'âme : elle révèle non pas votre destin figé, mais le potentiel vivant en vous. Faites confiance à votre intuition profonde — c'est votre boussole intérieure."
-              : `Les 30 traditions tarologiques — de l'École de Marseille à l'approche jungienne — convergent sur un point essentiel : ${data.summary} Votre lecture d'aujourd'hui est une invitation à vous faire confiance.`}
+            {data.messageTarologues
+              ? data.messageTarologues
+              : data.isTemplate
+              ? "Cette lecture s'inscrit dans la tradition des arcanes millénaires. Les maîtres du tarot nous enseignent que chaque carte est un miroir de l'âme : elle révèle non pas votre destin figé, mais le potentiel vivant en vous."
+              : `Les 30 traditions tarologiques convergent : ${data.summary} Votre lecture d'aujourd'hui est une invitation à vous faire confiance.`}
           </p>
           <footer className="text-xs" style={{ color: 'hsl(var(--mp-brand-gold) / 0.8)' }}>
             — Sagesse des 30 écoles du tarot
