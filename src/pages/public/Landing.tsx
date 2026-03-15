@@ -910,44 +910,36 @@ export default function Landing() {
         </div>
       </section>
 
+
       {/* ══════════════════════════════════════════════════════════════════════
-          SECTION 8 — OFFRE / PRICING
+          SECTION 8 — VERSION BÊTA GRATUITE (remplace OFFRE / PRICING)
       ══════════════════════════════════════════════════════════════════════ */}
-      <section id="offre" className="relative py-24 sm:py-28 overflow-hidden" aria-label="Offre et tarifs">
+      <section id="offre" className="relative py-24 sm:py-28 overflow-hidden" aria-label="Version bêta gratuite">
         <Orb size={700} color="radial-gradient(circle, hsl(265 55% 38% / 0.18), transparent)" x="50%" y="50%" delay={0} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-lg mx-auto text-center">
-            <Eyebrow>L'offre de lancement</Eyebrow>
+            <BetaBadge size="md" className="mx-auto mb-6" />
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white mb-3 leading-tight">
-              Tout l'oracle.<br />Pour moins que rien.
+              Tout l'oracle.<br />Entièrement gratuit.
             </h2>
             <p className="text-white/50 mb-10 leading-relaxed">
-              3,90€ par mois. Sans engagement. L'intégralité de l'expérience — dès le premier jour.
+              Guidance pure &amp; éthérée — sans carte bancaire, sans engagement, sans limite.
             </p>
-
             <div
               className="relative p-6 sm:p-8 rounded-3xl border mb-7"
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', background: 'linear-gradient(155deg, hsl(265 35% 10%), hsl(260 30% 7%))' }}
             >
-              {/* Badge */}
-              <div
-                className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap"
-                style={{ background: `linear-gradient(90deg, ${violet}, hsl(var(--mp-brand-gold) / 0.9))`, color: 'white' }}
-                aria-label="Offre de lancement"
-              >
-                Offre de lancement
-              </div>
-
-              {/* Price */}
-              <div className="flex items-baseline justify-center gap-1 mb-1.5 mt-3">
-                <span className="font-serif text-5xl sm:text-6xl font-bold text-white">3,90€</span>
-                <span className="text-white/40 text-lg">/mois</span>
-              </div>
-              <p className="text-white/35 text-sm mb-8">TTC · Sans engagement · Annulation en 1 clic</p>
-
-              {/* Features */}
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8 text-left" aria-label="Fonctionnalités incluses">
-                {PRICING_FEATURES.map((feature, i) => (
+                {[
+                  'Rituel quotidien — illimité',
+                  'Oracle narratif IA personnalisé',
+                  '10+ tirages avancés inclus',
+                  'Journal de vie avec mémoire',
+                  'Profil énergétique dynamique',
+                  'Détection de synchronicités',
+                  'Analyse astrologique intégrée',
+                  'Accès prioritaire aux nouveautés',
+                ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-sm text-white/70">
                     <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: goldSoft }} aria-hidden="true">
                       <Check className="h-3 w-3" style={{ color: gold }} />
@@ -956,21 +948,20 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-
               <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => navigate(ctaHref)}>
-                  {ctaLabel}
-                </MysticButton>
+                {ctaLabel}
+              </MysticButton>
             </div>
-
-            {/* Trust signals */}
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 text-xs text-white/40">
-              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Paiement Stripe sécurisé</div>
-              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />RGPD · Données protégées</div>
+              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />RGPD · Données protégées</div>
+              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />Aucune carte bancaire</div>
               <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />+12 000 voyageurs</div>
             </div>
           </SectionReveal>
         </div>
       </section>
+
+
 
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 9 — FAQ
