@@ -114,8 +114,8 @@ export default function ReadingDetail() {
       <Layout>
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-2xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/30 mx-auto">
-              <Sparkles className="h-10 w-10 text-muted-foreground" />
+            <div className="page-header-icon mx-auto">
+              <Sparkles className="h-10 w-10" />
             </div>
             <h2 className="text-xl font-serif font-semibold text-foreground">
               {isNotFound ? 'Ce tirage s\'est dissipé dans l\'éther…' : 'Les énergies sont troubles'}
