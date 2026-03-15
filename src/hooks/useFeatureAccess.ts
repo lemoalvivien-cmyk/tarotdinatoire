@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
-import { useSubscription } from '@/hooks/useSubscription';
-import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 /**
  * Premium feature keys — each maps to a feature_flags column.
+ * While ENABLE_MONETIZATION = false, ALL features return hasAccess: true.
  */
 export type PremiumFeature =
   | 'unlimited_readings'
@@ -19,46 +18,34 @@ export interface FeatureAccessResult {
   loading: boolean;
 }
 
-const FLAG_MAP: Record<PremiumFeature, keyof import('@/hooks/useFeatureFlags').FeatureFlags> = {
-  unlimited_readings:    'enable_unlimited_readings',
-  advanced_spreads:      'enable_advanced_spreads',
-  ai_deep_analysis:      'enable_ai_deep_analysis',
-  audio_readings:        'enable_audio_readings',
-  relationship_analysis: 'enable_relationship_analysis',
+// ── ENABLE_MONETIZATION = false ──────────────────────────────────────────────
+// All features are freely accessible during the beta phase.
+// When monetization is re-enabled, restore the original subscription checks.
+const FREE_ACCESS: FeatureAccessResult = {
+  isPremium: true,   // treated as "premium" so existing UI gates open
+  isEnabled: true,
+  hasAccess: true,
+  loading: false,
 };
-
-const FEATURES = Object.keys(FLAG_MAP) as PremiumFeature[];
 
 /**
  * Returns access for a single feature.
- * Memoised — only re-computes when isPremium or flags change.
+ * In free-beta mode, always returns full access.
  */
-export function useFeatureAccess(feature: PremiumFeature): FeatureAccessResult {
-  const { isPremium, loading: subLoading } = useSubscription();
-  const { data: flags, isLoading: flagsLoading } = useFeatureFlags();
-
-  return useMemo(() => {
-    const loading = subLoading || flagsLoading;
-    const isEnabled = flags ? (flags[FLAG_MAP[feature]] as boolean) ?? true : true;
-    return { isPremium, isEnabled, hasAccess: isPremium && isEnabled, loading };
-  }, [isPremium, subLoading, flags, flagsLoading, feature]);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useFeatureAccess(_feature: PremiumFeature): FeatureAccessResult {
+  return useMemo(() => FREE_ACCESS, []);
 }
 
 /**
  * Returns access for ALL premium features in a single memoised call.
- * Avoids N separate subscriptions when multiple features are needed at once.
  */
 export function useAllFeatureAccess(): Record<PremiumFeature, FeatureAccessResult> {
-  const { isPremium, loading: subLoading } = useSubscription();
-  const { data: flags, isLoading: flagsLoading } = useFeatureFlags();
-
-  return useMemo(() => {
-    const loading = subLoading || flagsLoading;
-    return Object.fromEntries(
-      FEATURES.map((feature) => {
-        const isEnabled = flags ? (flags[FLAG_MAP[feature]] as boolean) ?? true : true;
-        return [feature, { isPremium, isEnabled, hasAccess: isPremium && isEnabled, loading }];
-      })
-    ) as Record<PremiumFeature, FeatureAccessResult>;
-  }, [isPremium, subLoading, flags, flagsLoading]);
+  return useMemo(() => ({
+    unlimited_readings:    FREE_ACCESS,
+    advanced_spreads:      FREE_ACCESS,
+    ai_deep_analysis:      FREE_ACCESS,
+    audio_readings:        FREE_ACCESS,
+    relationship_analysis: FREE_ACCESS,
+  }), []);
 }

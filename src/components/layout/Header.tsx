@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, LogOut, User, BookOpen, Menu, X, Star, Home, Download, Flame, Map } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
+import { BetaBadge } from '@/components/layout/BetaBadge';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -102,10 +103,9 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Pricing Badge - Desktop only */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 shrink-0">
-            <Sparkles className="h-3 w-3 text-primary" />
-            <span className="text-xs font-medium text-primary">3,90€/mois</span>
+          {/* Beta Badge — replaces pricing badge in free mode */}
+          <div className="hidden lg:flex items-center shrink-0">
+            <BetaBadge />
           </div>
 
           {/* Desktop Navigation */}
@@ -190,10 +190,7 @@ export function Header() {
         {mobileMenuOpen && (
           <div id="mobile-menu" className="md:hidden py-4 border-t border-border/50 animate-fade-in-up">
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 self-start">
-                <Sparkles className="h-3 w-3 text-primary" />
-                <span className="text-xs font-medium text-primary">3,90€/mois · Illimité</span>
-              </div>
+              <BetaBadge className="self-start" />
 
               {user ? (
                 <>

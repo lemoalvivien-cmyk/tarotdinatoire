@@ -4,12 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   ArrowRight, Sparkles, Shield, Lock, Stars,
   ChevronDown, BookOpen, Eye, Heart, TrendingUp,
-  Check, Star, CreditCard, Moon, Zap, X, Minus, Plus, Flame, Users
+  Check, Star, Moon, Zap, X, Minus, Plus, Flame
 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { MysticButton } from '@/components/mystic';
 import { motion, useReducedMotion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { FreeDraw } from '@/components/free-draw/FreeDraw';
+import { BetaBadge } from '@/components/layout/BetaBadge';
 
 // ─── Design Tokens helpers ────────────────────────────────────────────────────
 const gold = 'hsl(var(--mp-brand-gold))';
@@ -336,12 +337,13 @@ function StickyMobileCTA({ href, label }: { href: string; label: string }) {
           >
             {label}
           </button>
-          <p className="text-center text-xs text-white/35 mt-2">1 tirage gratuit · Annulation en 1 clic</p>
+          <p className="text-center text-xs text-white/35 mt-2">Gratuit · Guidance pure &amp; éthérée</p>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
+
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 function LandingHeader({ ctaHref }: { ctaHref: string }) {
@@ -402,11 +404,12 @@ const LandingFooter = forwardRef<HTMLElement>(function LandingFooter(_, ref) {
             <Sparkles className="h-5 w-5" style={{ color: gold }} aria-hidden="true" />
             <span className="font-serif text-base text-white/70">Tarot Dinatoire</span>
           </div>
+          <BetaBadge size="md" />
           <div className="flex flex-wrap justify-center gap-3" role="list" aria-label="Garanties">
             {[
-              { icon: CreditCard, label: 'Paiement sécurisé Stripe' },
               { icon: Shield, label: 'RGPD · Données protégées' },
-              { icon: Lock, label: 'Sans engagement' },
+              { icon: Lock, label: 'Accès 100% gratuit' },
+              { icon: Stars, label: 'Oracle éthéré pur' },
             ].map(({ icon: Icon, label }) => (
               <div key={label} role="listitem" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border" style={{ borderColor: surfaceBorder }}>
                 <Icon className="h-3.5 w-3.5" style={{ color: gold }} aria-hidden="true" />
@@ -450,24 +453,16 @@ export default function Landing() {
   const ctaHref = user ? '/app' : '/tirage-gratuit';
   const ctaLabel = user ? 'Accéder à mon oracle' : 'Tirer ma carte gratuite';
 
+  // ── FAQ — version bêta gratuite, pas de mention d'abonnement ─────────────
   const FAQ_ITEMS = [
     { q: "Est-ce vraiment différent d'une application de tarot classique ?", a: "Oui. Tarot Dinatoire mémorise chaque tirage pour construire votre profil unique. L'oracle analyse vos récurrences, détecte vos patterns émotionnels et génère un récit narratif sur vos 30-90 derniers jours. Aucune app de tarot ne fait ça." },
     { q: "Il faut croire au tarot pour en bénéficier ?", a: "Non. Beaucoup d'utilisateurs abordent le tarot comme un outil de réflexion psychologique, pas de divination. Les cartes sont un miroir symbolique : elles révèlent ce que vous projetez sur elles. C'est une pratique de connaissance de soi." },
-    { q: "Comment fonctionne l'abonnement ?", a: "3,90€/mois TTC, sans engagement. Vous pouvez résilier à tout moment en un clic depuis votre profil. Aucune reconduction cachée, aucun frais supplémentaire. Paiement sécurisé via Stripe." },
+    { q: "C'est vraiment gratuit ?", a: "Oui, intégralement gratuit pendant la phase bêta. Créez votre compte, tirez vos cartes, accédez à l'oracle narratif IA — sans aucune carte bancaire. Nous croyons que la guidance doit être accessible à tous." },
     { q: "Mes données personnelles sont-elles protégées ?", a: "Vos données sont chiffrées, hébergées en Europe et jamais revendues. Conformité RGPD complète. Vous pouvez demander leur suppression à tout moment depuis votre profil." },
-    { q: "Puis-je tester avant de payer ?", a: "Oui ! Vous avez droit à 1 tirage gratuit par jour, sans compte requis. L'abonnement à 3,90€/mois débloque le rituel quotidien illimité, l'oracle narratif IA et tous les tirages avancés." },
+    { q: "Combien de tirages puis-je faire par jour ?", a: "Le rituel quotidien offre une carte profonde chaque matin. Pour les tirages avancés (Croix Celtique, Chemin de Vie…), vous pouvez consulter librement. L'oracle apprend à vous connaître à chaque session." },
   ];
 
-  const PRICING_FEATURES = [
-    'Rituel quotidien — illimité',
-    'Oracle narratif IA personnalisé',
-    '10+ tirages avancés inclus',
-    'Journal de vie avec mémoire',
-    'Profil énergétique dynamique',
-    'Détection de synchronicités',
-    'Analyse astrologique intégrée',
-    'Accès prioritaire aux nouveautés',
-  ];
+
 
   return (
     <div
@@ -915,44 +910,36 @@ export default function Landing() {
         </div>
       </section>
 
+
       {/* ══════════════════════════════════════════════════════════════════════
-          SECTION 8 — OFFRE / PRICING
+          SECTION 8 — VERSION BÊTA GRATUITE (remplace OFFRE / PRICING)
       ══════════════════════════════════════════════════════════════════════ */}
-      <section id="offre" className="relative py-24 sm:py-28 overflow-hidden" aria-label="Offre et tarifs">
+      <section id="offre" className="relative py-24 sm:py-28 overflow-hidden" aria-label="Version bêta gratuite">
         <Orb size={700} color="radial-gradient(circle, hsl(265 55% 38% / 0.18), transparent)" x="50%" y="50%" delay={0} />
         <div className="container mx-auto px-5 relative z-10">
           <SectionReveal className="max-w-lg mx-auto text-center">
-            <Eyebrow>L'offre de lancement</Eyebrow>
+            <BetaBadge size="md" className="mx-auto mb-6" />
             <h2 className="font-serif text-3xl md:text-5xl font-semibold text-white mb-3 leading-tight">
-              Tout l'oracle.<br />Pour moins que rien.
+              Tout l'oracle.<br />Entièrement gratuit.
             </h2>
             <p className="text-white/50 mb-10 leading-relaxed">
-              3,90€ par mois. Sans engagement. L'intégralité de l'expérience — dès le premier jour.
+              Guidance pure &amp; éthérée — sans carte bancaire, sans engagement, sans limite.
             </p>
-
             <div
               className="relative p-6 sm:p-8 rounded-3xl border mb-7"
               style={{ borderColor: 'hsl(var(--mp-brand-gold) / 0.3)', background: 'linear-gradient(155deg, hsl(265 35% 10%), hsl(260 30% 7%))' }}
             >
-              {/* Badge */}
-              <div
-                className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap"
-                style={{ background: `linear-gradient(90deg, ${violet}, hsl(var(--mp-brand-gold) / 0.9))`, color: 'white' }}
-                aria-label="Offre de lancement"
-              >
-                Offre de lancement
-              </div>
-
-              {/* Price */}
-              <div className="flex items-baseline justify-center gap-1 mb-1.5 mt-3">
-                <span className="font-serif text-5xl sm:text-6xl font-bold text-white">3,90€</span>
-                <span className="text-white/40 text-lg">/mois</span>
-              </div>
-              <p className="text-white/35 text-sm mb-8">TTC · Sans engagement · Annulation en 1 clic</p>
-
-              {/* Features */}
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-8 text-left" aria-label="Fonctionnalités incluses">
-                {PRICING_FEATURES.map((feature, i) => (
+                {[
+                  'Rituel quotidien — illimité',
+                  'Oracle narratif IA personnalisé',
+                  '10+ tirages avancés inclus',
+                  'Journal de vie avec mémoire',
+                  'Profil énergétique dynamique',
+                  'Détection de synchronicités',
+                  'Analyse astrologique intégrée',
+                  'Accès prioritaire aux nouveautés',
+                ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-sm text-white/70">
                     <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: goldSoft }} aria-hidden="true">
                       <Check className="h-3 w-3" style={{ color: gold }} />
@@ -961,21 +948,20 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-
               <MysticButton size="lg" className="w-full text-base" rightIcon={<ArrowRight className="h-5 w-5" />} onClick={() => navigate(ctaHref)}>
-                  {ctaLabel}
-                </MysticButton>
+                {ctaLabel}
+              </MysticButton>
             </div>
-
-            {/* Trust signals */}
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 text-xs text-white/40">
-              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Paiement Stripe sécurisé</div>
-              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />RGPD · Données protégées</div>
+              <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />RGPD · Données protégées</div>
+              <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />Aucune carte bancaire</div>
               <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />+12 000 voyageurs</div>
             </div>
           </SectionReveal>
         </div>
       </section>
+
+
 
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 9 — FAQ
