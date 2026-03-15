@@ -190,10 +190,7 @@ export function Header() {
         {mobileMenuOpen && (
           <div id="mobile-menu" className="md:hidden py-4 border-t border-border/50 animate-fade-in-up">
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 self-start">
-                <Sparkles className="h-3 w-3 text-primary" />
-                <span className="text-xs font-medium text-primary">3,90€/mois · Illimité</span>
-              </div>
+              <BetaBadge className="self-start" />
 
               {user ? (
                 <>
