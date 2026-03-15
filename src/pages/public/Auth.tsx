@@ -240,17 +240,17 @@ export default function Auth() {
               </div>
 
               <Button type="submit" className="w-full btn-mystic group" size="lg" disabled={loading}>
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    {mode === 'login' ? 'Connexion...' : mode === 'signup' ? 'Redirection vers Stripe...' : 'Envoi en cours...'}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    {mode === 'login' ? 'Se connecter' : mode === 'signup' ? "S'inscrire · 3,90€/mois" : 'Envoyer le lien'}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </span>
-                )}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  {mode === 'login' ? 'Connexion...' : mode === 'signup' ? 'Création de votre compte...' : 'Envoi en cours...'}
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  {mode === 'login' ? 'Se connecter' : mode === 'signup' ? 'S\'inscrire gratuitement' : 'Envoyer le lien'}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              )}
               </Button>
 
               <div className="text-center text-sm space-y-2">
