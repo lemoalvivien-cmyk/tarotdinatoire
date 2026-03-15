@@ -23,6 +23,7 @@ import { StepHeader, TarotCard, OracleLoader } from '@/components/tarot-ui';
 import { TarotVoicePlayer } from '@/components/audio/TarotVoicePlayer';
 import { AstroInsightPanel } from '@/components/astrology';
 import { useAstrology } from '@/hooks/useAstrology';
+import { StarConfetti } from '@/components/ui/StarConfetti';
 
 interface SpreadPosition {
   key: string;

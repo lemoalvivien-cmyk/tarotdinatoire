@@ -10,15 +10,19 @@ interface MaintenanceGuardProps {
   children: ReactNode;
 }
 
-// Routes toujours accessibles (statut, légal, auth)
+// Routes toujours accessibles (statut, légal, auth, reset)
 const ALWAYS_ALLOWED_ROUTES = [
   '/status',
   '/statut',
   '/legal/privacy',
   '/legal/terms',
   '/legal/imprint',
+  '/legal/cookies',
+  '/legal/rights',
   '/disclaimer',
   '/auth',
+  '/reset-password',
+  '/unsubscribe',
 ];
 
 /**
