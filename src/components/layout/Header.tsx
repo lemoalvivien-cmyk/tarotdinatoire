@@ -103,10 +103,9 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Pricing Badge - Desktop only */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 shrink-0">
-            <Sparkles className="h-3 w-3 text-primary" />
-            <span className="text-xs font-medium text-primary">3,90€/mois</span>
+          {/* Beta Badge — replaces pricing badge in free mode */}
+          <div className="hidden lg:flex items-center shrink-0">
+            <BetaBadge />
           </div>
 
           {/* Desktop Navigation */}
