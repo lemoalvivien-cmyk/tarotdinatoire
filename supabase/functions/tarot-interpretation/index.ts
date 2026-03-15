@@ -37,7 +37,7 @@ interface RequestPayload {
   cards: CardInput[];
 }
 
-// New structured interpretation format as requested
+// New structured interpretation format — 4 storytelling sections
 interface PositionInterpretation {
   position: string;
   carte: string;
@@ -49,7 +49,9 @@ interface TarotInterpretation {
   resume_court: string;
   interpretation_par_position: PositionInterpretation[];
   message_global: string;
+  questions_synchronicite?: string[];
   actions_concretes: string[];
+  message_tarologues?: string;
   limites_ethiques: string;
   // Legacy fields for backward compatibility
   title?: string;
