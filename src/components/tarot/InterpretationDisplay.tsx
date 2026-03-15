@@ -255,12 +255,8 @@ export function InterpretationDisplay({
           <ul className="space-y-3" role="list">
             {data.reflectionQuestions.map((q, i) => (
               <li key={i} className="flex items-start gap-3 text-foreground">
-                <span
-                  className="flex-shrink-0 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold mt-0.5"
-                  style={{
-                    background: 'hsl(var(--mp-brand-gold) / 0.15)',
-                    color: 'hsl(var(--mp-brand-gold))',
-                  }}
+              <span
+                  className="flex-shrink-0 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold mt-0.5 bg-mp-brand-gold/15 text-mp-brand-gold"
                   aria-hidden="true"
                 >
                   {i + 1}
