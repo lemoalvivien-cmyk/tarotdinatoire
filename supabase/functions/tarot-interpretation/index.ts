@@ -69,24 +69,31 @@ interface TarotInterpretation {
   };
 }
 
+// ── 4 storytelling sections: Réflexion · Synchronicité · Action guidée · Message tarologues
 const JSON_SCHEMA = `{
-  "resume_court": "Résumé du tirage en 2-3 phrases évocatrices (max 300 caractères)",
+  "resume_court": "Résumé poétique du tirage en 2-3 phrases évocatrices, style haïku mystique (max 320 caractères)",
   "interpretation_par_position": [
     {
       "position": "Nom de la position (ex: Passé, Présent, Futur, Conseil...)",
       "carte": "Nom de la carte tirée",
       "sens": "upright ou reversed",
-      "message": "Interprétation de cette carte à cette position (3-5 phrases)"
+      "message": "Interprétation jungienne de cette carte à cette position (4-6 phrases). Utilise des métaphores lumineuses et des archétypes."
     }
   ],
-  "message_global": "Synthèse globale du tirage avec conseils bienveillants (5-7 phrases)",
-  "actions_concretes": [
-    "Action concrète 1 à mettre en pratique",
-    "Action concrète 2 à mettre en pratique",
-    "Action concrète 3 à mettre en pratique",
-    "Action concrète 4 à mettre en pratique",
-    "Action concrète 5 à mettre en pratique"
+  "message_global": "Section RÉFLEXION PERSONNELLE — Synthèse archétypale complète du tirage (6-9 phrases). Commence par 'Cette constellation de cartes révèle...' ou similaire. Tisse ensemble tous les fils symboliques.",
+  "questions_synchronicite": [
+    "Question introspective 1 — relie les cartes à la vie quotidienne de façon concrète",
+    "Question introspective 2 — invite à observer une synchronicité dans les 7 prochains jours",
+    "Question introspective 3 — touche à l'ombre jungienne ou au don à révéler"
   ],
+  "actions_concretes": [
+    "Action guidée rituelle 1 (ancrage physique, ex: tenir un cristal, marcher dans la nature)",
+    "Action guidée contemplative 2 (méditation, visualisation ou écriture de journal)",
+    "Action guidée relationnelle 3 (conversation à avoir, frontière à poser ou don à offrir)",
+    "Action guidée créatrice 4 (dessiner, cuisiner, chanter — exprimer l'énergie de la carte)",
+    "Action guidée spirituelle 5 (signe à observer, synchronicité à accueillir)"
+  ],
+  "message_tarologues": "Message des 30 traditions tarologiques — bref (2-3 phrases), inspirant, citant une sagesse universelle (jung, rumi, un tarologue historique comme Etteilla ou Papus). Commence par un nom entre tirets : '— École de Marseille :' ou '— Tradition jungienne :'.",
   "limites_ethiques": "Rappel bienveillant que le tarot est un outil d'introspection et ne remplace pas l'avis de professionnels (médecins, avocats, conseillers financiers) pour les décisions importantes."
 }`;
 
