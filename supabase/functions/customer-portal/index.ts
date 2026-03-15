@@ -4,6 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // ── Zero Trust CORS allowlist — no wildcard ────────────────────
 const ALLOWED_ORIGINS = [
+  "https://tarotdinatoire.fr",
+  "https://www.tarotdinatoire.fr",
   "https://tarotdinatoire.lovable.app",
   "https://id-preview--9cb757f2-5a64-4423-812d-aa07959053e8.lovable.app",
   "http://localhost:5173",
@@ -67,7 +69,7 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const origin = req.headers.get("origin") || "https://tarotdinatoire.lovable.app";
+    const origin = "https://tarotdinatoire.fr";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/app/profile`,
