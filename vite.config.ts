@@ -9,6 +9,25 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      // Strict Content-Security-Policy for production hardening
+      "Content-Security-Policy": [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com",
+        "img-src 'self' data: blob: https://tarotdinatoire.fr https://www.tarotdinatoire.fr https://*.supabase.co",
+        "media-src 'self' https://*.supabase.co",
+        "connect-src 'self' https://tarotdinatoire.fr https://www.tarotdinatoire.fr https://*.supabase.co https://ai.gateway.lovable.dev wss://*.supabase.co",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join("; "),
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    },
   },
   plugins: [
     react(),
