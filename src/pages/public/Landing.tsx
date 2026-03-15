@@ -21,47 +21,7 @@ const violet2 = 'hsl(var(--mp-brand-violet2))';
 const surfaceBorder = 'hsl(var(--mp-surface-border))';
 const surfaceGlass = 'hsl(var(--mp-bg-800) / 0.9)';
 
-// ─── Starfield ────────────────────────────────────────────────────────────────
-function StarfieldCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    let animId: number;
-    const stars: { x: number; y: number; r: number; alpha: number; speed: number; phase: number }[] = [];
-    function resize() {
-      if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    function init() {
-      if (!canvas) return;
-      stars.length = 0;
-      for (let i = 0; i < 180; i++) {
-        stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 1.2 + 0.2, alpha: Math.random() * 0.5 + 0.1, speed: Math.random() * 0.2 + 0.04, phase: Math.random() * Math.PI * 2 });
-      }
-    }
-    function draw(t: number) {
-      if (!canvas || !ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const s of stars) {
-        const twinkle = s.alpha + 0.25 * Math.sin(t * 0.0008 * s.speed + s.phase);
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(210,195,255,${Math.max(0, Math.min(1, twinkle))})`;
-        ctx.fill();
-      }
-      animId = requestAnimationFrame(draw);
-    }
-    resize(); init(); animId = requestAnimationFrame(draw);
-    const onResize = () => { resize(); init(); };
-    window.addEventListener('resize', onResize);
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', onResize); };
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ opacity: 0.45 }} aria-hidden="true" />;
-}
+// StarfieldCanvas is imported from @/components/mystic/StarfieldCanvas
 
 // ─── Floating Orb ─────────────────────────────────────────────────────────────
 const Orb = forwardRef<HTMLDivElement, { size: number; color: string; x: string; y: string; delay?: number }>(
