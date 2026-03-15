@@ -181,7 +181,7 @@ describe('RGPD export — data shape validation', () => {
     const validExport: RGPDExport = {
       exportDate: new Date().toISOString(),
       gdprBasis: 'Art. 20 GDPR — Droit à la portabilité',
-      controller: { name: 'VLM Consulting', email: 'contact@tarotdivinatoire.app' },
+      controller: { name: 'VLM Consulting', email: 'contact@tarotdinatoire.fr' },
       user: { id: '[ID]', email: '[EMAIL]' },
       readings: [],
       consent_history: [],

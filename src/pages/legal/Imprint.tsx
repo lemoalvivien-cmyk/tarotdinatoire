@@ -35,7 +35,7 @@ export default function Imprint() {
                 <div className="flex-1 space-y-3">
                   <h2 className="font-serif text-xl font-semibold">1. Préambule</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    Les présentes mentions légales régissent l'utilisation du site <strong>tarotdivinatoire.app</strong> (ci-après « le Site ») 
+                    Les présentes mentions légales régissent l'utilisation du site <strong>tarotdinatoire.fr</strong> (ci-après « le Site ») 
                     édité par Vivien Le Moal. En accédant au Site, l'utilisateur reconnaît avoir pris connaissance des présentes mentions 
                     et s'engage à les respecter.
                   </p>
@@ -73,8 +73,8 @@ export default function Imprint() {
                     <p><strong>Directeur de la publication :</strong> Vivien Le Moal</p>
                     <p>
                       <strong>Contact :</strong>{' '}
-                      <a href="mailto:contact@tarotdivinatoire.app" className="text-primary hover:underline">
-                        contact@tarotdivinatoire.app
+                      <a href="mailto:contact@tarotdinatoire.fr" className="text-primary hover:underline">
+                        contact@tarotdinatoire.fr
                       </a>
                     </p>
                   </div>
@@ -110,9 +110,9 @@ export default function Imprint() {
                   <h2 className="font-serif text-xl font-semibold">5. Accès au Site</h2>
                   <div className="space-y-3 text-muted-foreground">
                     <p>
-                      Le Site est accessible à tout utilisateur disposant d'un accès à Internet. 
-                      L'utilisation complète des services (tirages, historique, etc.) nécessite un abonnement 
-                      Premium à 3,90€ TTC par mois.
+                      Le Site est accessible à tout utilisateur disposant d'un accès à Internet.
+                      L'utilisation complète des services (tirages, historique, oracle narratif IA, etc.) est
+                      <strong> entièrement gratuite pendant la phase bêta</strong>, sans carte bancaire ni engagement.
                     </p>
                     <p>
                       Tous les frais relatifs à l'accès au Site (matériel informatique, logiciels, connexion Internet, etc.) 

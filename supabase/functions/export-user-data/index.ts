@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       exportDate: new Date().toISOString(),
       exportVersion: '2.0',
       gdprBasis: 'Article 20 RGPD — Droit à la portabilité des données',
-      controller: 'VLM Consulting — contact@tarotdivinatoire.app',
+      controller: 'VLM Consulting — contact@tarotdinatoire.fr',
       user: {
         id: user.id,
         email: user.email,

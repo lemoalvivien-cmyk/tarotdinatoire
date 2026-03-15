@@ -18,7 +18,7 @@ import {
 import type { TarotCard } from '@/types/tarot';
 
 
-const SITE_URL = 'https://tarotdivinatoire.app';
+const SITE_URL = 'https://tarotdinatoire.fr';
 
 // ── JSON-LD structured data for a card ──────────────────────────────────────
 function buildJsonLd(card: TarotCard, slug: string) {

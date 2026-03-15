@@ -52,8 +52,8 @@ export default function Privacy() {
                     <p><strong>Adresse :</strong> 59170 Croix, France</p>
                     <p>
                       <strong>Contact RGPD :</strong>{' '}
-                      <a href="mailto:contact@tarotdivinatoire.app" className="text-primary hover:underline">
-                        contact@tarotdivinatoire.app
+                      <a href="mailto:contact@tarotdinatoire.fr" className="text-primary hover:underline">
+                        contact@tarotdinatoire.fr
                       </a>
                     </p>
                   </div>

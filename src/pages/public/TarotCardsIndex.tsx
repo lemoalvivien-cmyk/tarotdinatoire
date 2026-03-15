@@ -12,7 +12,7 @@ import { Sparkles, Search } from 'lucide-react';
 import { useState } from 'react';
 import type { TarotCard } from '@/types/tarot';
 
-const SITE_URL = 'https://tarotdivinatoire.app';
+const SITE_URL = 'https://tarotdinatoire.fr';
 
 const ARCANA_LABELS: Record<string, string> = {
   major: 'Arcanes Majeures',

@@ -44,7 +44,7 @@ describe('RGPD Export (export-user-data)', () => {
       exportDate: '2026-03-15T00:00:00.000Z',
       exportVersion: '2.0',
       gdprBasis: 'Article 20 RGPD — Droit à la portabilité des données',
-      controller: 'VLM Consulting — contact@tarotdivinatoire.app',
+      controller: 'VLM Consulting — contact@tarotdinatoire.fr',
       user: { id: 'uid-123', email: 'user@test.com', created_at: '2024-01-01' },
       profile: { id: 'uid-123', display_name: 'Test User' },
       readings: { sessions: [], results: [] },

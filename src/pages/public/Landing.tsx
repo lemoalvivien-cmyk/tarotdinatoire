@@ -563,7 +563,7 @@ export default function Landing() {
             >
               <div className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" aria-hidden="true" />Données chiffrées</div>
               <div className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" aria-hidden="true" />Sans engagement</div>
-              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />Annulation en 1 clic</div>
+              <div className="flex items-center gap-1.5"><Stars className="h-3.5 w-3.5" aria-hidden="true" />Gratuit pendant la bêta</div>
             </motion.div>
           </div>
 
@@ -858,7 +858,7 @@ export default function Landing() {
             {[
               { title: "Je ne crois pas au tarot", body: "Bien. Vous n'avez pas à croire. Tarot Dinatoire n'est pas un outil de divination — c'est un miroir psychologique. Les cartes révèlent ce que vous projetez. L'oracle l'organise. Résultat : une clarté que vous ne trouverez pas ailleurs." },
               { title: "J'ai déjà essayé. Ça ne m'a rien apporté.", body: "Vous avez essayé du tarot générique — une carte, un texte recyclé, oubli le lendemain. Tarot Dinatoire ne fonctionne pas comme ça. L'oracle apprend à vous connaître. Au bout de 10 jours, la comparaison n'existe plus." },
-              { title: "3,90€, c'est un abonnement de plus", body: "Un café par semaine. Résiliation en 30 secondes, sans conditions. Et franchement : si après un mois vous ne ressentez rien, vous aurez perdu moins que le café." },
+              { title: "C'est vraiment gratuit pendant la bêta ?", body: "Oui, intégralement. Aucune carte bancaire demandée. Aucun engagement. Créez votre compte, tirez vos cartes, accédez à l'oracle narratif IA — gratuit tant que vous participez à la bêta. Votre feedback construit le produit." },
             ].map((item, i) => (
               <SectionReveal key={i}>
                 <div className="p-6 rounded-2xl border h-full" style={{ borderColor: surfaceBorder, backgroundColor: 'hsl(var(--mp-bg-800) / 0.5)' }}>
@@ -968,7 +968,7 @@ export default function Landing() {
             <MysticButton size="lg" rightIcon={<ArrowRight className="h-5 w-5" />} className="text-base sm:text-lg px-10 sm:px-12" onClick={() => navigate(ctaHref)}>
               Commencer mon premier rituel
             </MysticButton>
-            <p className="text-white/25 text-xs mt-5">Sans engagement · Annulation en 1 clic</p>
+            <p className="text-white/25 text-xs mt-5">Sans engagement · Gratuit pendant la bêta</p>
           </SectionReveal>
         </div>
       </section>
