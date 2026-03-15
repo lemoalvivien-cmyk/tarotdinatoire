@@ -209,6 +209,39 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_anonymous_draws: {
+        Row: {
+          card_id: string | null
+          draw_count: number
+          draw_date: string
+          email: string | null
+          interpretation: Json | null
+          last_draw: string
+          orientation: string
+          session_hash: string
+        }
+        Insert: {
+          card_id?: string | null
+          draw_count?: number
+          draw_date?: string
+          email?: string | null
+          interpretation?: Json | null
+          last_draw?: string
+          orientation?: string
+          session_hash: string
+        }
+        Update: {
+          card_id?: string | null
+          draw_count?: number
+          draw_date?: string
+          email?: string | null
+          interpretation?: Json | null
+          last_draw?: string
+          orientation?: string
+          session_hash?: string
+        }
+        Relationships: []
+      }
       daily_draws: {
         Row: {
           card_id: string
