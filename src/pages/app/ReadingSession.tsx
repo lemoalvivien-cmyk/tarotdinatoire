@@ -283,11 +283,22 @@ export default function ReadingSession() {
     requestInterpretation();
   }, [session, user, resultLoading, existingResult, interpretation, isInterpreting, selectedCards, allCards, sessionId, navigate]);
 
-  // Toggle favorite
+  // Toggle favorite (unified model)
   const handleToggleFavorite = async () => {
-    setIsFavorite(!isFavorite);
-    // Note: We could add a favorites column to reading_sessions or reading_results
-    toast.success(isFavorite ? 'Retiré des favoris' : 'Ajouté aux favoris');
+    const newValue = !isFavorite;
+    setIsFavorite(newValue);
+    if (sessionId) {
+      const { error } = await supabase
+        .from('reading_sessions')
+        .update({ is_favorite: newValue })
+        .eq('id', sessionId);
+      if (error) {
+        setIsFavorite(!newValue); // rollback
+        toast.error('Erreur lors de la mise à jour du favori');
+      } else {
+        toast.success(newValue ? 'Ajouté aux favoris ✨' : 'Retiré des favoris');
+      }
+    }
   };
 
   const handleNewReading = () => {
