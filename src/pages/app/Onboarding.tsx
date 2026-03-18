@@ -208,11 +208,11 @@ export default function Onboarding() {
             ))}
           </div>
 
-          {/* Pricing Badge */}
+          {/* Beta Badge — free during beta */}
           <div className="flex justify-center">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
               <Sparkles className="h-3 w-3 text-primary" />
-              <span className="text-xs font-medium text-primary">3,90€/mois · Illimité</span>
+              <span className="text-xs font-medium text-primary">Accès 100% gratuit pendant la bêta</span>
             </div>
           </div>
 
