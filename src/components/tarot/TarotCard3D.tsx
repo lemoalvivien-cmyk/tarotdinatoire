@@ -176,13 +176,13 @@ function Card3DMesh({ imageUrl, backUrl, isFlipped, mouseX, mouseY, index = 0 }:
     <group ref={groupRef}>
       {/* Front face */}
       <RoundedBox args={[1.4, 2.1, 0.01]} radius={0.05} smoothness={4} position={[0, 0, 0.005]}>
-        {/* @ts-ignore — custom material via extend */}
+        {/* @ts-expect-error — custom material via extend (react-three-fiber JSX extension) */}
         <tarotShaderMaterial ref={matFrontRef} side={THREE.FrontSide} />
       </RoundedBox>
 
       {/* Back face */}
       <RoundedBox args={[1.4, 2.1, 0.01]} radius={0.05} smoothness={4} position={[0, 0, -0.005]}>
-        {/* @ts-ignore */}
+        {/* @ts-expect-error — custom material via extend (react-three-fiber JSX extension) */}
         <tarotShaderMaterial ref={matBackRef} side={THREE.BackSide} />
       </RoundedBox>
 

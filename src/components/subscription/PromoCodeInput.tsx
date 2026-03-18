@@ -10,7 +10,7 @@ import { z } from 'zod';
 const promoCodeSchema = z.string()
   .min(3, 'Code trop court')
   .max(30, 'Code trop long')
-  .regex(/^[A-Z0-9\-]+$/, 'Code invalide (lettres, chiffres et tirets uniquement)');
+  .regex(/^[A-Z0-9-]+$/, 'Code invalide (lettres, chiffres et tirets uniquement)');
 
 interface PromoCodeInputProps {
   className?: string;
