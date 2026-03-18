@@ -64,17 +64,16 @@ export function useAnalytics() {
       }));
 
       // Insert all events in a single batch
-      const { error } = await (supabase.from('analytics_events') as any).insert(rows);
-      
+      const { error } = await supabase.from('analytics_events').insert(rows);
+
       if (error) {
-        console.error('[Analytics] Failed to flush events:', error);
         // Re-queue failed events (limit to prevent infinite growth)
         if (queueRef.current.length < 50) {
           queueRef.current.unshift(...events);
         }
       }
-    } catch (err) {
-      console.error('[Analytics] Error flushing:', err);
+    } catch {
+      // Silent: analytics failures must not impact user experience
     } finally {
       flushingRef.current = false;
     }
