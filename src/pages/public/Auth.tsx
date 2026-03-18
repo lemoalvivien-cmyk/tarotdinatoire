@@ -147,6 +147,7 @@ export default function Auth() {
     setMode(next);
     setErrors({});
     setForgotSent(false);
+    setRateLimitMsg(null);
   };
 
   return (
