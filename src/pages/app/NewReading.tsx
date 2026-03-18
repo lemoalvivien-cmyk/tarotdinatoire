@@ -319,7 +319,6 @@ export default function NewReading() {
         return;
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Interpretation error:', errorData);
         toast.error(errorData.message || 'Erreur lors de l\'interprétation');
       }
 
