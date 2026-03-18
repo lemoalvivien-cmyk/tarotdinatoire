@@ -176,6 +176,36 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_rate_limits: {
+        Row: {
+          attempts: number
+          email_hash: string
+          first_attempt: string
+          id: string
+          ip_hash: string
+          last_attempt: string
+          locked_until: string | null
+        }
+        Insert: {
+          attempts?: number
+          email_hash: string
+          first_attempt?: string
+          id?: string
+          ip_hash: string
+          last_attempt?: string
+          locked_until?: string | null
+        }
+        Update: {
+          attempts?: number
+          email_hash?: string
+          first_attempt?: string
+          id?: string
+          ip_hash?: string
+          last_attempt?: string
+          locked_until?: string | null
+        }
+        Relationships: []
+      }
       consent_logs: {
         Row: {
           anon_id: string
@@ -1060,7 +1090,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      daily_free_draws_safe: {
+        Row: {
+          card_id: string | null
+          created_at: string | null
+          draw_date: string | null
+          id: string | null
+          interpretation: Json | null
+          orientation: string | null
+          session_key: string | null
+        }
+        Insert: {
+          card_id?: string | null
+          created_at?: string | null
+          draw_date?: string | null
+          id?: string | null
+          interpretation?: Json | null
+          orientation?: string | null
+          session_key?: string | null
+        }
+        Update: {
+          card_id?: string | null
+          created_at?: string | null
+          draw_date?: string | null
+          id?: string | null
+          interpretation?: Json | null
+          orientation?: string | null
+          session_key?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       award_karma: { Args: { p_action: string; p_uid: string }; Returns: Json }
@@ -1069,6 +1128,10 @@ export type Database = {
         Returns: boolean
       }
       can_dispatch_agent_job: { Args: { _user_id: string }; Returns: boolean }
+      check_auth_rate_limit: {
+        Args: { p_email_hash: string; p_ip_hash: string }
+        Returns: Json
+      }
       claim_next_agent_job: {
         Args: { p_limit?: number }
         Returns: {
@@ -1083,6 +1146,7 @@ export type Database = {
           timeout_seconds: number
         }[]
       }
+      cleanup_auth_rate_limits: { Args: never; Returns: undefined }
       complete_agent_job: {
         Args: {
           p_error_message?: string
