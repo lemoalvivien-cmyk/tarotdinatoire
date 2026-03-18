@@ -63,9 +63,9 @@ export const SEOHead = forwardRef<HTMLDivElement, SEOHeadProps>(
       canonicalLink.remove();
     }
 
-    // Cleanup on unmount (optional: reset to defaults)
+    // Cleanup on unmount — reset to brand default
     return () => {
-      document.title = 'Tarot Dinatoire - 3,90€/mois';
+      document.title = 'Tarot Dinatoire | Guidance & Introspection par IA';
     };
   }, [title, description, ogTitle, ogDescription, canonical, noindex]);
 

@@ -132,7 +132,7 @@ export function PremiumGate({
         ) : (
           <>
             <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-            Debloquer avec Premium - 3,90EUR/mois
+            Débloquer avec Premium
           </>
         )}
       </Button>
