@@ -25,7 +25,9 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [rateLimitMsg, setRateLimitMsg] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
+  const submitLock = useRef(false);
 
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -62,8 +64,18 @@ export default function Auth() {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    if (submitLock.current) return;
+    submitLock.current = true;
     setLoading(true);
+    setRateLimitMsg(null);
     try {
+      // Rate limit check — reset action
+      const rlResult = await checkAuthRateLimit('reset' as AuthAction, email);
+      if (!rlResult.allowed) {
+        setRateLimitMsg(rlResult.message ?? 'Trop de tentatives. Veuillez patienter.');
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -75,6 +87,7 @@ export default function Auth() {
       }
     } finally {
       setLoading(false);
+      submitLock.current = false;
     }
   };
 
@@ -82,8 +95,20 @@ export default function Auth() {
     e.preventDefault();
     if (mode === 'forgot') return handleForgotPassword(e);
     if (!validateForm()) return;
+    if (submitLock.current) return;
+    submitLock.current = true;
     setLoading(true);
+    setRateLimitMsg(null);
     try {
+      const action: AuthAction = mode === 'login' ? 'login' : 'signup';
+
+      // Rate limit check — Layer 1 (Edge Function)
+      const rlResult = await checkAuthRateLimit(action, email);
+      if (!rlResult.allowed) {
+        setRateLimitMsg(rlResult.message ?? 'Trop de tentatives. Veuillez patienter.');
+        return;
+      }
+
       if (mode === 'login') {
         const { error } = await signIn(email, password);
         if (error) {
@@ -114,6 +139,7 @@ export default function Auth() {
       }
     } finally {
       setLoading(false);
+      submitLock.current = false;
     }
   };
 
