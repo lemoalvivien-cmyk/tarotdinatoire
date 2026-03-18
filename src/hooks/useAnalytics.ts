@@ -144,13 +144,13 @@ export async function trackEventDirect(
   }
 
   try {
-    await (supabase.from('analytics_events') as any).insert({
+    await supabase.from('analytics_events').insert({
       anon_id: globalAnonId,
       user_id: userId || null,
       event_name: eventName,
       props: { ...props, timestamp: Date.now() },
     });
-  } catch (err) {
-    console.error('[Analytics] Direct track error:', err);
+  } catch {
+    // Silent: analytics failures must not impact user experience
   }
 }
