@@ -134,11 +134,19 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            "react-vendor":    ["react", "react-dom", "react-router-dom"],
-            "ui-vendor":       ["lucide-react", "framer-motion"],
-            "supabase-vendor": ["@supabase/supabase-js"],
-            "three-vendor":    ["three", "@react-three/fiber", "@react-three/drei"],
+          manualChunks(id) {
+            if (id.includes('node_modules/three') || id.includes('@react-three')) {
+              return 'three-vendor';
+            }
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/') || id.includes('node_modules/react-router-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('node_modules/framer-motion') || id.includes('node_modules/lucide-react')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('@supabase/supabase-js')) {
+              return 'supabase-vendor';
+            }
           },
         },
       },

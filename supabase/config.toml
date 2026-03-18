@@ -18,6 +18,10 @@ verify_jwt = false
 [functions.unsubscribe]
 verify_jwt = false
 
+# Rate limiter — must be public (called BEFORE auth)
+[functions.auth-rate-limiter]
+verify_jwt = false
+
 # ─────────────────────────────────────────────────────────────────────────────
 # AUTHENTICATED FUNCTIONS — JWT validated in-code via supabase.auth.getUser()
 # ─────────────────────────────────────────────────────────────────────────────
