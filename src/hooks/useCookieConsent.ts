@@ -52,7 +52,8 @@ export function useCookieConsent() {
     const anonId = getOrCreateAnonId();
     
     try {
-      await supabase.from('consent_logs').insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- anon_id required but not in generated Insert type
+      await (supabase.from('consent_logs') as any).insert({
         anon_id: anonId,
         user_id: user?.id || null,
         choices: newChoices,
