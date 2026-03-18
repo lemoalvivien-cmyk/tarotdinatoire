@@ -9,7 +9,6 @@ initSentry();
 // ── Force dark (éthéré) mode globally — unconditional ───────────────────────
 document.documentElement.classList.add('dark');
 
-// ── Debug: confirm app is mounting ───────────────────────────────────────────
-console.log("🔮 Tarot Dinatoire — All visuals mounted");
+// App mounting — debug stripped in production by esbuild.drop
 
 createRoot(document.getElementById("root")!).render(<App />);

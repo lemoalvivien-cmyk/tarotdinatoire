@@ -32,7 +32,9 @@ export function validateRoutes(paths: string[]): void {
     throw new Error(errorMessage);
   }
   
-  console.log('[ROUTE VALIDATOR] All routes are valid ASCII');
+  if (import.meta.env.DEV) {
+    console.log('[ROUTE VALIDATOR] All routes are valid ASCII');
+  }
 }
 
 // Canonical routes for the application
