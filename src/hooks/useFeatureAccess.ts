@@ -32,7 +32,7 @@ const FREE_ACCESS: FeatureAccessResult = {
  * Returns access for a single feature.
  * In free-beta mode, always returns full access.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentional: parameter kept for API symmetry
 export function useFeatureAccess(_feature: PremiumFeature): FeatureAccessResult {
   return useMemo(() => FREE_ACCESS, []);
 }

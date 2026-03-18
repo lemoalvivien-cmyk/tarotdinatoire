@@ -52,15 +52,14 @@ export function useCookieConsent() {
     const anonId = getOrCreateAnonId();
     
     try {
-      // Use type assertion since table might not be in generated types yet
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- anon_id required but not in generated Insert type
       await (supabase.from('consent_logs') as any).insert({
         anon_id: anonId,
         user_id: user?.id || null,
         choices: newChoices,
-        user_agent: navigator.userAgent.substring(0, 500), // Truncate for safety
+        user_agent: navigator.userAgent.substring(0, 500),
       });
-    } catch (error) {
-      console.error('[CookieConsent] Failed to log consent:', error);
+    } catch {
       // Don't block user experience on logging failure
     }
   }, [user?.id]);

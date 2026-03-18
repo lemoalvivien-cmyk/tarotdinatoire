@@ -43,22 +43,17 @@ export function useCooldown(options: UseCooldownOptions = {}) {
   }, []);
 
   // Wrapper for async functions with cooldown
-  const withCooldown = useCallback(<T extends (...args: any[]) => Promise<any>>(fn: T) => {
-    return async (...args: Parameters<T>): Promise<ReturnType<T> | null> => {
-      if (isCoolingDown) {
-        console.log('[Cooldown] Action blocked - cooldown active');
-        return null;
-      }
-      
-      startCooldown();
-      try {
-        return await fn(...args);
-      } catch (error) {
-        // Don't cancel cooldown on error - prevents rapid retry spam
-        throw error;
-      }
-    };
-  }, [isCoolingDown, startCooldown]);
+  const withCooldown = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic wrapper requires any
+    <T extends (...args: unknown[]) => Promise<unknown>>(fn: T) => {
+      return async (...args: Parameters<T>): Promise<ReturnType<T> | null> => {
+        if (isCoolingDown) return null;
+        startCooldown();
+        return await fn(...args) as ReturnType<T>;
+      };
+    },
+    [isCoolingDown, startCooldown]
+  );
 
   return {
     isCoolingDown,

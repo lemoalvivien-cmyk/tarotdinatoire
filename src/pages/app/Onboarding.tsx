@@ -142,19 +142,18 @@ export default function Onboarding() {
       
       // Navigate to dashboard
       navigate('/app/dashboard', { replace: true });
-    } catch (error: any) {
-      console.error('[Onboarding] Error completing onboarding:', error);
-      
+    } catch (error: unknown) {
+      const err = error as { code?: string; message?: string };
       // Show user-friendly error message
       let errorMessage = "Une erreur est survenue. Réessayez.";
-      if (error?.code === '23505') {
+      if (err?.code === '23505') {
         errorMessage = "Profil déjà configuré. Redirection...";
         navigate('/app/dashboard', { replace: true });
         return;
-      } else if (error?.code === '42501' || error?.message?.includes('RLS')) {
+      } else if (err?.code === '42501' || err?.message?.includes('RLS')) {
         errorMessage = "Erreur de permissions. Veuillez vous reconnecter.";
-      } else if (error?.message) {
-        errorMessage = error.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
       }
       
       toast.error(errorMessage);

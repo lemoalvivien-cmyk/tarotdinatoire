@@ -121,11 +121,12 @@ export default function AdminStats() {
       const counts: EventCount[] = [];
       
       for (const event of FUNNEL_EVENTS) {
-        const { count } = await (supabase.from('analytics_events') as any)
+        const { count } = await supabase
+          .from('analytics_events')
           .select('*', { count: 'exact', head: true })
           .eq('event_name', event.key)
           .gte('created_at', weekAgo);
-        
+
         counts.push({ event_name: event.key, count: count || 0 });
       }
       
