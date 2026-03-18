@@ -57,7 +57,7 @@ export function useHoneypot() {
   const [isBotDetected, setIsBotDetected] = React.useState(false);
   const honeypotRef = React.useRef<string>('');
 
-  const checkHoneypot = (formData: FormData | Record<string, any>): boolean => {
+  const checkHoneypot = (formData: FormData | Record<string, string | File | null>): boolean => {
     const honeypotFields = ['website_url', 'url', 'website', 'homepage'];
     
     for (const field of honeypotFields) {

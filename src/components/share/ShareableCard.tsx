@@ -58,7 +58,7 @@ export const ShareableCard = forwardRef<HTMLCanvasElement, ShareableCardProps>(
       // ── Subtle star speckles ─────────────────────────────────────────────
       ctx.fillStyle = 'rgba(255,255,255,0.4)';
       const rng = (s: number) => {
-        let x = Math.sin(s) * 10000;
+        const x = Math.sin(s) * 10000;
         return x - Math.floor(x);
       };
       for (let i = 0; i < 120; i++) {
