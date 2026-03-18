@@ -335,8 +335,7 @@ export default function NewReading() {
         .single();
 
       if (sessionError) {
-        console.error('Save session error:', sessionError);
-        toast.error('Erreur lors de la sauvegarde');
+        toast.error('Erreur lors de la sauvegarde. Veuillez réessayer.');
         setIsInterpreting(false);
         return;
       }

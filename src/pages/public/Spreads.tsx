@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
@@ -25,39 +24,31 @@ export default function Spreads() {
   const { data: spreads, isLoading, error } = useQuery({
     queryKey: ['public-spreads'],
     queryFn: async (): Promise<TarotSpread[]> => {
-      // Use type assertion since new columns aren't in generated types yet
       const { data, error } = await supabase
         .from('tarot_spreads')
-        .select('*')
-        .order('sort_order' as any, { ascending: true });
+        .select('id, name_fr, description_fr, card_count, icon, is_enabled, sort_order')
+        .eq('is_enabled', true)
+        .order('sort_order', { ascending: true });
 
-      if (error) {
-        console.error('[Spreads] Error fetching spreads:', error);
-        throw error;
-      }
-      
-      // Map and filter to our interface (filter is_enabled client-side since column not in types yet)
-      return (data || [])
-        .filter((s: any) => s.is_enabled !== false)
-        .map((s: any) => ({
-          id: s.id,
-          name_fr: s.name_fr,
-          description_fr: s.description_fr,
-          card_count: s.card_count,
-          icon: s.icon,
-          is_enabled: s.is_enabled ?? true,
-          sort_order: s.sort_order ?? 0,
-        }));
+      if (error) throw error;
+
+      return (data || []).map((s) => ({
+        id: s.id,
+        name_fr: s.name_fr,
+        description_fr: s.description_fr,
+        card_count: s.card_count,
+        icon: s.icon,
+        is_enabled: s.is_enabled ?? true,
+        sort_order: s.sort_order ?? 0,
+      }));
     },
-    staleTime: 60000, // 1 minute cache
+    staleTime: 60000,
   });
 
   const handleStartReading = (spreadId: string) => {
     if (user) {
-      // User is logged in, go directly to reading
       navigate(`/app/tirage/${spreadId}`);
     } else {
-      // User not logged in, go to auth with redirect
       navigate('/auth', { state: { from: `/app/tirage/${spreadId}` } });
     }
   };
@@ -74,7 +65,7 @@ export default function Spreads() {
           {/* Header */}
           <header className="text-center space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
               Catalogue des Tirages
             </div>
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">
@@ -87,7 +78,7 @@ export default function Spreads() {
 
           {/* Loading State */}
           {isLoading && (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex items-center justify-center py-20" aria-label="Chargement des tirages">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           )}
@@ -111,14 +102,14 @@ export default function Spreads() {
                   className="group relative p-6 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 transition-all duration-300 hover:shadow-lg"
                 >
                   {/* Icon */}
-                  <div className="text-4xl mb-4">{spread.icon || '🔮'}</div>
+                  <div className="text-4xl mb-4" aria-hidden="true">{spread.icon || '🔮'}</div>
 
                   {/* Content */}
                   <div className="space-y-3">
                     <h2 className="font-serif text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
                       {spread.name_fr}
                     </h2>
-                    
+
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {spread.description_fr || 'Découvrez ce tirage unique.'}
                     </p>
@@ -134,10 +125,11 @@ export default function Spreads() {
                   <Button
                     onClick={() => handleStartReading(spread.id)}
                     className="w-full mt-6 btn-mystic group/btn"
+                    aria-label={`Commencer le tirage ${spread.name_fr}`}
                   >
                     <span className="flex items-center gap-2">
                       Commencer
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" aria-hidden="true" />
                     </span>
                   </Button>
                 </article>
@@ -156,8 +148,8 @@ export default function Spreads() {
           <section className="mt-16 prose prose-sm dark:prose-invert max-w-3xl mx-auto text-center">
             <h2 className="font-serif text-2xl font-semibold">À propos de nos Tirages de Tarot</h2>
             <p className="text-muted-foreground">
-              Notre application propose une variété de tirages de tarot adaptés à toutes vos questions. 
-              Que vous cherchiez des réponses sur l'amour, la carrière, ou simplement une guidance générale, 
+              Notre application propose une variété de tirages de tarot adaptés à toutes vos questions.
+              Que vous cherchiez des réponses sur l'amour, la carrière, ou simplement une guidance générale,
               nos tirages vous offrent des interprétations personnalisées basées sur la sagesse millénaire du tarot.
             </p>
           </section>
